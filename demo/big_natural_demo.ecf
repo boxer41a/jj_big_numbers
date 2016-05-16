@@ -26,6 +26,7 @@
 				<exclude>/CVS$</exclude>
 				<exclude>/demo$</exclude>
 				<exclude>/.svn$</exclude>
+				<exclude>/.git$</exclude>
 				<exclude>/docs$</exclude>
 			</file_rule>
 		</cluster>

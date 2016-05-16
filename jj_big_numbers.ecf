@@ -11,6 +11,7 @@
 				<exclude>/CVS$</exclude>
 				<exclude>/demo$</exclude>
 				<exclude>/.svn$</exclude>
+				<exclude>/.git$</exclude>
 				<exclude>/docs$</exclude>
 				<exclude>/tests$</exclude>
 			</file_rule>

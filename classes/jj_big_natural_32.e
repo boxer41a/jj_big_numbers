@@ -30,109 +30,52 @@ create {ARRAYED_LIST}
 convert
 	from_string ({STRING_8})
 
-feature {NONE} -- Initialization
-
-	from_natural_32 (a_natural_32: JJ_BIG_NATURAL_32)
-			-- Create Current from `a_natural_32'
-		do
-			deep_copy (a_natural_32)
-		end
-
 feature -- Access
 
 	base: NATURAL_32
 			-- The number of unique values for each `digit'; the radix
 
-	min_base: NATURAL_32
-			-- The minimum allowed for the `base' (i.e. two)
-		once
-			Result := 2
-		end
+--	min_base: NATURAL_32
+--			-- The minimum allowed for the `base' (i.e. two)
+--		once
+--			Result := 2
+--		end
 
-	zero_value: NATURAL_32
+	zero_value: NATURAL_32 = 0
 			-- The number zero in the same type as `base'
-		do
-			Result := 0
-		end
 
-	one_value: NATURAL_32
+	one_value: NATURAL_32 = 1
 			-- The number one in the same type as `base'
-		do
-			Result := 1
-		end
 
-	two_value: NATURAL_32
+	two_value: NATURAL_32 = 2
 			-- The number two in the same type as `base'
-		do
-			Result := 2
-		end
 
-	three_value: NATURAL_32
+	three_value: NATURAL_32 = 3
 			-- The number two in the same type as `base'
-		do
-			Result := 3
-		end
 
-	four_value: NATURAL_32
+	four_value: NATURAL_32 = 4
 			-- The number two in the same type as `base'
-		do
-			Result := 4
-		end
 
-	five_value: NATURAL_32
+	five_value: NATURAL_32 = 5
 			-- The number two in the same type as `base'
-		do
-			Result := 5
-		end
 
-	six_value: NATURAL_32
+	six_value: NATURAL_32 = 6
 			-- The number two in the same type as `base'
-		do
-			Result := 6
-		end
 
-	seven_value: NATURAL_32
+	seven_value: NATURAL_32 = 7
 			-- The number two in the same type as `base'
-		do
-			Result := 7
-		end
 
-	eight_value: NATURAL_32
+	eight_value: NATURAL_32 = 8
 			-- The number two in the same type as `base'
-		do
-			Result := 8
-		end
 
-	nine_value: NATURAL_32
+	nine_value: NATURAL_32 = 9
 			-- The number ten in the same type as `base'
-		do
-			Result := 9
-		end
 
-	ten_value: NATURAL_32
+	ten_value: NATURAL_32 = 10
 			-- The number two in the same type as `base'
-		do
-			Result := 10
-		end
 
---	bits_per_digit: NATURAL_32 = 8
---			-- The number of bits in each digit
-
---	max_digit: NATURAL_32
---			-- The maximum value allowed for each digit.
---			-- In base ten, this is a 9; in base 2, this is a 1.
---			-- This is always base - 1 for invariant, but the value in a
---			-- "digit" may exceed this during internal computations.
---		once
---			Result := base - 1
---		end
-
---	max_digit_for_multiplication: NATURAL_32
---			-- The maximum value that can be used for multiplying a digit in place.
---			-- The binary will have ones in the lower-order digits.
---		once
---			Result := 0x0000ffff
---		end
+	sixteen_value: NATURAL_32 = 16
+			-- The number 16 in the same type as `base'.
 
 	Max_value: JJ_BIG_NATURAL_32
 			-- The largest value representable by Current.
@@ -187,50 +130,6 @@ feature -- Element change
 			end
 		end
 
-feature {NONE} -- Implementation (terms used in `digit_multiply'
-
-	bn_a: JJ_BIG_NATURAL_32
-			-- Set to high bits of Current in `digit_multiply'
-		once
-			create Result
-		end
-
-	bn_b: JJ_BIG_NATURAL_32
-			-- Set to low bits of Current in `digit_multiply'
-		once
-			create Result
-		end
-
-	bn_c: JJ_BIG_NATURAL_32
-			-- Set to high bits of `a_other' in `digit_multiply'
-		once
-			create Result
-		end
-
-	bn_d: JJ_BIG_NATURAL_32
-			-- Set to low bits of `a_other' in `digit_multiply'
-		once
-			create Result
-		end
-
-	bn_ac: JJ_BIG_NATURAL_32
-			-- First term in `digit_multiply'
-		once
-			create Result
-		end
-
-	bn_bd: JJ_BIG_NATURAL_32
-			-- Last term in `digit_multiply'
-		once
-			create Result
-		end
-
-	bn_mid: JJ_BIG_NATURAL_32
-			-- Middle term in `digit_multiply'
-		once
-			create Result
-		end
-
 feature {NONE} -- Implementation
 
 	new_big_number (a_value: like digit; a_base: like base): like Current
@@ -255,8 +154,9 @@ feature {NONE} -- Implementation
 			-- in the same representation as Current.  It is a value
 			-- indexed by a power.
 			--     [ the value,  a power]
-			-- It is deferred in {JJ_BIG_NATURAL}, because Eiffel does not
-			-- allow a once function to have a generic or anchored result.
+			-- It is deferred in {JJ_BIG_NATURAL} and defined in this
+			-- class, because Eiffel does not allow a once function to
+			-- have a generic or anchored result.
 		once
 			create Result.make (50)
 		end
