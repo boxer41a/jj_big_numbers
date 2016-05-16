@@ -30,16 +30,7 @@ create {ARRAYED_LIST}
 convert
 	from_string ({STRING_8})
 
-feature -- Access
-
-	base: NATURAL_32
-			-- The number of unique values for each `digit'; the radix
-
---	min_base: NATURAL_32
---			-- The minimum allowed for the `base' (i.e. two)
---		once
---			Result := 2
---		end
+feature -- Constants
 
 	zero_value: NATURAL_32 = 0
 			-- The number zero in the same type as `base'
@@ -77,50 +68,31 @@ feature -- Access
 	sixteen_value: NATURAL_32 = 16
 			-- The number 16 in the same type as `base'.
 
-	Max_value: JJ_BIG_NATURAL_32
-			-- The largest value representable by Current.
-			-- Limited by number of INTEGER_32.max_value, because INTEGER_32
-			-- is used for `count' from ARRAYED_LIST, which restricts the
-			-- number of digits that Current can hold.
-			-- This feature is really slow as it needs to create a result
-			-- containing INTEGER_32.max_value - 1 items.
-		local
-			d: NATURAL_32
-			i: INTEGER
-		once
-			create Result
-			Result.put_i_th (max_digit, 1)
-			from i := 2
-			until i > i.max_value - 1
-			loop
-				Result.extend (max_digit)
-				i := i + 1
-			end
-		end
+	max_digit_value: NATURAL_32 = 4_294_967_295
+			-- The maximum value allowed for a `digit'.
+			-- (0x7FFFFFFF)
+
+feature -- Access
+
+	base: NATURAL_32
+			-- The number of unique values for each `digit'; the radix
 
 	zero: JJ_BIG_NATURAL_32
-			-- Neutral element for "+" and "-"
-		once
+			-- A neutral element for "+" and "-".
+			-- Use caution as this object can be modified.
+		do
 			create Result
 		end
 
 	one: JJ_BIG_NATURAL_32
 			-- Neutral element for "*" and "/"
+			-- Use caution as this object can be modified.
 		do
 			create Result
 			Result.put_i_th (one_value, 1)
 		end
 
-	bit_count: like Current
-			-- The number of bits used to represent Current.
-			-- This does not count leading zeros in the digits.
-		do
---			create Result.make_with_value (count * base.bit_count - one_base)
-			create Result
-			print ("Fix me!  Test conversions from integer count to base 8 %N")
-		end
-
-feature -- Element change
+feature {JJ_BIG_NATURAL_32} -- Element change
 
 	force_extend (a_digit: JJ_NATURAL)
 			-- Attempt to add `a_digit' to Current, bypassing some type checking

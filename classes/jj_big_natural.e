@@ -9,22 +9,30 @@ note
 		(JJ_NATURAL_32}, and {JJ_NATURAL_64}.)  Internally, a number is stored
 		in its `max_base', and computations are performed in this `max_base'.
 
-		For output the number is converted on the fly to the user-set `base' in
-		feature `out_as_base'.
+		Create a {JJ_BIG_NUMBER} with `from_string' or one of the creation
+		routines that take a value of the same type as `digit'.  Features such
+		as `zero_value', `one_value', ... sixteen_value, and `max_digit_value'
+		provide a convinent way to get values of the correct type.
 
-		Digits are low-order to high-order.
+		For output the number is converted on the fly to the user-set `base' in
+		feature `out_as_base' or output in base ten in `out'.
+
+		Feature `digit' is `item' renamed, and it is not exported; use `i_th'
+		to obtain a particular digit.
+
+		Digits are stored low-order to high-order.
 
 		Internally, each `digit' is used as a register.  To prevent overflows,
 		the value stored in each digit [when the invariant holds] must be less
 		than `max_digit', which is defined as `max_base' - 1.  During operations,
 		a `digit' may go up to the maximum number representable in the number
-		of bits in the representation,
-
-fix me
+		of bits in the representation, but when the invariant holds a digit will
+		have a zero in at least the high-order bit.  (Multiplication overflows
+		if all the bits are used.)
 
 		      max_base = 10000000 = 128
-		     max_value = x1111111 = 127
-		The number
+		     max_digit = x1111111 = 127
+
 	]"
 	author: "Jimmy J.Johnson"
 	date: "$Date$"
@@ -219,6 +227,76 @@ feature {NONE} -- Initialization
 			end
 		end
 
+feature -- Constants
+
+	zero_value: like digit
+			-- The number zero in the same type as `base'.
+		deferred
+		end
+
+	one_value: like digit
+			-- The number one in the same type as `base'.
+		deferred
+		end
+
+	two_value: like digit
+			-- The number two in the same type as `digit'.
+		deferred
+		end
+
+	three_value: like digit
+			-- The number two in the same type as `digit'.
+		deferred
+		end
+
+	four_value: like digit
+			-- The number two in the same type as `digit'.
+		deferred
+		end
+
+	five_value: like digit
+			-- The number two in the same type as `digit'.
+		deferred
+		end
+
+	six_value: like digit
+			-- The number two in the same type as `digit'.
+		deferred
+		end
+
+	seven_value: like digit
+			-- The number two in the same type as `digit'.
+		deferred
+		end
+
+	eight_value: like digit
+			-- The number two in the same type as `digit'.
+		deferred
+		end
+
+	nine_value: like digit
+			-- The number ten in the same type as `digit'.
+		deferred
+		end
+
+	ten_value: like digit
+			-- The number two in the same type as `digit'.
+		deferred
+		end
+
+	sixteen_value: like digit
+			-- The number_16 in the same type as `digit'.
+		deferred
+		end
+
+	max_digit_value: like digit
+			-- The maximum value allowed for a `digit'.
+		deferred
+		end
+
+	Default_karatsuba_threshold: INTEGER = 4
+			-- Default value for `karatsuba_threshold
+
 feature -- Access
 
 	base: like digit
@@ -240,7 +318,7 @@ feature -- Access
 			Result := base.one.bit_shift_left (base.bit_count - 1)
 		end
 
-	max_digit: like base
+	max_digit: like digit
 			-- The maximum value allowed for each digit.
 			-- In base ten, this is a 9; in base 2, this is a 1.
 			-- This is always base - 1 for invariant, but the value in a
@@ -258,23 +336,13 @@ feature -- Access
 			Result := Result.bit_not
 		end
 
-	Max_value: like Current
-			-- The largest value representable by Current.
-			-- Limited by number of INTEGER_32.max_value, because INTEGER_32
-			-- is used for `count' from ARRAYED_LIST, which restricts the
-			-- number of digits that Current can hold.
-			-- This feature is really slow as it needs to create a result
-			-- containing INTEGER_32.max_value - 1 items.
-		deferred
-		end
-
 	zero: like Current
-			-- Neutral element for "+" and "-"
+			-- Neutral element for "+" and "-".
 		deferred
 		end
 
 	one: like Current
-			-- Neutral element for "*" and "/"
+			-- Neutral element for "*" and "/".
 		deferred
 		end
 
@@ -285,69 +353,6 @@ feature -- Access
 			Result := karatsuba_threshold_imp
 		ensure
 			result_big_enough: Result >= 2
-		end
-
-	Default_karatsuba_threshold: INTEGER = 4
-			-- Default value for `karatsuba_threshold
-
-	zero_value: like base
-			-- The number zero in the same type as `base'.
-		deferred
-		end
-
-	one_value: like base
-			-- The number one in the same type as `base'.
-		deferred
-		end
-
-	two_value: like base
-			-- The number two in the same type as `base'.
-		deferred
-		end
-
-	three_value: like base
-			-- The number two in the same type as `base'.
-		deferred
-		end
-
-	four_value: like base
-			-- The number two in the same type as `base'.
-		deferred
-		end
-
-	five_value: like base
-			-- The number two in the same type as `base'.
-		deferred
-		end
-
-	six_value: like base
-			-- The number two in the same type as `base'.
-		deferred
-		end
-
-	seven_value: like base
-			-- The number two in the same type as `base'.
-		deferred
-		end
-
-	eight_value: like base
-			-- The number two in the same type as `base'.
-		deferred
-		end
-
-	nine_value: like base
-			-- The number ten in the same type as `base'.
-		deferred
-		end
-
-	ten_value: like base
-			-- The number two in the same type as `base'.
-		deferred
-		end
-
-	sixteen_value: like base
-			-- The number16 in the same type as `base'.
-		deferred
 		end
 
 	frozen hash_code: INTEGER
@@ -385,7 +390,7 @@ feature -- Element change
 			i:INTEGER
 			s: STRING_8
 			c: CHARACTER_8
-			n: like base			-- one digit of `a_string'
+			n: like digit		-- one digit of `a_string'
 			bn: like Current		-- `n' converted to BIG_NUMBER
 			e: like Current		-- Exponent for the place value calculation
 			l_one: like Current
@@ -446,7 +451,7 @@ feature -- Element change
 			end
 		end
 
-	set_base_and_value (a_base: like base; a_value: like digit)
+	set_value_and_base (a_value: like digit; a_base: like base)
 			-- Change the `base' and the `value' without calling `set_base',
 			-- thus avoiding the copy.
 		require
@@ -516,13 +521,6 @@ feature -- Element change
 				force_extend (other_d)
 				i := i + 1
 			end
-		end
-
-	force_extend (a_digit: JJ_NATURAL)
-			-- Attempt to add `a_digit' to Current, bypassing some type checking
-		require
-			same_digit_types: a_digit.conforms_to (base)
-		deferred
 		end
 
 feature -- Conversion
@@ -1635,6 +1633,13 @@ feature -- Output
 
 feature {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 
+	force_extend (a_digit: JJ_NATURAL)
+			-- Attempt to add `a_digit' to Current, bypassing some type checking
+		require
+			same_digit_types: a_digit.conforms_to (base)
+		deferred
+		end
+
 	assign_to_base (a_new_base: like base)
 			-- Assign `a_new_base' to `base'.
 			-- This is used internally in `as_base' to finish the feature
@@ -2043,10 +2048,8 @@ feature {NONE} -- Implementation
 			result_small_enough: Result <= base.bit_count
 		end
 
-	new_value_from_character (a_character: CHARACTER_8): like base
+	new_value_from_character (a_character: CHARACTER_8): like digit
 			-- Get the number given by `a_character'
-		local
-			n: like base
 		do
 			Result := zero_value
 			inspect a_character

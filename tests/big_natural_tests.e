@@ -4,10 +4,9 @@ note
 		{JJ_BIG_NATURAL_8}, {JJ_BIG_NATURAL_16}, {JJ_BIG_NATURAL_32}, and
 		{JJ_BIG_NATURAL_64}.
 		
-		In addition to running assert statements, each test features also
-		prints information pertinant to that test, so that these features
-		can be called from a {BIG_NUMBER_DEMO} to print demonstration
-		values.
+		In addition to running assert statements, each test feature prints
+		information pertinant to that test, so that these features can be
+		called from a {BIG_NUMBER_DEMO} to print demonstration values.
 	]"
 	author: "EiffelStudio test wizard"
 	date: "$Date$"
@@ -50,6 +49,12 @@ feature -- Access
 			inspect number_type
 			when natural_8_type then
 				create {JJ_BIG_NATURAL_8} Result
+--			when natural_16_type then
+--				create {JJ_BIG_NATURAL_16} Result
+			when natural_32_type then
+				create {JJ_BIG_NATURAL_32} Result
+--			when natural_64_type then
+--				create {JJ_BIG_NATURAL_64} Result
 			else
 				check
 					should_not_happen: False then

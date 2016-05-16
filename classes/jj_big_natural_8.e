@@ -31,97 +31,68 @@ create {ARRAYED_LIST}
 convert
 	from_string ({STRING_8})
 
+feature -- Constants
+
+	zero_value: NATURAL_8 = 0
+			-- The number zero in the same type as `digit'
+
+	one_value: NATURAL_8 = 1
+			-- The number one in the same type as `digit'
+
+	two_value: NATURAL_8 = 2
+			-- The number two in the same type as `digit'
+
+	three_value: NATURAL_8 = 3
+			-- The number two in the same type as `digit'
+
+	four_value: NATURAL_8 = 4
+			-- The number two in the same type as `digit'
+
+	five_value: NATURAL_8 = 5
+			-- The number two in the same type as `digit'
+
+	six_value: NATURAL_8 = 6
+			-- The number two in the same type as `digit'
+
+	seven_value: NATURAL_8 = 7
+			-- The number two in the same type as `digit'
+
+	eight_value: NATURAL_8 = 8
+			-- The number two in the same type as `digit'
+
+	nine_value: NATURAL_8 = 9
+			-- The number ten in the same type as `digit'
+
+	ten_value: NATURAL_8 = 10
+			-- The number two in the same type as `digit'
+
+	sixteen_value: NATURAL_8 = 16
+			-- The number 16 in the same type as `digit'.
+
+	max_digit_value: NATURAL_8 = 255	-- (i.e. 0x7F)
+			-- The maximum value allowed for a `digit'.
+
 feature -- Access
 
 	base: NATURAL_8
 			-- The number of unique values for each `digit'; the radix
 
---	min_base: NATURAL_8
---			-- The minimum allowed for the `base' (i.e. two)
---		once
---			Result := 2
---		end
-
-	zero_value: NATURAL_8 = 0
-			-- The number zero in the same type as `base'
-
-	one_value: NATURAL_8 = 1
-			-- The number one in the same type as `base'
-
-	two_value: NATURAL_8 = 2
-			-- The number two in the same type as `base'
-
-	three_value: NATURAL_8 = 3
-			-- The number two in the same type as `base'
-
-	four_value: NATURAL_8 = 4
-			-- The number two in the same type as `base'
-
-	five_value: NATURAL_8 = 5
-			-- The number two in the same type as `base'
-
-	six_value: NATURAL_8 = 6
-			-- The number two in the same type as `base'
-
-	seven_value: NATURAL_8 = 7
-			-- The number two in the same type as `base'
-
-	eight_value: NATURAL_8 = 8
-			-- The number two in the same type as `base'
-
-	nine_value: NATURAL_8 = 9
-			-- The number ten in the same type as `base'
-
-	ten_value: NATURAL_8 = 10
-			-- The number two in the same type as `base'
-
-	sixteen_value: NATURAL_8 = 16
-			-- The number 16 in the same type as `base'.
-
-	Max_value: JJ_BIG_NATURAL_8
-			-- The largest value representable by Current.
-			-- Limited by number of INTEGER_32.max_value, because INTEGER_32
-			-- is used for `count' from ARRAYED_LIST, which restricts the
-			-- number of digits that Current can hold.
-			-- This feature is really slow as it needs to create a result
-			-- containing INTEGER_32.max_value - 1 items.
-		local
-			d: NATURAL_8
-			i: INTEGER
-		once
-			create Result
-			Result.put_i_th (max_digit, 1)
-			from i := 2
-			until i > i.max_value - 1
-			loop
-				Result.extend (max_digit)
-				i := i + 1
-			end
-		end
-
 	zero: JJ_BIG_NATURAL_8
 			-- Neutral element for "+" and "-"
-		once
+			-- Use caution as this object can be modified.
+		do
 			create Result
 		end
 
 	one: JJ_BIG_NATURAL_8
 			-- Neutral element for "*" and "/"
+			-- Use caution as this object can be modified.
 		do
 			create Result
 			Result.put_i_th (one_value, 1)
 		end
 
-	bit_count: like Current
-			-- The number of bits used to represent Current.
-			-- This does not count leading zeros in the digits.
-		do
---			create Result.make_with_value (count * base.bit_count - one_base)
-			create Result
-			print ("Fix me!  Test conversions from integer count to base 8 %N")
-		end
-
-feature -- Element change
+feature {JJ_BIG_NATURAL_8} -- Element change
 
 	force_extend (a_digit: JJ_NATURAL)
 			-- Attempt to add `a_digit' to Current, bypassing some type checking
