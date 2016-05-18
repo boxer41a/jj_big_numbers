@@ -30,25 +30,29 @@ feature {NONE} -- Initialization
 				-- Create the `tester' object
 			create tester
 				-- Test initialization features.
-			io.put_string ("------------- Initization -------------------- %N")
-			tester.set_verbose
-			tester.test_default_create
-			tester.from_string
-			tester.set_terse
-				-- Test element-change features.
-			io.put_string ("------------- Element change ----------------- %N")
-			tester.set_value
+--			io.put_string ("------------- Initization -------------------- %N")
+--			tester.set_verbose
+--			tester.test_default_create
+--			tester.from_string
+--			tester.set_terse
+--				-- Test element-change features.
+--			io.put_string ("------------- Element change ----------------- %N")
+--			tester.set_value
 
-			io.put_string ("------------- Conversion --------------------- %N")
+--			io.put_string ("------------- Conversion --------------------- %N")
 
-				-- Test basic-operations featurs.
-			io.put_string ("------------- Basic operations --------------- %N")
-			tester.scalar_add
-			tester.scalar_multiply
+--				-- Test basic-operations featurs.
+--			io.put_string ("------------- Basic operations --------------- %N")
+--			tester.scalar_add
+--			tester.scalar_multiply
 
-			tester.add
-			tester.minus
-			tester.multiply
+--			tester.add
+--			tester.minus
+--			tester.multiply
+
+			tester.bit_shift_left
+			tester.normalize
+
 --			tester.divide_two_digits_by_one
 
 --			tester.scalar_divide

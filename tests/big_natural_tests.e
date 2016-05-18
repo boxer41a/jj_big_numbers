@@ -231,10 +231,10 @@ feature -- Basic operations (element change tests)
 			assert (s, n.out ~ "0")
 			assert (s, n.base = n.max_base)
 				-- max_value
-			n.set_value (n.max_digit)
+			n.set_value (n.base_minus_one_value)
 			s := str + "max value"
 			report (s, n)
-			assert (s, n.out ~ n.max_digit.out)
+			assert (s, n.out ~ n.base_minus_one_value.out)
 			assert (s, n.base = n.max_base)
 				-- 112, base 16
 			n := new_number
@@ -275,12 +275,12 @@ feature -- Basic operations (basic operations tests)
 			assert (s, n.out ~ "7")
 				-- add max_digit
 			s := str + "scalar_add (max_digit)"
-			n.scalar_add (n.max_digit)
+			n.scalar_add (n.base_minus_one_value)
 			report (s, n)
 			assert (s, n.out ~ "134")
 				-- add 111
 			s := str + "scalar_add (111) "
-			n.scalar_add (n.max_digit - n.sixteen_value)
+			n.scalar_add (n.base_minus_one_value - n.sixteen_value)
 			report (s, n)
 			assert (s, n.out ~ "245")
 				-- Change the base to 8
@@ -459,13 +459,111 @@ feature -- Basic operations (basic operations tests)
 			io.new_line
 		end
 
+feature -- Basic operations (selectively exported)
+
+	bit_shift_left
+			-- Test/demo `bit_shift_left' from {JJ_BIG_NATURAL}
+		local
+			str, s: STRING_8
+			n: like new_number
+			sft: INTEGER_32
+		do
+			set_verbose
+			str := ".bit_shift_left:  "
+				-- First test
+--			n := new_number_from_string ("5")
+--			n.set_unstable
+--			sft := 2
+--			s := str + "(" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
+--			n.bit_shift_left (sft)
+--			report (s, n)
+--			assert (s, n.out ~ "20")
+				-- Now with smaller base
+--			n := new_number
+--			n.set_base (n.eight_value)
+--			n.set_value (n.five_value)
+--			sft := 2
+--			s := str + "(" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
+--			report (s, n)
+--			n.set_unstable
+--			n.bit_shift_left (sft)
+--			report (s, n)
+--			assert (s, n.out_as_bits ~ "00010100")
+				-- Now with base_minus_one_value
+			n := new_number
+			n.set_base (n.eight_value)
+			n.set_value (n.base_minus_one_value)
+			sft := 2
+			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
+			n.set_unstable
+			n.bit_shift_left (sft)
+			report (s, n)
+			assert (s, n.out_as_bits ~ "00011100")
+				-- Now with max_digit_value, base 16
+			n := new_number
+			n.set_base (n.sixteen_value)
+			n.set_value (n.max_digit_value)
+			sft := 2
+			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
+			n.set_unstable
+			n.bit_shift_left (sft)
+			report (s, n)
+			assert (s, n.out_as_bits ~ "00011100,00111100")
+				-- Now with max_digit_value, max base
+			n := new_number
+			n.set_base (n.max_base)
+			n.set_value (n.max_digit_value)
+			sft := 1
+			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
+			n.set_unstable
+			n.bit_shift_left (sft)
+			report (s, n)
+			assert (s, n.out_as_bits ~ "11111110")
+				-- Now with max_digit_value, max base
+			n := new_number
+			n.set_base (n.max_base)
+			n.set_value (n.max_digit_value)
+			sft := 2
+			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
+			n.set_unstable
+			n.bit_shift_left (sft)
+			report (s, n)
+			assert (s, n.out_as_bits ~ "00000001,11111100")
+		end
+
+	normalize
+			-- Test/demo the `normalize' feature from {JJ_BIG_NATURAL}.
+		local
+			str, s: STRING_8
+			n: like new_number
+			i: INTEGER_32
+		do
+			str := generating_type + ".normalize:  "
+			n := new_number
+			n.set_unstable
+				-- Normalize 5 base 16
+			n.set_value_and_base (n.five_value, n.sixteen_value)
+			s := str + n.out + ", base " + n.base.out + "  (" + n.out_as_bits + ").normalize"
+			i := n.normalize
+			io.put_string (s +  " = " + n.out_as_bits + "%N")
+			assert (s, n.out_as_bits ~ "00001010")
+				-- Normalize `max_digit_value + 5, max_base
+			n := new_number
+			n.set_unstable
+			n.set_value_and_base (n.max_digit_value + n.five_value, n.base)
+			s := str + n.out + ", base " + n.base.out + "  (" + n.out_as_bits + ").normalize"
+			i := n.normalize
+			io.put_string (s +  " = " + n.out_as_bits + "%N")
+			assert (s, n.out_as_bits ~ "01000001,00000000")
+		end
+
 	divide_two_digits_by_one
 			-- Test/demo the `divide_two_digits_by_one' feature from {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
 			n: like new_number
-			high_d, low_d: like new_number.i_th
-			div: like new_number.i_th
+			denom: like new_number
+			i: INTEGER_32
 			tup: like new_number.divide_two_digits_by_one
 		do
 			str := ".divide_two_digits_by_one:  "
@@ -475,76 +573,82 @@ feature -- Basic operations (basic operations tests)
 			when natural_8_type then
 					-- This case has two digits.
 				n := new_number_from_string ("29")
-				n.set_base (n.eight_value)
-				div := n.five_value
-				low_d := n.i_th (1)
-				high_d := n.i_th (2)
-				s := str + "43/10  -- (" + high_d.out + ", " + low_d.out + ", " + div.out + ")"
-				tup := n.divide_two_digits_by_one (high_d, low_d, div)
+				n.set_base (n.sixteen_value)
+				denom := new_number_from_string ("3")
+				denom.set_base (n.sixteen_value)
+				if not denom.is_normalized then
+					i := denom.normalize
+					n.bit_shift_left (i)
+					check
+						denom_is_noramlized: denom.is_normalized
+					end
+				end
+				s := str + "29/5  -- (" + n.i_th (2).out + ", " + n.i_th (1).out + ", " + denom.out + ")"
+				tup := n.divide_two_digits_by_one (n, denom)
 				report_digit_tuple (s, tup)
-				assert (s + "quot", tup.quot.out ~ "20")
-				assert (s + "rem", tup.rem.out ~ "3")
-					-- This case has only one digit even in eight bits.
-				n := new_number_from_string ("98")
-				div := n.ten_value
-				low_d := n.i_th (1)
-				high_d := n.zero_value
-				s := str + "98/10  -- (" + high_d.out + ", " + low_d.out + ", " + div.out + ")"
-				tup := n.divide_two_digits_by_one (high_d, low_d, div)
-				report_digit_tuple (s, tup)
-				assert (s + "quot", tup.quot.out ~ "9")
-				assert (s + "rem", tup.rem.out ~ "8")
-					-- This case has only one digit even in eight bits.
-				n := new_number_from_string ("119")
-				div := n.ten_value
-				low_d := n.i_th (1)
-				high_d := n.zero_value
-				s := str + "119/10  -- (" + high_d.out + ", " + low_d.out + ", " + div.out + ")"
-				tup := n.divide_two_digits_by_one (high_d, low_d, div)
-				report_digit_tuple (s, tup)
-				assert (s + "quot", tup.quot.out ~ "11")
-				assert (s + "rem", tup.rem.out ~ "9")
+				assert (s + "quot", tup.quot.out ~ "5")
+				assert (s + "rem", tup.rem.out ~ "4")
+--					-- This case has only one digit even in eight bits.
+--				n := new_number_from_string ("98")
+--				div := n.ten_value
+--				low_d := n.i_th (1)
+--				high_d := n.zero_value
+--				s := str + "98/10  -- (" + high_d.out + ", " + low_d.out + ", " + div.out + ")"
+--				tup := n.divide_two_digits_by_one (high_d, low_d, div)
+--				report_digit_tuple (s, tup)
+--				assert (s + "quot", tup.quot.out ~ "9")
+--				assert (s + "rem", tup.rem.out ~ "8")
+--					-- This case has only one digit even in eight bits.
+--				n := new_number_from_string ("119")
+--				div := n.ten_value
+--				low_d := n.i_th (1)
+--				high_d := n.zero_value
+--				s := str + "119/10  -- (" + high_d.out + ", " + low_d.out + ", " + div.out + ")"
+--				tup := n.divide_two_digits_by_one (high_d, low_d, div)
+--				report_digit_tuple (s, tup)
+--				assert (s + "quot", tup.quot.out ~ "11")
+--				assert (s + "rem", tup.rem.out ~ "9")
 			else
 
 			end
 
 		end
 
-	scalar_divide
-			-- Test/demo the `scalar_divide' feature from {JJ_BIG_NATURAL}
-			-- I checked the calculations at "https://defuse.ca/big-number-calculator.htm".
-		local
-			str, s: STRING_8
-			n: like new_number
-			d: like new_number.digit
-			tup: like new_number.scalar_divide
-		do
-			str := ".scalar_divide:  "
-				-- test number one
-			n := new_number_from_string ("8")
-			d := n.eight_value
-			s := str + "(" + n.out + ").scalar_divide (" + d.out + ")"
-			tup := n.scalar_divide (d)
-			report_tuple (s, tup)
-			assert (s + "  quot", tup.quot.out ~ "1")
-			assert (s + "  rem", tup.rem.out ~ "0")
-				-- test number two
-			n := new_number_from_string ("49")
-			d := n.three_value
-			s := str + "(" + n.out + ").scalar_divide (" + d.out + ")"
-			tup := n.scalar_divide (d)
-			report_tuple (s, tup)
-			assert (s, tup.quot.out ~ "18")
-			assert (s, tup.rem.out ~ "1")
-				-- test number three
-			n := new_number_from_string ("84746229876")
-			d := n.sixteen_value
-			s := str + "(" + n.out + ").scalar_divide (" + d.out + ")"
-			tup := n.scalar_divide (d)
-			report_tuple (s, tup)
-			assert (s, tup.quot.out ~ "5296639367")
-			assert (s, tup.rem.out ~ "4")
-		end
+--	scalar_divide
+--			-- Test/demo the `scalar_divide' feature from {JJ_BIG_NATURAL}
+--			-- I checked the calculations at "https://defuse.ca/big-number-calculator.htm".
+--		local
+--			str, s: STRING_8
+--			n: like new_number
+--			d: like new_number.digit
+--			tup: like new_number.scalar_divide
+--		do
+--			str := ".scalar_divide:  "
+--				-- test number one
+--			n := new_number_from_string ("8")
+--			d := n.eight_value
+--			s := str + "(" + n.out + ").scalar_divide (" + d.out + ")"
+--			tup := n.scalar_divide (d)
+--			report_tuple (s, tup)
+--			assert (s + "  quot", tup.quot.out ~ "1")
+--			assert (s + "  rem", tup.rem.out ~ "0")
+--				-- test number two
+--			n := new_number_from_string ("49")
+--			d := n.three_value
+--			s := str + "(" + n.out + ").scalar_divide (" + d.out + ")"
+--			tup := n.scalar_divide (d)
+--			report_tuple (s, tup)
+--			assert (s, tup.quot.out ~ "18")
+--			assert (s, tup.rem.out ~ "1")
+--				-- test number three
+--			n := new_number_from_string ("84746229876")
+--			d := n.sixteen_value
+--			s := str + "(" + n.out + ").scalar_divide (" + d.out + ")"
+--			tup := n.scalar_divide (d)
+--			report_tuple (s, tup)
+--			assert (s, tup.quot.out ~ "5296639367")
+--			assert (s, tup.rem.out ~ "4")
+--		end
 
 	knuth_divide
 		do
@@ -736,8 +840,8 @@ feature {NONE} -- Implementation
 			print ("                 base: " + a_number.base.generating_type + " = " + a_number.base.out + "%N")
 			print ("             min_base: " + a_number.min_base.generating_type + " = " + a_number.min_base.out + "%N")
 			print ("             max_base: " + a_number.max_base.generating_type + " = " + a_number.max_base.out + "%N")
-			print ("            max_digit: " + a_number.max_digit.generating_type + " = " + a_number.max_digit.out + "%N")
-			print ("         max_dig_mult: " + a_number.max_digit_for_multiplication.generating_type + " = " + a_number.max_digit_for_multiplication.out + "%N")
+			print (" base_minus_one_value: " + a_number.base_minus_one_value.generating_type + " = " + a_number.base_minus_one_value.out + "%N")
+			print ("         max_dig_value: " + a_number.max_digit_value.generating_type + " = " + a_number.max_digit_value.out + "%N")
 --				print ("            max_value: " + a_number.max_value.generating_type + " = " + a_number.max_value.out + "%N")
 			print ("                 zero: " + a_number.zero.generating_type + " = " + a_number.zero.out + "%N")
 			print ("                  one: " + a_number.one.generating_type + " = " + a_number.one.out + "%N")
@@ -760,7 +864,7 @@ feature {NONE} -- Implementation
 			print ("          out_as_bits: " + a_number.out_as_bits + "%N")
 		end
 
-	report_tuple (a_comment: STRING_8; a_tuple: like new_number.scalar_divide)
+	report_tuple (a_comment: STRING_8; a_tuple: like new_number.divide_two_digits_by_one)
 			-- Display information about `a_tuple' which contains a quotient
 			-- and a remainder, likely resulting from some division operation.
 		do

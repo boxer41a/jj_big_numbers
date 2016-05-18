@@ -69,8 +69,19 @@ feature -- Constants
 	sixteen_value: NATURAL_8 = 16
 			-- The number 16 in the same type as `digit'.
 
-	max_digit_value: NATURAL_8 = 255	-- (i.e. 0x7F)
-			-- The maximum value allowed for a `digit'.
+	max_digit_value: NATURAL_8 = 127		-- (x7F)
+			-- The largest value allowed for a `digit' of Current without
+			-- making Current `is_nonconforming'.
+			--   For eight-bit representation:  01111111
+			--   For 16-bit representation:     01111111 11111111
+			-- To obtain the absolutely largest value representable by a
+			-- `digit' of Current use {like digit}.max_value.
+
+	max_base: NATURAL_8 = 128		-- (x80)
+			-- The maximum allowed value for `base'.
+			-- It is the number represented by a one in only the high-order bit.
+			-- Examples:
+			--    NATURAL_8  ==>  10000000 = 128
 
 feature -- Access
 
