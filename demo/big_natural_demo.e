@@ -1,8 +1,8 @@
 note
 	description: "[
-		Class to demo the {JJ_BIG_NATURAL} class.  It creates and uses
-		a {JJ_BIG_NATURAL_TEST} object and lets taht object print the
-		demo values as it run assert statements.
+		Class to demonstrate the {JJ_BIG_NATURAL} class.  It creates and uses
+		a {JJ_BIG_NATURAL_TEST} object and lets that object print the
+		demo values as it runs assert statements.
 	]"
 	author: "Jimmy J.Johnson"
 	date: "$Date$"
@@ -53,7 +53,7 @@ feature {NONE} -- Initialization
 			tester.bit_shift_left
 			tester.normalize
 
---			tester.divide_two_digits_by_one
+			tester.divide_two_digits_by_one
 
 --			tester.scalar_divide
 
@@ -65,13 +65,13 @@ feature {NONE} -- Initialization
 feature -- Access
 
 	tester: BIG_NATURAL_TESTS
-			-- To test eight-bit big numbers
+			-- To test big numbers.
 
 
 feature -- Basic operations
 
 --	test_efficiency
---			-- Run some test to collect timing data on the various functions
+--			-- Run some test to collect timing data on the various functions.
 --		local
 --			t: BIG_NUMBER_TIMER
 --		do

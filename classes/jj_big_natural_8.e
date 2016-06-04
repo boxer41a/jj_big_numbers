@@ -1,6 +1,6 @@
 note
 	description: "[
-		Big numbers implmented on eight bits.
+		Big numbers implemented on eight bits.
 		]"
 	author: "Jimmy J. Johnson"
 	date: "$Date$"
@@ -123,23 +123,23 @@ feature {NONE} -- Implementation
 		end
 
 	new_sub_number (a_start, a_end: INTEGER; other: like Current): like Current
-			-- Copy of the digits indexed between `a_start' and `a_end'.min(count)
-			-- inclusive without leading zeros of digits from `other'.
+			-- Copy of the digits indexed from `a_start' to `a_end'.min(count)
+			-- inclusive without any leading zero digits from `other'.
 			-- This wraps `make_from_other', allowing routines to obtain a new
-			-- {JJ_BIG_NUMBER} in places where an object of a deferred class
-			-- is needed but cannot be created
+			-- {JJ_BIG_NUMBER} in places where an object of a deferred class is
+			-- needed but cannot be created.
 		do
 			create Result.make_from_other (a_start, a_end, other)
 		end
 
 	power_of_ten_table: HASH_TABLE [JJ_BIG_NATURAL_8, JJ_BIG_NATURAL_8]
-			-- Table used by `from_string' to memoize the powers of ten
-			-- in the same representation as Current.  It is a value
-			-- indexed by a power.
+			-- Table used by `from_string' to memoize the powers of ten in the
+			-- same representation as Current.  It contains a value indexed by
+			-- a power.
 			--     [ the value,  a power]
-			-- It is deferred in {JJ_BIG_NATURAL} and defined in this
-			-- class, because Eiffel does not allow a once function to
-			-- have a generic or anchored result.
+			-- It is deferred in {JJ_BIG_NATURAL} and defined in this class,
+			-- because Eiffel does not allow a once function to have a generic
+			-- or anchored result.
 		once
 			create Result.make (50)
 		end

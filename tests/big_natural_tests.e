@@ -3,10 +3,10 @@ note
 		This class tests {JJ_BIG_NATURAL} and its four descendents:
 		{JJ_BIG_NATURAL_8}, {JJ_BIG_NATURAL_16}, {JJ_BIG_NATURAL_32}, and
 		{JJ_BIG_NATURAL_64}.
-		
+
 		In addition to running assert statements, each test feature prints
 		information pertinant to that test, so that these features can be
-		called from a {BIG_NUMBER_DEMO} to print demonstration values.
+		called from {BIG_NUMBER_DEMO} to print demonstration values.
 	]"
 	author: "EiffelStudio test wizard"
 	date: "$Date$"
@@ -342,8 +342,9 @@ feature -- Basic operations (basic operations tests)
 		end
 
 	add
-			-- Test/demo the `add', `plus', and `+' features from {JJ_BIG_NATURAL}.
-			-- I checked the calculations at "https://defuse.ca/big-number-calculator.htm".
+			-- Test and demonstrate features `add', `plus', and `+' from
+			-- {JJ_BIG_NATURAL}.  I checked the calculations at
+			-- "https://defuse.ca/big-number-calculator.htm".
 		local
 			str, s: STRING_8
 			a, b: like new_number
@@ -377,8 +378,9 @@ feature -- Basic operations (basic operations tests)
 
 
 	minus
-			-- Test/demo the `subtract', `minus', and `-' features from {JJ_BIG_NATURAL}.
-			-- I checked the calculations at "https://defuse.ca/big-number-calculator.htm".
+			-- Test and demonstrate features `subtract', `minus', and `-'
+			-- from {JJ_BIG_NATURAL}.  I checked the calculations at
+			-- "https://defuse.ca/big-number-calculator.htm".
 		local
 			str, s: STRING_8
 			a, b: like new_number
@@ -410,8 +412,9 @@ feature -- Basic operations (basic operations tests)
 		end
 
 	multiply
-			-- Test/demo the `multiply', `product', and `*' features from {JJ_BIG_NATURAL}.
-			-- I checked the calculations at "https://defuse.ca/big-number-calculator.htm".
+			-- Test and demonstrate the `multiply', `product', and `*' features
+			-- from {JJ_BIG_NATURAL}.  I checked the calculations at
+			-- "https://defuse.ca/big-number-calculator.htm".
 		local
 			str, s: STRING_8
 			a, b, n: like new_number
@@ -462,7 +465,8 @@ feature -- Basic operations (basic operations tests)
 feature -- Basic operations (selectively exported)
 
 	bit_shift_left
-			-- Test/demo `bit_shift_left' from {JJ_BIG_NATURAL}
+			-- Test and demonstrate feature `bit_shift_left' from
+			-- {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
 			n: like new_number
@@ -532,7 +536,7 @@ feature -- Basic operations (selectively exported)
 		end
 
 	normalize
-			-- Test/demo the `normalize' feature from {JJ_BIG_NATURAL}.
+			-- Test and demonstrate feature `normalize' from {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
 			n: like new_number
@@ -558,7 +562,8 @@ feature -- Basic operations (selectively exported)
 		end
 
 	divide_two_digits_by_one
-			-- Test/demo the `divide_two_digits_by_one' feature from {JJ_BIG_NATURAL}.
+			-- Test and demonstrate feature `divide_two_digits_by_one' ] from
+			-- {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
 			n: like new_number
@@ -615,8 +620,9 @@ feature -- Basic operations (selectively exported)
 		end
 
 --	scalar_divide
---			-- Test/demo the `scalar_divide' feature from {JJ_BIG_NATURAL}
---			-- I checked the calculations at "https://defuse.ca/big-number-calculator.htm".
+--			-- Test and demonstrate feature `scalar_divide' from {JJ_BIG_NATURAL}.
+--			-- I checked the calculations at
+--			-- "https://defuse.ca/big-number-calculator.htm".
 --		local
 --			str, s: STRING_8
 --			n: like new_number
@@ -807,7 +813,7 @@ feature -- Test conversion
 --			a := a + n.six_value
 --			b := b - n.three_value
 --			tup := n.digits_multiplied (a, b)
---				-- 127 * 127			
+--				-- 127 * 127
 --			a := n.max_digit
 --			b := n.max_digit
 --			tup := n.digits_multiplied (a, b)
