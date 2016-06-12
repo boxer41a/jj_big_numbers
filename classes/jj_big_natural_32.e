@@ -21,8 +21,7 @@ create
 	make_with_value,
 	make_with_base,
 	make_with_value_and_base,
-	from_string,
-	make_from_other
+	from_string
 
 create {ARRAYED_LIST}
 	make
@@ -68,19 +67,22 @@ feature -- Constants
 	sixteen_value: NATURAL_32 = 16
 			-- The number 16 in the same type as `base'.
 
-	max_digit_value: NATURAL_32 = 2_147_483_647		-- (x7FFFFFFF)
-			-- The largest value allowed for a `digit' of Current without
-			-- making Current `is_nonconforming'.
-			--   For eight-bit representation:  01111111
-			--   For 16-bit representation:     01111111 11111111
-			-- To obtain the absolutely largest value representable by a
-			-- `digit' of Current use {like digit}.max_value.
+--	max_digit_value: NATURAL_32 = 2_147_483_647		-- (x7FFFFFFF)
+--			-- The largest value allowed for a `digit' of Current without
+--			-- making Current `is_nonconforming'.
+--			--   For eight-bit representation:  01111111
+--			--   For 16-bit representation:     01111111 11111111
+--			-- To obtain the absolutely largest value representable by a
+--			-- `digit' of Current use {like digit}.max_value.
 
-	max_base: NATURAL_32 = 4_294_967_295		-- (x80)
+	max_base: NATURAL_32 = 2_147_483_648		-- (x8000)
 			-- The maximum allowed value for `base'.
 			-- It is the number represented by a one in only the high-order bit.
 			-- Examples:
 			--    NATURAL_32  ==>  10000000 00000000 00000000 00000000
+
+	max_representable_value: NATURAL_32 = 4_294_967_295
+			-- The largest number representable by a `digit'.
 
 feature -- Access
 

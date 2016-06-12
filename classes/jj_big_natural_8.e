@@ -6,7 +6,7 @@ note
 	date: "$Date$"
 	revision: "$Revision$"
 
-frozen class
+class
 	JJ_BIG_NATURAL_8
 
 inherit
@@ -22,8 +22,8 @@ create
 	make_with_base,
 	make_with_value_and_base,
 	from_array,
-	from_string,
-	make_from_other
+	make_with_array_and_base,
+	from_string
 
 create {ARRAYED_LIST}
 	make
@@ -69,13 +69,13 @@ feature -- Constants
 	sixteen_value: NATURAL_8 = 16
 			-- The number 16 in the same type as `digit'.
 
-	max_digit_value: NATURAL_8 = 127		-- (x7F)
-			-- The largest value allowed for a `digit' of Current without
-			-- making Current `is_nonconforming'.
-			--   For eight-bit representation:  01111111
-			--   For 16-bit representation:     01111111 11111111
-			-- To obtain the absolutely largest value representable by a
-			-- `digit' of Current use {like digit}.max_value.
+--	max_digit_value: NATURAL_8 = 127		-- (x7F)
+--			-- The largest value allowed for a `digit' of Current without
+--			-- making Current `is_nonconforming'.
+--			--   For eight-bit representation:  01111111
+--			--   For 16-bit representation:     01111111 11111111
+--			-- To obtain the absolutely largest value representable by a
+--			-- `digit' of Current use {like digit}.max_value.
 
 	max_base: NATURAL_8 = 128		-- (x80)
 			-- The maximum allowed value for `base'.
@@ -83,19 +83,22 @@ feature -- Constants
 			-- Examples:
 			--    NATURAL_8  ==>  10000000 = 128
 
+	max_representable_value: NATURAL_8 = 255
+			-- The largest number representable by a `digit'.
+
 feature -- Access
 
 	base: NATURAL_8
 			-- The number of unique values for each `digit'; the radix
 
-	zero: JJ_BIG_NATURAL_8
+	zero: like Current --JJ_BIG_NATURAL_8
 			-- Neutral element for "+" and "-"
 			-- Use caution as this object can be modified.
 		do
 			create Result
 		end
 
-	one: JJ_BIG_NATURAL_8
+	one: like Current -- JJ_BIG_NATURAL_8
 			-- Neutral element for "*" and "/"
 			-- Use caution as this object can be modified.
 		do
@@ -122,14 +125,25 @@ feature {NONE} -- Implementation
 			create Result.make_with_value_and_base (a_value, a_base)
 		end
 
-	new_sub_number (a_start, a_end: INTEGER; other: like Current): like Current
-			-- Copy of the digits indexed from `a_start' to `a_end'.min(count)
-			-- inclusive without any leading zero digits from `other'.
-			-- This wraps `make_from_other', allowing routines to obtain a new
-			-- {JJ_BIG_NUMBER} in places where an object of a deferred class is
-			-- needed but cannot be created.
+	new_sub_number (a_low, a_high: INTEGER; a_other: like Current): like Current
+			-- A number containing the digits of `a_other', indexed from `a_low'
+			-- up to `a_high' inclusive.
+		local
+			i: INTEGER
 		do
-			create Result.make_from_other (a_start, a_end, other)
+			create Result
+			Result.put_i_th (a_other.i_th (a_low), 1)
+				-- Loop through the rest of the digits.
+			from i := a_low + 1
+			until i > a_high
+			loop
+				Result.extend (a_other.i_th (i))
+				i := i + 1
+			end
+				-- Set to same sign as `a_other', unless `is_zero'.
+			if not is_zero then
+				Result.set_is_negative (a_other.is_negative)
+			end
 		end
 
 	power_of_ten_table: HASH_TABLE [JJ_BIG_NATURAL_8, JJ_BIG_NATURAL_8]
@@ -141,7 +155,8 @@ feature {NONE} -- Implementation
 			-- because Eiffel does not allow a once function to have a generic
 			-- or anchored result.
 		once
-			create Result.make (50)
+			create Result.make (Default_table_size)
+--			Result.compare_objects
 		end
 
 end

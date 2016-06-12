@@ -13,81 +13,12 @@ note
 	revision: "$Revision$"
 	testing: "type/manual"
 
-class
+deferred class
 	BIG_NATURAL_TESTS
 
 inherit
+
 	EQA_TEST_SET
-		redefine
-			on_prepare
-		end
-
-feature {NONE} -- Events
-
-	on_prepare
-			-- <Precursor>
-		do
-			number_type := natural_8_type
-			last_type := 1		-- just check {NATURAL_8} for now
-		end
-
-feature -- Access
-
-	number_type: INTEGER_32
-			-- Identifies which type of {JJ_BIG_NATURAL} is currently
-			-- being tested.  One of the number_type_contsants
-
-	last_type: INTEGER_32
-			-- The highest `number_type' to check of the 4 types as
-			-- defined in the constants.
-
-	new_number: JJ_BIG_NATURAL [JJ_NATURAL]
-			-- Get a new default {JJ_BIG_NUMBER}, selecting the type to
-			-- create based on the value of `number_type'.
-			-- Also, serves as anchor.
-		do
-			inspect number_type
-			when natural_8_type then
-				create {JJ_BIG_NATURAL_8} Result
---			when natural_16_type then
---				create {JJ_BIG_NATURAL_16} Result
-			when natural_32_type then
-				create {JJ_BIG_NATURAL_32} Result
---			when natural_64_type then
---				create {JJ_BIG_NATURAL_64} Result
-			else
-				check
-					should_not_happen: False then
-						-- Because all types are covered above.
-				end
-			end
-		end
-
-	new_number_from_string (a_value: STRING_8): like new_number
-			-- Get a new {JJ_BIG_NUMBER}, selecting the type to create
-			-- based on the value of `number_type' and setting its
-			-- value from `a_value'.
-		do
-			inspect number_type
-			when natural_8_type then
-				create {JJ_BIG_NATURAL_8} Result.from_string (a_value)
-			else
-				check
-					should_not_happen: False then
-						-- Because all types are covered above.
-				end
-			end
-		end
-
-feature -- Constants
-
-	natural_8_type: INTEGER = 1
-
-	natural_16_type: INTEGER = 2
-
-	natural_32_type: INTEGER = 3
-
-	natural_64_type: INTEGER = 4
 
 feature -- Status report
 
@@ -110,270 +41,274 @@ feature -- Status setting
 
 feature -- Basic operations (initialization tests)
 
-	test_default_create
-		local
-			str, s: STRING_8
-			i: INTEGER_32
-			n: like new_number
-		do
-			str := ".test_default_create:  "
-			from i := 1
-			until i > last_type
-			loop
-				n := new_number
-				report_properties (str, n)
-				assert (str + "base_big_enough", n.base.as_integer_32 >= 2)
-				assert (str + "base_at_max", n.base = n.max_base)
-				assert (str + "count_is_one", n.count = 1)
-				assert (str + "is_zero", n.is_zero)
-				assert (str + "value = 0", n.out ~ "0")
-				i := i + 1
-			end
-			io.new_line
-		end
-
-	make_with_base
-		do
+	default_create_test
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
 		end
 
 	make_with_value
-		do
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	make_with_base
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
 		end
 
 	make_with_value_and_base
-		do
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
 		end
 
 	from_string
-			-- Test the `from_string' feature;
-		local
-			str, s: STRING_8
-			bn: like new_number
-			e: STRING_8
-			i: INTEGER
-		do
-			str := ".from_string:  "
-				-- Base 10 number
-			bn := new_number_from_string ("3852")
-			s := str + "3852 max_base"
-			report (s, bn)
-			assert (s + " base", bn.base.out ~ bn.max_base.out)
-			assert (s + " out ", bn.out ~ "3852")
-			assert (s + " out_fomatted ", bn.out_formatted ~ "3,852")
-				-- Convert to base 9
-			bn.to_base (bn.nine_value)
-			s := str + "3852 base nine"
-			report (s, bn)
-			assert (s + " base", bn.base.out ~ "9")
-			assert (s + " out ", bn.out ~ "3852")
-			assert (s + " out_fomatted ", bn.out_formatted ~ "3,852")
-				-- Number 852
-			bn := new_number_from_string ("852")
-			s := str + "852 max_base"
-			report (s, bn)
-			assert (s + " base", bn.base.out ~ bn.max_base.out)
-			assert (s + " out ", bn.out ~ "852")
-			assert (s + " out_fomatted ", bn.out_formatted ~ "852")
-				-- Negative number
-			bn := new_number_from_string ("-1325839")
-			s := str + "-1325839 max_base"
-			report (s, bn)
-			assert (s + " base", bn.base.out ~ bn.max_base.out)
-			assert (s + " out ", bn.out ~ "-1325839")
-			assert (s + " out_fomatted ", bn.out_formatted ~ "-1,325,839")
-			io.new_line
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
 		end
 
 	from_array
-		local
-			n: like new_number
-			str, s: STRING_8
-		do
-			n := new_number
-			str := n.generating_type + ".from_array:  "
-			s := str
-			assert (s, false)
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
 		end
 
-	from_max
-		local
-			str, s: STRING_8
-			bn: like new_number
-			m: like new_number.base.max_value
-			n: INTEGER_32
-		do
-			str := generating_type + ".from_max"
-			bn := new_number
-			m := bn.base.max_value - bn.base.one
-			bn.set_value (m)
-			s := m.out
-			report (str, bn)
-			assert (str, bn.out ~ m.out)
+	make_random
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+feature -- Basic operations (constants tests)
+
+	zero_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	one_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	two_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	three_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	four_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	five_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	six_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	seven_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	eight_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	nine_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	ten_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	sixteen_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	max_digit_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	max_representable_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	max_base
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	default_karatsuba_threshold
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+feature -- Basic operations (Access)
+
+	base
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	base_minus_one_value
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	min_base
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	zero
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	one
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	karatsuba_threshold
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		deferred
 		end
 
 feature -- Basic operations (element change tests)
 
+	set_karatsuba_threshold
+			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
 	set_value
-			-- Test the `set_value' feature.
-			-- The argument to the `set_value' feature must be the
-			-- same type as the elements in the {JJ_BIG_NATURAL}, so
-			-- we use the xxx_value features from the big number.
-		local
-			str, s: STRING_8
-			n: like new_number
-		do
-			str := ".set_value:  "
-				-- zero
-			n := new_number
-			n.set_value (n.zero_value)
-			s := str + "zero_value"
-			report (s, n)
-			assert (s, n.out ~ "0")
-			assert (s, n.base = n.max_base)
-				-- max_value
-			n.set_value (n.base_minus_one_value)
-			s := str + "max value"
-			report (s, n)
-			assert (s, n.out ~ n.base_minus_one_value.out)
-			assert (s, n.base = n.max_base)
-				-- 112, base 16
-			n := new_number
-			n.set_base (n.sixteen_value)
-			n.set_value (n.sixteen_value * n.seven_value)
-			s := str + "112 base 16"
-			report (s, n)
-			assert (s, n.base.out ~ "16")
-			assert (s, n.out ~ "112")
-			io.new_line
+			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	set_with_string
+			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	set_base
+			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	set_value_and_base
+			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+		deferred
 		end
 
 feature -- Basic operations (conversion tests)
 
-	as_base
-		local
-			n: like new_number
-		do
-
+	to_base
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
 		end
 
+	as_base
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+feature -- Basic operations (status setting tests)
+
+	set_is_negative
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+feature -- Basic operations (status report tests)
+
+	is_zero
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	is_one
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	is_base
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	is_negative
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	is_same_sign
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	divisible
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
 
 feature -- Basic operations (basic operations tests)
 
 	scalar_add
 			-- Test/demo the `scalar_add' and `scalar_sum' functions
 			-- from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n, p: like new_number
-		do
-			str := ".scalar_add:  "
-			n := new_number
-				-- add seven
-			s := str + "scalar_add (7) = 7"
-			n.scalar_add (n.seven_value)
-			report (s, n)
-			assert (s, n.out ~ "7")
-				-- add max_digit
-			s := str + "scalar_add (max_digit)"
-			n.scalar_add (n.base_minus_one_value)
-			report (s, n)
-			assert (s, n.out ~ "134")
-				-- add 111
-			s := str + "scalar_add (111) "
-			n.scalar_add (n.base_minus_one_value - n.sixteen_value)
-			report (s, n)
-			assert (s, n.out ~ "245")
-				-- Change the base to 8
-			s := str + "base change to 8"
-			n.set_base (n.eight_value)
-			report (s, n)
-			assert (s, n.out ~ "245")
-				-- Now add 119
-			s := str + "scalar_add (119)"
-			n.scalar_add (n.sixteen_value * n.seven_value)
-			report (s, n)
-			assert (s, n.out ~ "357")
-				-- Negate and add 50
-			s := str + "(-357).scalar_add (50)"
-			n.negate
-			p := n.scalar_sum (n.ten_value * n.five_value)
-			report (s, p)
-			assert (s, n.is_negative)
-			assert (s + "  n unchaged", n.out ~ "-357")
-			assert (s, p.out ~ "-307")
-			io.new_line
+		deferred
 		end
 
 	scalar_multiply
 			-- Test/demo the `scalar_multiply' and `scalar_product' functions
 			-- from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n, p: like new_number
-		do
-			str := ".scalar_multiply:  "
-			n := new_number
-				-- Multiply zero by anything
-			s := str + "(0).scalar_multiply (16)"
-			n.scalar_multiply (n.sixteen_value)
-			report (s, n)
-			assert (s, n.out ~ "0")
-				-- Multiply by zero
-			s := str + "(7935).scalar_multiply (0)"
-			n := new_number_from_string ("7935")
-			n.scalar_multiply (n.zero_value)
-			report (s, n)
-			assert (s, n.out ~ "0")
-				-- Multiply 7935 by 96
-			s := str + "(7935).scalar_multiply (96)"
-			n := new_number_from_string ("7935")
-			n.scalar_multiply (n.sixteen_value * n.six_value)
-			report (s, n)
-			assert (s, n.out_formatted ~ "761,760")
-				-- Negate and multiply by 112
-			n.negate
-			p := n.scalar_product (n.sixteen_value * n.seven_value)
-			s := str + "p := (-761,760).scalar_product (112)"
-			report (s, p)
-			assert (s, p.out_formatted ~ "-85,317,120")
-			s := str + "n unchanged"
-			assert (s, n.out_formatted ~ "-761,760")
-			io.new_line
+		deferred
 		end
 
 	add
 			-- Test and demonstrate features `add', `plus', and `+' from
 			-- {JJ_BIG_NATURAL}.  I checked the calculations at
 			-- "https://defuse.ca/big-number-calculator.htm".
-		local
-			str, s: STRING_8
-			a, b: like new_number
-			n: like new_number
-		do
-			str := ".add:  "
-			n := new_number_from_string ("99")
-			a := new_number_from_string ("101")
-			n.add (a)
-			s := str + "(99).add (101)"
-			report (s, n)
-			assert (s, n.out ~ "200")
-				--  check "+" alias
-			a := new_number_from_string ("83492018876")
-			b := new_number_from_string ("99584738599403878")
-			n := a + b
-			s := str + a.out + " + " + b.out
-			report (s, n)
-			assert (s, n.out_formatted ~ "99,584,822,091,422,754")
-			assert (s + "  a unchaged", a.out ~ "83492018876")
-				-- negate a and call plus
-			a.negate
-			b := new_number_from_string ("83492018856")
-			s := str + a.out + " + " + b.out
-			n := a.plus (b)
-			report (s, n)
-			assert (s, n.out_formatted ~ "-20")
-			assert (s + "  a unchaged", a.out ~ "-83492018876")
-			io.new_line
+		deferred
 		end
 
 
@@ -381,85 +316,14 @@ feature -- Basic operations (basic operations tests)
 			-- Test and demonstrate features `subtract', `minus', and `-'
 			-- from {JJ_BIG_NATURAL}.  I checked the calculations at
 			-- "https://defuse.ca/big-number-calculator.htm".
-		local
-			str, s: STRING_8
-			a, b: like new_number
-			n: like new_number
-		do
-			str := ".minus:  "
-				-- minus test number one
-			n := new_number_from_string ("1000")
-			b := new_number_from_string ("99")
-			s := str + "(" + n.out + ").subtract (" + b.out + ")"
-			n.subtract (b)
-			report (s, n)
-			assert (s, n.out ~ "901")
-				-- Minus test number two
-			a := new_number_from_string ("578372618996743892774658921536")
-			b := new_number_from_string ("578372618990119377281937921536")
-			s := str + "(" + a.out + ").minus (" + b.out + ")"
-			n := a.minus (b)
-			report (s, n)
-			assert (s, n.out ~ "6624515492721000000")
-				-- Munus test number three
-			a.negate
-			n := a - b
-			s := str + "(" + a.out + " - " + b.out + ")"
-			report (s, n)
-			assert (s, n.out ~ "-1156745237986863270056596843072")
-
-			io.new_line
+		deferred
 		end
 
 	multiply
 			-- Test and demonstrate the `multiply', `product', and `*' features
 			-- from {JJ_BIG_NATURAL}.  I checked the calculations at
 			-- "https://defuse.ca/big-number-calculator.htm".
-		local
-			str, s: STRING_8
-			a, b, n: like new_number
-		do
-			str := ".multiply:  "
-				-- test multiply
-			n := new_number_from_string ("5")
-			b := new_number_from_string ("9")
-			s := str + "(" + n.out + ").multiply (" + b.out + ")"
-			n.multiply (b)
-			report (s, n)
-			assert (s, n.out ~ "45")
-			assert (s + "  b unchanged", b.out ~ "9")
-				-- test product
-			a := new_number_from_string ("38374651928376")
-			b := new_number_from_string ("99573650866570")
-			s := str + "(" + a.out + ").product (" + b.out + ")"
-			n := a.product (b)
-			report (s, n)
-			assert (s, n.out ~ "3821104193242259013972790320")
-			assert (s + "  a unchanged", a.out ~ "38374651928376")
-			assert (s + "  b unchanged", b.out ~ "99573650866570")
-				-- star test with big values
-			a := new_number_from_string ("-84736487483757564869490010293")
-			b := new_number_from_string ("57849399340004949681221")
-			s := str + a.out + " * " + b.out
-			n := a * b
-			report (s, n)
-			assert (s, n.out ~ "-4901954903117222552481914443941818610639794358807753")
-			assert (s + "  a unchanged", a.out ~ "-84736487483757564869490010293")
-			assert (s + "  b unchanged", b.out ~ "57849399340004949681221")
-				-- test multiply by one
-			s := str + a.out + " * " + a.one.out
-			n := a * a.one
-			report (s, n)
-			assert (s, n.out ~ "-84736487483757564869490010293")
-			assert (s + "  a unchanged", a.out ~ "-84736487483757564869490010293")
-				-- test multiply by zero
-			s := str + b.zero.out + " * " + b.out
-			n := b.zero * b
-			report (s, n)
-			assert (s, n.out ~ "0")
-			assert (s + "  b unchanged", b.out ~ "57849399340004949681221")
-				-- Add some whitespace to screen
-			io.new_line
+		deferred
 		end
 
 feature -- Basic operations (selectively exported)
@@ -467,156 +331,18 @@ feature -- Basic operations (selectively exported)
 	bit_shift_left
 			-- Test and demonstrate feature `bit_shift_left' from
 			-- {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like new_number
-			sft: INTEGER_32
-		do
-			set_verbose
-			str := ".bit_shift_left:  "
-				-- First test
---			n := new_number_from_string ("5")
---			n.set_unstable
---			sft := 2
---			s := str + "(" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
---			n.bit_shift_left (sft)
---			report (s, n)
---			assert (s, n.out ~ "20")
-				-- Now with smaller base
---			n := new_number
---			n.set_base (n.eight_value)
---			n.set_value (n.five_value)
---			sft := 2
---			s := str + "(" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
---			report (s, n)
---			n.set_unstable
---			n.bit_shift_left (sft)
---			report (s, n)
---			assert (s, n.out_as_bits ~ "00010100")
-				-- Now with base_minus_one_value
-			n := new_number
-			n.set_base (n.eight_value)
-			n.set_value (n.base_minus_one_value)
-			sft := 2
-			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
-			n.set_unstable
-			n.bit_shift_left (sft)
-			report (s, n)
-			assert (s, n.out_as_bits ~ "00011100")
-				-- Now with max_digit_value, base 16
-			n := new_number
-			n.set_base (n.sixteen_value)
-			n.set_value (n.max_digit_value)
-			sft := 2
-			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
-			n.set_unstable
-			n.bit_shift_left (sft)
-			report (s, n)
-			assert (s, n.out_as_bits ~ "00011100,00111100")
-				-- Now with max_digit_value, max base
-			n := new_number
-			n.set_base (n.max_base)
-			n.set_value (n.max_digit_value)
-			sft := 1
-			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
-			n.set_unstable
-			n.bit_shift_left (sft)
-			report (s, n)
-			assert (s, n.out_as_bits ~ "11111110")
-				-- Now with max_digit_value, max base
-			n := new_number
-			n.set_base (n.max_base)
-			n.set_value (n.max_digit_value)
-			sft := 2
-			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
-			n.set_unstable
-			n.bit_shift_left (sft)
-			report (s, n)
-			assert (s, n.out_as_bits ~ "00000001,11111100")
+		deferred
 		end
 
 	normalize
 			-- Test and demonstrate feature `normalize' from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like new_number
-			i: INTEGER_32
-		do
-			str := generating_type + ".normalize:  "
-			n := new_number
-			n.set_unstable
-				-- Normalize 5 base 16
-			n.set_value_and_base (n.five_value, n.sixteen_value)
-			s := str + n.out + ", base " + n.base.out + "  (" + n.out_as_bits + ").normalize"
-			i := n.normalize
-			io.put_string (s +  " = " + n.out_as_bits + "%N")
-			assert (s, n.out_as_bits ~ "00001010")
-				-- Normalize `max_digit_value + 5, max_base
-			n := new_number
-			n.set_unstable
-			n.set_value_and_base (n.max_digit_value + n.five_value, n.base)
-			s := str + n.out + ", base " + n.base.out + "  (" + n.out_as_bits + ").normalize"
-			i := n.normalize
-			io.put_string (s +  " = " + n.out_as_bits + "%N")
-			assert (s, n.out_as_bits ~ "01000001,00000000")
+		deferred
 		end
 
 	divide_two_digits_by_one
-			-- Test and demonstrate feature `divide_two_digits_by_one' ] from
+			-- Test and demonstrate feature `divide_two_digits_by_one' from
 			-- {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like new_number
-			denom: like new_number
-			i: INTEGER_32
-			tup: like new_number.divide_two_digits_by_one
-		do
-			str := ".divide_two_digits_by_one:  "
-				-- Must handle each `number_type' (i.e. bit-representation) differently
-				-- in order to ensure we have two digits only.)
-			inspect number_type
-			when natural_8_type then
-					-- This case has two digits.
-				n := new_number_from_string ("29")
-				n.set_base (n.sixteen_value)
-				denom := new_number_from_string ("3")
-				denom.set_base (n.sixteen_value)
-				if not denom.is_normalized then
-					i := denom.normalize
-					n.bit_shift_left (i)
-					check
-						denom_is_noramlized: denom.is_normalized
-					end
-				end
-				s := str + "29/5  -- (" + n.i_th (2).out + ", " + n.i_th (1).out + ", " + denom.out + ")"
-				tup := n.divide_two_digits_by_one (n, denom)
-				report_digit_tuple (s, tup)
-				assert (s + "quot", tup.quot.out ~ "5")
-				assert (s + "rem", tup.rem.out ~ "4")
---					-- This case has only one digit even in eight bits.
---				n := new_number_from_string ("98")
---				div := n.ten_value
---				low_d := n.i_th (1)
---				high_d := n.zero_value
---				s := str + "98/10  -- (" + high_d.out + ", " + low_d.out + ", " + div.out + ")"
---				tup := n.divide_two_digits_by_one (high_d, low_d, div)
---				report_digit_tuple (s, tup)
---				assert (s + "quot", tup.quot.out ~ "9")
---				assert (s + "rem", tup.rem.out ~ "8")
---					-- This case has only one digit even in eight bits.
---				n := new_number_from_string ("119")
---				div := n.ten_value
---				low_d := n.i_th (1)
---				high_d := n.zero_value
---				s := str + "119/10  -- (" + high_d.out + ", " + low_d.out + ", " + div.out + ")"
---				tup := n.divide_two_digits_by_one (high_d, low_d, div)
---				report_digit_tuple (s, tup)
---				assert (s + "quot", tup.quot.out ~ "11")
---				assert (s + "rem", tup.rem.out ~ "9")
-			else
-
-			end
-
+		deferred
 		end
 
 --	scalar_divide
@@ -657,7 +383,7 @@ feature -- Basic operations (selectively exported)
 --		end
 
 	knuth_divide
-		do
+		deferred
 		end
 
 feature -- Test conversion
@@ -821,10 +547,49 @@ feature -- Test conversion
 --			io.new_line
 --		end
 
+feature -- Basic operations (tests implementation features)
+
+	power_of_ten_table
+			-- Tests the existence of the `power_of_ten_table'.
+			-- This test feature must be called before any math operations
+			-- that access the `power_of_ten_table'.
+		deferred
+		end
+
+	ten_to_the_power
+			-- Tests the intended once-ness of the `power_of_ten_table'
+			-- somewhat tests its memoization usage.
+			-- This test feature must be called before any math operations
+			-- that access the `power_of_ten_table'.
+		deferred
+		end
+
+	new_value_from_character
+			-- Tests the `new_value_from_character' feature.
+		deferred
+		end
+
+	bits_utilized
+			-- Tests the `bits_utilized' feature, which gives the
+			-- number of bits used for representing numbers given
+			-- a specific `base'.
+		deferred
+		end
+
+	new_big_number
+			-- Tests the `new_big_number' feature.
+		deferred
+		end
+
+	new_sub_number
+			-- Test the `new_sub_number' feature.
+		deferred
+		end
+
 
 feature {NONE} -- Implementation
 
-	report (a_comment: STRING_8; a_number: like new_number)
+	report (a_comment: STRING_8; a_number: like number_anchor)
 			-- Display some information (for demo) about `a_number'.
 		do
 			print (a_number.generating_type + a_comment + "%N")
@@ -839,7 +604,7 @@ feature {NONE} -- Implementation
 			print ("  out_formatted = " + a_number.out_formatted + "%N")
 		end
 
-	report_properties (a_comment: STRING_8; a_number: like new_number)
+	report_properties (a_comment: STRING_8; a_number: like number_anchor)
 			-- Display verbose information (for demo) about `a_number'.
 		do
 			print (a_number.generating_type + a_comment + "  report_properties %N")
@@ -870,7 +635,7 @@ feature {NONE} -- Implementation
 			print ("          out_as_bits: " + a_number.out_as_bits + "%N")
 		end
 
-	report_tuple (a_comment: STRING_8; a_tuple: like new_number.divide_two_digits_by_one)
+	report_tuple (a_comment: STRING_8; a_tuple: like tuple_anchor)
 			-- Display information about `a_tuple' which contains a quotient
 			-- and a remainder, likely resulting from some division operation.
 		do
@@ -878,12 +643,86 @@ feature {NONE} -- Implementation
 			print ("  tuple:  [" + a_tuple.quot.out + ", " + a_tuple.rem.out + "] %N")
 		end
 
-	report_digit_tuple (a_comment: STRING_8; a_tuple: like new_number.divide_two_digits_by_one)
+	report_digit_tuple (a_comment: STRING_8; a_tuple: like digit_tuple_anchor)
 			-- Display information about `a_tuple' which contains a quotient
 			-- and a remainder, likely resulting from some division operation.
 		do
 			print (a_tuple.generating_type + a_comment + "%N")
 			print ("  tuple:  [" + a_tuple.quot.out + ", " + a_tuple.rem.out + "] %N")
+		end
+
+feature {NONE} -- Anchors
+
+	number: like number_anchor
+			-- Used as handle to obtain values, etc.
+			-- Redefine as once.
+		deferred
+		end
+
+	digit_anchor: JJ_NATURAL
+			-- Anchor for declaring an entity to representi a digit.
+			-- Not to be called; just used to anchor types.
+			-- Declared as a feature to avoid adding an attribute.
+		require
+			never_called: false
+		do
+			check
+				do_not_call: false then
+					-- Because gives no info; simply used as anchor.
+			end
+		end
+
+	number_anchor: JJ_BIG_NATURAL [like digit_anchor]
+			-- Anchor when declaring numbers in descendants.
+			-- Not to be called; just used to anchor types.
+			-- Declared as a feature to avoid adding an attribute.
+		require
+			never_called: false
+		do
+			check
+				do_not_call: false then
+					-- Because gives no info; simply used as anchor.
+			end
+		end
+
+	testable_number_anchor: TESTABLE_BIG_NATURAL [like digit_anchor]
+			-- Anchor when declaring numbers for which access to
+			-- all features is needed.
+			-- Not to be called; just used to anchor types.
+			-- Declared as a feature to avoid adding an attribute.
+		require
+			never_called: false
+		do
+			check
+				do_not_call: false then
+					-- Because gives no info; simply used as anchor.
+			end
+		end
+
+	tuple_anchor: like number_anchor.quotient
+			-- Anchor for typs involved in division.
+			-- Not to be called; just used to anchor types.
+			-- Declared as a feature to avoid adding an attribute.
+		require
+			never_called: false
+		do
+			check
+				do_not_call: false then
+					-- Because gives no info; simply used as anchor.
+			end
+		end
+
+	digit_tuple_anchor: like number_anchor.divide_two_digits_by_one
+			-- Anchor for typs involved in division.
+			-- Not to be called; just used to anchor types.
+			-- Declared as a feature to avoid adding an attribute.
+		require
+			never_called: false
+		do
+			check
+				do_not_call: false then
+					-- Because gives no info; simply used as anchor.
+			end
 		end
 
 end

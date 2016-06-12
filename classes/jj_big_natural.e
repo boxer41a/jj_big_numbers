@@ -150,11 +150,13 @@ feature {NONE} -- Initialization
 	make_with_base (a_base: like base)
 			-- Initialize Current, setting the `base'
 		require
-			base_big_enough: a_base > base.one
+			base_big_enough: a_base >= two_value
 			base_small_enough: a_base <= max_base
 		do
 			default_create
 			base := a_base
+		ensure
+			base_set: base = a_base
 		end
 
 	make_with_value_and_base (a_value: like digit; a_base: like base)
@@ -167,6 +169,8 @@ feature {NONE} -- Initialization
 			default_create
 			base := a_base
 			set_value (a_value)
+		ensure
+			base_set: base = a_base
 		end
 
 	from_string (a_string: STRING_8)
@@ -183,78 +187,91 @@ feature {NONE} -- Initialization
 
 	from_array (a_array: ARRAY [like digit])
 			-- Create an instance from `a_array', where the array holds the
-			-- intended digits (in the `max_base') with high-order digits first.
+			-- intended digits with high-order digits first.  Each item in
+			-- `a_array' must be representable in the `max_base' and at
+			-- least one digit must be non-zero.
 		require
 			array_exists: a_array /= Void
+			array_not_empty: not a_array.is_empty
+			has_valid_digits: across a_array as it all it.item < max_base end
+			not_all_zero: across a_array as it some it.item > zero_value end
 		local
 			i: INTEGER
+		do
+			default_create
+			set_with_array (a_array)
+		ensure
+			max_base: base = max_base
+		end
+
+	make_with_array_and_base (a_array: ARRAY [like digit]; a_base: like base)
+			-- Create an instance from `a_array', where the array holds the
+			-- intended digits with high-order digits first.  Each item in
+			-- `a_array' must be representable in the current `base' and at
+			-- least one digit must be non-zero.
+		require
+			array_exists: a_array /= Void
+			array_not_empty: not a_array.is_empty
+			has_valid_digits: across a_array as it all it.item < base end
+			not_all_zero: across a_array as it some it.item > zero_value end
+			base_big_enough: a_base >= two_value
+			base_small_enough: a_base <= max_base
+		do
+			make_with_base (a_base)
+			set_with_array (a_array)
+		ensure
+			base_was_set: base = a_base
+		end
+
+	make_random (a_count: INTEGER; a_base: like base)
+			-- Create a random number containing `a_count' digits, and
+			-- with `a_base'.
+		require
+			count_big_enough: a_count >= 1
+			base_big_enough: a_base >= two_value
+			base_small_enough: a_base <= max_base
+		local
+			i: INTEGER
+			r: INTEGER
+			rng: INTEGER    -- range
+			rem: INTEGER    -- remainder
+			bkt: INTEGER    -- bucket
+			low: INTEGER
+			high: INTEGER
+			random: RANDOM
 		do
 			default_create
 			wipe_out
-				-- Remove any leading zero's
-			from i := 1
-			until i > a_array.count or else a_array.item (i) /= zero_value
-			loop
-				i := i + 1
-			end
-				-- Put rest of digits into Current
-			from
-			until i > a_array.count
-			loop
-				put_front (a_array.item (i))
-				i := i + 1
-			end
-		end
-
-	make_random (a_count: INTEGER)
-			-- Create a random number containing `a_count' digits.
-		local
-			i: INTEGER
-		do
-			io.put_string ("JJ_BIG_NATURAL.make_random:  fix me! %N")
-			default_create
-			from i := 1
-			until i > a_count
-			loop
-				i := i + 1
-			end
+			set_base (a_base)
+				-- This generates random numbers in the semi-open
+				-- intervale [`low', `high').  It was adapted from
+				-- http://stackoverflow.com/questions/2509679.
+				-- "The recursion gives a perfectly uniform distribution."
+--			create random.make
+--			low := 0
+--			high := (a_base - one_value)
+--			r := random.next_random (random.default_seed)
+--			rng := high - low
+--			rem := random.modulus \\ rng
+--			bkt := random.modulus // rng
+--			from i := 1
+--			until i > a_count
+--			loop
+--					-- There are range buckets, plus one smaller interval
+--					-- within remainder of Modulus.
+--				from
+--				until r < random.Modulus - rem
+--				loop
+--					r := random.next_random (r)
+--				end
+--				r := low + (r // bkt)
+--				extend (r)
+--				i := i + 1
+--			end
+-- The code above can not work because RANDOM generates INTEGER values
+-- but this class needs {JJ_NATURAL} values to match the type of `digit'.
 		ensure
 			correct_count: count = a_count
-		end
-
-
-	make_from_other (a_start, a_end: INTEGER_32; other: like Current)
-			-- Copy of the digits indexed from `a_start' to `a_end'.min(count)
-			-- inclusive withhout any leading zeros of digits from `other'.
-		require
-			other_exists: other /= Void
-			start_big_enough: a_start >= 1
-			start_small_enough: a_start <= other.count
-			end_after_start: a_end >= a_start
-		local
-			i, n: INTEGER_32
-		do
-			make_with_base (other.base)
-				-- To prevent leading zeros in the result, find the location of
-				-- the high-order, non-zero digit and go up to that only.
-			from n := a_end.min (other.count)
-			until other.i_th (n) > zero_value or n = a_start
-			loop
-				n := n - 1
-			end
-				-- Put the first digit (even if zero) in the first position.
-			put_i_th (other.i_th (a_start), 1)
-				-- Loop through the rest of the digits.
-			from i := a_start + 1
-			until i > n
-			loop
-				extend (other.i_th (i))
-				i := i + 1
-			end
-				-- Set to same sign as `other', unless `is_zero'.
-			if not is_zero then
-				set_is_negative (other.is_negative)
-			end
 		end
 
 feature -- Constants
@@ -326,10 +343,21 @@ feature -- Constants
 			--   For 16-bit representation:     01111111 11111111
 			-- To obtain the absolutely largest value representable by a
 			-- `digit' of Current use {like digit}.max_value.
+		do
+			Result := base - one_value
+		ensure
+--			definition: Result = max_base.bit_not
+			definition: Result = base - one_value
+		end
+
+	max_representable_value: like digit
+			-- The largest number representable by a `digit'.
+			-- Descendants should define this feature so that it gives the
+			-- same value as calling `max_value' from the {JJ_NATURAL} type
+			-- used as implementation in the generic parameter.
 		deferred
 		ensure
-			definition: Result = max_base.bit_not
-			definition_2: Result = max_base - one_value
+			definition: Result = base.max_value
 		end
 
 	max_base: like base
@@ -348,6 +376,9 @@ feature -- Constants
 
 feature -- Access
 
+	base: like digit
+			-- The number of unique values for each `digit'; the radix.
+
 	base_minus_one_value: like digit
 			-- The maximum value allowed for a `digit'.
 			-- In base ten, this is a 9; in base 2, this is a 1.
@@ -358,9 +389,6 @@ feature -- Access
 		ensure
 			definition: Result = base - one_value
 		end
-
-	base: like digit
-			-- The number of unique values for each `digit'; the radix.
 
 	frozen min_base: like base
 			-- The minimum allowed for the `base' (i.e. two)
@@ -404,15 +432,32 @@ feature -- Access
 
 feature -- Element change
 
+	set_karatsuba_threshold (a_value: INTEGER)
+			-- Change the `karatsub_threshold', the number of digits at which
+			-- *all* multiplications of a {BIG_NUMBER} use the Karatsuba
+			-- algorithm instead of a basic, grade-school method.
+		require
+			value_big_enough: a_value >= 1
+		do
+			karatsuba_threshold_imp.set_item (a_value)
+		end
+
 	set_value (a_value: like digit)
 			-- Make Current equivalent to `a_value'.
 		local
 			r, c: like digit
+			v: like digit
 		do
+			if a_value < zero_value then
+				set_is_negative (true)
+				v := -a_value
+			else
+				v := a_value
+			end
 			wipe_out
-			r := a_value \\ base
+			r := v \\ base
 			extend (r)
-			from c := a_value // base
+			from c := v // base
 			until c = 0
 			loop
 				r := c \\ base
@@ -421,63 +466,140 @@ feature -- Element change
 			end
 		end
 
+	is_representable_string (a_string: STRING_8): BOOLEAN
+			-- Is `a_string' in the correct format (i.e. digits seperated
+			-- by commas with an optional positive or negative sign at the
+			-- beginning of the string).
+			-- Each digit must be less than the `base'.
+			-- Valid examples:
+			--     "-99,505,999" for a base >= 1000.
+			--     "7,15,15,15"  for a base >= 16
+		local
+			s, ss: STRING_8
+			pos: INTEGER
+		do
+			s := a_string.twin
+			Result := a_string /= Void and then a_string.count >= 1
+			if Result then
+					-- Is the first character a plus or minus sign?
+				ss := s.substring (1, 1)
+				if ss ~ "+" or ss ~ "-" then
+					s.keep_tail (s.count - 1)
+				else
+					do_nothing
+				end
+				from
+				until s.count = 0 or else not result
+				loop
+					pos := s.index_of (',', 1)
+					if pos > 0 then
+						ss := s.substring (1, pos - 1)
+						s.keep_tail (s.count - pos)
+					else
+						ss := s.twin
+						s.wipe_out
+					end
+					if not ss.is_number_sequence then
+						Result := false
+					end
+				end
+			end
+		end
+
 	set_with_string (a_string: STRING_8)
-			-- Make current equivalent to the base-ten value represented
-			-- by `a_string'.
+			-- Set the digits of Current from the comma-seperated digits
+			-- contained in `a_string' with high-order digits at the
+			-- beginning of the string.
 		require
 			string_long_enough: a_string.count >= 1
-			is_number: a_string.is_number_sequence
+			is_number: is_representable_string (a_string)
 		local
-			old_base: like base
-			i:INTEGER
-			s: STRING_8
-			c: CHARACTER_8
-			n: like digit		-- one digit of `a_string'
-			bn: like Current	-- `n' converted to BIG_NUMBER
-			e: like Current		-- Exponent for the place value calculation
-			l_one: like Current
-			ten: like Current
+			s, ss: STRING_8
+			pos: INTEGER
+			neg: BOOLEAN
+			n: like digit
 		do
-				-- Save the `base; calculate in `max_base' and restore at end.
-			old_base := base
-			default_create
-				-- Assume the string is a decimal number.
-				-- Step through the string converting each digit to a
-				-- JJ_NATURAL of the same type as `base'.
-				-- Use a BIG_NUMBER so we can `raise' and `scalar_multiply'.
-			e := new_big_number (zero_value, base)	-- The exponent starts at 0.
-			bn := new_big_number (zero_value, base)
-			l_one := new_big_number (one_value, base)
-			ten := new_big_number (ten_value, base)
-			from i := a_string.count
-			until i < 1
+			Default_create
+			wipe_out
+			s := a_string.twin
+				-- Is the first character a plus or minus sign?
+			ss := s.substring (1, 1)
+			if ss ~ "-" then
+				neg := true
+				s.keep_tail (s.count - 1)
+			elseif s ~ "+" then
+				s.keep_tail (s.count - 1)
+			else
+				do_nothing
+			end
+			from
+			until s.count = 0
 			loop
-				s := a_string.substring (i, i).as_string_8
-				c := a_string.item (i)
-				if s ~ "+" then
-					do_nothing
-				elseif s ~ "-" then
-					negate
-				elseif s ~ "0" then
-					do_nothing
+					-- Start at end of string, which is low-order digits.
+				pos := s.last_index_of (',', s.count)
+				if pos > 0 then
+					ss := s.substring (pos + 1, s.count)
+					s.keep_head (pos - 1)
 				else
-					check
-						is_number: s.is_number_sequence
-							-- because of precondition "is_number"
-					end
-						-- Use `from_hex_string' because digits 0..9 are okay;
-						-- we are assuming the string is decimal.
-					n := new_value_from_character (c)
-					bn.set_value (n)
-					bn.multiply (ten_to_the_power (e))
-					add (bn)
+					ss := s.twin
+					s.wipe_out
 				end
-				e := e + l_one
-				i := i - 1
+				check
+					is_number: ss.is_number_sequence
+						-- because of precondition
+				end
+					-- Convert the string to a number in the largest representation.
+					-- Then convert it to the same type as `digit', using `zero_value'
+					-- just to express the desired type.
+				n := (ss.to_natural_64).as_other_type (zero_value)
+				extend (n)
 			end
-			if old_base > zero_value and base /= old_base then
-				set_base (old_base)
+			if neg then
+				set_is_negative (true)
 			end
+			remove_leading_zeros
+	-- The commented code reads a string of characters as digits 0..9, storing
+	-- the resulting number in base ten.  No good.
+--				-- Save the `base; calculate in `max_base' and restore at end.
+--			old_base := base
+--			default_create
+--				-- Assume the string is a decimal number.
+--				-- Step through the string converting each digit to a
+--				-- JJ_NATURAL of the same type as `base'.
+--				-- Use a BIG_NUMBER so we can `raise' and `scalar_multiply'.
+--			e := new_big_number (zero_value, base)	-- The exponent starts at 0.
+--			bn := new_big_number (zero_value, base)
+--			l_one := new_big_number (one_value, base)
+--			ten := new_big_number (ten_value, base)
+--			from i := a_string.count
+--			until i < 1
+--			loop
+--				s := a_string.substring (i, i).as_string_8
+--				c := a_string.item (i)
+--				if s ~ "+" then
+--					do_nothing
+--				elseif s ~ "-" then
+--					negate
+--				elseif s ~ "0" then
+--					do_nothing
+--				else
+--					check
+--						is_number: s.is_number_sequence
+--							-- because of precondition "is_number"
+--					end
+--						-- Use `from_hex_string' because digits 0..9 are okay;
+--						-- we are assuming the string is decimal.
+--					n := new_value_from_character (c)
+--					bn.set_value (n)
+--					bn.multiply (ten_to_the_power (e))
+--					add (bn)
+--				end
+--				e := e + l_one
+--				i := i - 1
+--			end
+--			if old_base > zero_value and base /= old_base then
+--				set_base (old_base)
+--			end
 		ensure
 			base_unchanged: base = old base
 		end
@@ -519,53 +641,34 @@ feature -- Element change
 			end
 		end
 
-	set_karatsuba_threshold (a_value: INTEGER)
-			-- Change the `karatsub_threshold', the number of digits at which
-			-- *all* multiplications of a {BIG_NUMBER} use the Karatsuba
-			-- algorithm instead of a basic, grade-school method.
+	set_with_array (a_array: ARRAY [like digit])
+			-- Set the digits from `a_array', where the array holds the
+			-- intended digits with high-order digits first.  Each item in
+			-- `a_array' must be representable in the current `base' and at
+			-- least one digit must be non-zero.
 		require
-			value_big_enough: a_value >= 1
-		do
-			karatsuba_threshold_imp.set_item (a_value)
-		end
-
-	set_from_other (a_other: JJ_BIG_NATURAL [JJ_NATURAL])
-			-- Make Current equivalent to `a_other'.
+			array_exists: a_array /= Void
+			array_not_empty: not a_array.is_empty
+			has_valid_digits: across a_array as it all it.item < base end
+			not_all_zero: across a_array as it some it.item > zero_value end
 		local
-			bn: like a_other
-			other_d: JJ_NATURAL
-			n8: NATURAL_8
 			i: INTEGER
 		do
 			wipe_out
-			if a_other.same_type (Current) and a_other.base = base then
-				bn := a_other
-			else
-				bn := a_other.deep_twin
-			end
-				-- Synchronize the bases;  `set_base' is no-cost if base
-				-- is not changing.
---			if multiplication_bit_count <= bn.multiplication_bit_count then
---				bn.set_base (base)
---			else
---				set_base (max_base)
---				bn.set_base (max_base)
---			end
---			check
---				same_bit_counts: internal_bit_count = bn.internal_bit_count
---					-- Because they have same base
---			end
-				-- Now copy each `digit' of `a_other' to Current.  There is no
-				-- information lose when a digit of other is added to Current,
-				-- because the code above ensures the two numbers, Current and
-				-- `a_other', use the same bit counts.
 			from i := 1
-			until i > bn.count
+			until i > a_array.count
 			loop
-				other_d := base.as_same_type (bn.i_th (i))
-				force_extend (other_d)
+				put_front (a_array.item (i))
 				i := i + 1
 			end
+			remove_leading_zeros
+--				-- Remove any leading zero's, but not if the number is zero
+--			from finish
+--			until after or else digit > zero_value
+--			loop
+--				remove
+--				finish
+--			end
 		end
 
 feature -- Conversion
@@ -657,8 +760,6 @@ feature -- Status setting
 		do
 			if not is_zero then
 				is_negative := a_sign
-			else
-				is_negative := a_sign
 			end
 		ensure
 			positive_assigned: not a_sign implies not is_negative
@@ -685,14 +786,30 @@ feature -- Status report
 
 	is_one: BOOLEAN
 			-- Is Current equivalent to `one'?
+		local
+			i: INTEGER
 		do
-			Result := count = 1 and then i_th (1) = 1
+				-- Must account for leading zeros
+			from i := count
+			until i = 1 or else i_th (i) /= one_value
+			loop
+				i := i - 1
+			end
+			Result := i = 1 and then i_th (1) = one_value
 		end
 
 	is_base: BOOLEAN
 			-- Is Current equal to the value of the `base'?
+		local
+			i: INTEGER
 		do
-			Result := count = 2 and then (i_th (1) = 0 and i_th (2) = 1)
+				-- Must account for leading zeros
+			from i := count
+			until i = 2 or else i_th (i) /= one_value
+			loop
+				i := i - 1
+			end
+			Result := i = 2 and then (i_th (1) = 0 and i_th (2) = 1)
 		end
 
 	is_negative: BOOLEAN
@@ -708,7 +825,7 @@ feature -- Status report
 	divisible (other: like Current): BOOLEAN
 			-- May current object be divided by `other'?
 		do
-			Result := other ~ zero
+			Result := other /~ zero
 		end
 
 	exponentiable (other: NUMERIC): BOOLEAN
@@ -788,7 +905,7 @@ feature -- Basic operations
 			-- New object equivalent to Current multiplied by `a_value'.
 			-- Do not change Current.
 		require
-			value_small_enough: a_value <= base.max_value
+			value_small_enough: a_value <= max_representable_value
 		do
 			Result := twin
 			Result.scalar_multiply (a_value)
@@ -972,12 +1089,16 @@ feature -- Basic operations
 									(count - other.count).abs > 1
 		local
 			big, lit, p: like Current
-			i, n: INTEGER
-			c: INTEGER
+			i: INTEGER
+			t: INTEGER		-- block length
+			n: INTEGER		-- number of blocks
+			e: INTEGER		-- number of left over digits at high end
 			bn: like Current
 
 		do
 			Result := new_big_number (zero_value, base)
+				-- Find which factor has the most digits, in order to
+				-- multiply the longer number by the shorter number.
 			if count < other.count then
 				lit := Current
 				big := other
@@ -985,18 +1106,37 @@ feature -- Basic operations
 				lit := other
 				big := Current
 			end
-			n := lit.count
+				-- Get the length of the shorter number, so that we can
+				-- logically divide the longer into blocks of that length.
+			t := lit.count
+			n := big.count // t
+			e := big.count \\ t
 			from i := 1
-			until i > big.count
+			until i > n
 			loop
-				bn := new_sub_number (i, i + n - 1, big)
+					-- Starting at the low-order digits, break the longer
+					-- number into segments containing the same number of
+					-- digits as the shorter number.
+				bn := new_sub_number (t * i - t + 1, t * i, big)
+					-- Recursive multiply.
 				p := bn * lit
 				if not p.is_zero then
-					p.shift_left (n * c)
+					p.shift_left (t * (i - 1))
 				end
 				Result := Result + p
 				i := i + n
-				c := c + 1
+			end
+			if e > 0 then
+					-- There's one or more digits remaining at high end that
+					-- do not fill an entire block of size `t'.
+				check
+					not_complete_block: e < t
+					one_block_more: i = n + 1
+				end
+				bn := new_sub_number (t * i - t + 1, big.count, big)
+				p := bn * lit
+				p.shift_left (t * (i - 1))
+				Result := Result + p
 			end
 			if is_same_sign (other) then
 				Result.set_is_negative (false)
@@ -1159,53 +1299,7 @@ feature -- Basic operations
 
 feature  -- Division
 
-	condition_for_x_by_one_division (a_other: like Current)
-			-- Modify, if required, both Current and `a_other' so that a
-			-- left-to-right division using `two_by_one_divide'.  This feature
-			-- ensures `a_other' has a power-of-two number of digits, padding
-			-- it with leading zeroes if reqired.  Current is also padded with
-			-- zeros so that it has a number of digits that is a multiple of
-			-- the number of digits now in `a_other'.
-			-- See Burnikel & Zieler, "Fast Recursive Division", pp 9-10.
-		require
-			is_marked_unstable: is_unstable
-			other_is_marked_unstable: a_other.is_unstable
-		local
-			n: INTEGER		-- number of digits required in `a_other'
-			blks: INTEGER	-- number of blocks of size `n' required in Current
-			t: INTEGER		-- number of digits required in Current
-			s: INTEGER		-- number of left shifts after normalization
-		do
-				-- Pad `a_other', if required, until it has 2^k digits.
-			from n := log_2 (a_other.count).ceiling
-			until a_other.count = n
-			loop
-				a_other.extend (zero_value)
-			end
-			check
-				correct_count: a_other.count = n
-					-- Becuase we don't want too many or too few digits.
-			end
-				-- Pad Current, if required, until it has a digit `count'
-				-- equal to a multiple of `a_other'.
-			blks := count // n + 1
-			from t := blks * n
-			until count = t
-			loop
-				extend (zero_value)
-			end
-			check
-				correct_count: count = t
-					-- Becuase we don't want too many or too few digits.
-			end
-				-- Normalize `a_other' and shift Current accordingly.
-			s := a_other.normalize
-			bit_shift_left (s)
-		ensure
-			is_conditioned:
-		end
-
-	quotient (a_other: like Current): TUPLE [quot, rem: like Current]
+	quotient alias "/" (a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The quotient and remainder resulting from dividing Current
 			-- by `a_other' without changing Current.
 		require
@@ -1258,16 +1352,240 @@ feature  -- Division
 	two_by_one_divide (a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The result of dividing Current by `a_other' when Current
 			-- has exactly two times the number of digits as `a_other'.
+			-- See Burnikel & Zieler, "Fast Recursive Division", p 2.
+		require
+			n_big_enough: a_other.count >= 2
+			n_is_even: a_other.count \\ 2 = 0
+			is_twice_n: count = a_other.count * 2
+		local
+			a, a3, a4: like Current
+			n, half_n: INTEGER
+			q: like Current
 		do
-			Result := Current
+			if count = 2 then
+				check
+					other_count_is_one: a_other.count = 1
+						-- because of precondition.
+				end
+				Result := divide_two_digits_by_one (Current, a_other)
+			else
+					-- Instead of splitting Current into four parts here,
+					-- we split it into two and let `three_by_two_divide'
+					-- do the addition split.
+					-- We do need to get the `a3' part, though.
+				n := a_other.count
+				half_n := n // 2
+					-- High order digits first
+				a := new_sub_number (n + 1, count, Current)
+				a3 := new_sub_number (n + 1, n + half_n, Current)
+				a4 := new_sub_number (n + half_n + 1, count, Current)
+				Result := three_by_two_divide (a, a3, a_other)
+				q := Result.quot
+				Result := three_by_two_divide (Result.rem, a4, a_other)
+				Result := [new_combined_number (q, Result.quot), Result.rem]
+			end
+		end
+
+	three_by_two_divide (a, a3, b: like Current): TUPLE [quot, rem: like Current]
+			-- Called by `two_by_one_divide'.  It has similar structure as
+			-- `div_three_halves_by_two_halfs', but the arguments to this
+			-- function have type {JJ_BIG_NATURAL} instead of like `digit'.
+			-- See Burnikel & Zieler, "Fast Recursive Division", pp 4-8.
+		local
+			b1, b2: like Current
+			tup: TUPLE [quot, rem: like Current]
+			d: like Current
+		do
+				-- Split `b'.
+			b1 := new_sub_number (b.count, b.count // 2 + 1, b)
+			b2 := new_sub_number (b.count // 2, 1, b)
+			Result := a / b1
+			d := Result.quot * b2
+			Result.rem := new_combined_number (Result.rem, a3) - d
+			if Result.rem.is_negative then
+					-- quotient is too big by at least one
+				Result.quot.scalar_add (-one_value)
+				Result.rem := Result.rem + b
+				if Result.rem.is_negative then
+						-- quotient is still to big
+					Result.quot.scalar_add (-one_value)
+					Result.rem := Result.rem + b
+				end
+			end
 		end
 
 	x_by_one_divide (a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The result of dividing Current by `a_other' when Current
 			-- has x number of blocks of digits, where each block has the
 			-- number digits in `a_other'.
+			-- See Burnikel & Zieler, "Fast Recursive Division", pp 9-10.
+		require
+			not_divide_by_zero: a_other /~ zero
+			other_long_enough: a_other.count > 0
+			other_has_power_of_two_count: a_other.count - (a_other.count - 1) = 1
+			other_is_normalized: a_other.is_normalized
+			long_enough: count > a_other.count
+			has_correct_count: count \\ a_other.count = 0
+		local
+			i, t, n: INTEGER
+			a1, a2: like Current
+			z: TUPLE [quot, rem: like Current]
+			q: like Current
 		do
-			Result := Current
+			q := new_big_number (zero_value, base)
+			z := [q, q]
+			n := a_other.count
+				-- Get the number of blocks into which Current is divided.
+			t := count // n
+				-- Conceptually divide Current into t blocks, and combine
+				-- two blocks at a time for division.
+			a1 := new_sub_number ((t - 2) * n + 1, t * n, Current)
+			from i := t - 2
+			until i = 0
+			loop
+				z := a1 / a_other
+					-- Build the from high-order to low-order
+				q := new_combined_number (z.quot, z.quot)
+--				z := new_sub_number (t - i
+--				z := new_combined_number (ew_sub_number (z.rem, )
+				i := i - 1
+			end
+			Result := [q, z.rem]
+		end
+
+	condition_for_x_by_one_division (a_other: like Current)
+			-- Modify, if required, both Current and `a_other' so that a
+			-- left-to-right division using `two_by_one_divide' is possible.
+			-- This feature ensures `a_other' has a power-of-two number of
+			-- digits, padding it with leading zeroes if reqired.  Current
+			-- is also padded with zeros so that it has a number of digits
+			-- that is a multiple of the number of digits now in `a_other'.
+			-- See Burnikel & Zieler, "Fast Recursive Division", pp 9-10.
+		require
+			is_marked_unstable: is_unstable
+			other_is_marked_unstable: a_other.is_unstable
+		local
+			n: INTEGER		-- number of digits required in `a_other'
+			blks: INTEGER	-- number of blocks of size `n' required in Current
+			t: INTEGER		-- number of digits required in Current
+			s: INTEGER		-- number of left shifts after normalization
+		do
+				-- Pad `a_other', if required, until it has 2^k digits.
+			from n := log_2 (a_other.count).ceiling
+			until a_other.count = n
+			loop
+				a_other.extend (zero_value)
+			end
+			check
+				correct_count: a_other.count = n
+					-- Becuase we don't want too many or too few digits.
+			end
+				-- Pad Current, if required, until it has a digit `count'
+				-- equal to a multiple of `a_other'.
+			blks := count // n + 1
+			from t := blks * n
+			until count = t
+			loop
+				extend (zero_value)
+			end
+			check
+				correct_count: count = t
+					-- Becuase we don't want too many or too few digits.
+			end
+				-- Normalize `a_other' and shift Current accordingly.
+			s := a_other.normalize
+			bit_shift_left (s)
+		ensure
+			is_conditioned:
+		end
+
+	divide_two_digits_by_one (a_dividend, a_divisor: like Current):
+							TUPLE [quot: like Current; rem: like Current]
+			-- Divide a two-digit number `a_dividend' by a single-digit number
+			-- `a_divisor', returning a quotient and remainder.
+			-- Since `a_divisor' `is_normalized' we must assume that `a_dividend'
+			-- has been shifted accordingly with the normalization of `a_divisor'.
+			-- (There is no way to check/proove this assumption.)
+			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3.
+			-- Unlike most division operations on a divide by zero, this feature
+			-- upholds Knuth's demand that a \\ 0 = a, providing the useful
+			-- property that (a // b) * b + (a \\ b) = a.
+			-- (See Knuth: The Art of Computer Programming, Volumn 2".)
+		require
+--			divisor_non_zero: a_divisor /= zero_value
+			dividend_has_two_digits: a_dividend.count = 2
+			divisor_has_one_digit: a_divisor.count = 1
+			divisor_is_normalized: a_divisor.is_normalized
+		local
+			c: like digit
+			tup: TUPLE [a3, a4: like digit]
+			tup_b: TUPLE [b1, b2: like digit]
+
+			qr: TUPLE [q1, R: like digit]
+			qs: TUPLE [q2, S: like digit]
+			r: TUPLE [r1, r2: like digit]
+			f: like digit
+			quot, rem: like Current
+		do
+			tup := as_half_digits (a_dividend.i_th (1))
+			qr := div_three_halves_by_two (a_dividend.i_th (2), tup.a3, a_divisor.i_th (1))
+			r := as_half_digits (qr.R)
+			qs := div_three_halves_by_two (qr.R, tup.a4, a_divisor.i_th (1))
+			f := as_full_digit (qr.q1, qs.q2)
+			quot := new_big_number (f, base)
+			rem := new_big_number (qs.s, base)
+			Result := [quot, rem]
+		end
+
+	div_three_halves_by_two (A, a3, B: like digit): TUPLE [quot, rem: like digit]
+			-- Divide three half-digits, "a1" and "a2" (contained in `A') and
+			-- `a3' by two half-digits, "b1" and "b2" (contained in `B'), in
+			-- such a way that the computations fit into the representation
+			-- (i.e. the number of bits) of a digit.
+			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3.
+		local
+			tup: TUPLE [b1, b2: like digit]
+			q, c, d, r: like digit
+			t: like digit
+		do
+			tup := as_half_digits (B)
+			q := A // tup.b1
+			c := A - q * tup.b1
+			d := q * tup.b2
+				-- Digits can never be negative, so in order to perform the test
+				-- "if (R < 0)" on lines 10 and 13 of Burnikel's algoritm page 3,
+				-- we use temporary, `t', which is [c, a3], and check it against
+				-- `d'.  Instead of subtracting d from R, which would not work,
+				-- we subtract `d' from `t' only after adding `b' to it (once or
+				-- twice), which prevents integer underflow.
+			t := as_full_digit (c, a3)
+			if t < d then				-- Same as "if (R < 0)".
+				q := q - one_value
+				t := t + b
+				if t < d then			-- Same as "if (R + B < 0)".
+					q := q - one_value
+					t := t + b
+				end
+			end
+			r := t - d					-- Now R is correct.
+			Result := [q, r]
+		end
+
+	as_half_digits (a_digit: like digit): TUPLE [high, low: like digit]
+			-- Split `a_digit' into two half-digits.
+			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3.
+		local
+			h: INTEGER
+		do
+			h := a_digit.bit_count // 2
+			Result := [a_digit.bit_shift_right (h),
+						a_digit.bit_shift_left (h).bit_shift_right (h)]
+		end
+
+	as_full_digit (a_high, a_low: like digit): like digit
+			-- Combine `a_high' half and `a_low' half into a single digit
+		do
+			Result := a_high.bit_shift_left (base.bit_count // 2) + a_low
 		end
 
 --	scalar_divide (a_digit: like digit): TUPLE [quot: like Current; rem: like digit]
@@ -1353,95 +1671,6 @@ feature  -- Division
 --				i := i - 1
 --			end
 --		end
-
-
-	divide_two_digits_by_one (a_dividend, a_divisor: like Current):
-							TUPLE [quot: like Current; rem: like Current]
-			-- Divide a two-digit number `a_dividend' by a single-digit number
-			-- `a_divisor', returning a quotient and remainder.
-			-- Since `a_divisor' `is_normalized' we must assume that `a_dividend'
-			-- has been shifted accordingly with the normalization of `a_divisor'.
-			-- (There is no way to check/proove this assumption.)
-			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3.
-			-- Unlike most division operations on a divide by zero, this feature
-			-- upholds Knuth's demand that a \\ 0 = a, providing the useful
-			-- property that (a // b) * b + (a \\ b) = a.
-			-- (See Knuth: The Art of Computer Programming, Volumn 2".)
-		require
---			divisor_non_zero: a_divisor /= zero_value
-			dividend_has_two_digits: a_dividend.count = 2
-			divisor_is_normalized: a_divisor.is_normalized
-		local
-			c: like digit
-			tup: TUPLE [a3, a4: like digit]
-			tup_b: TUPLE [b1, b2: like digit]
-
-			qr: TUPLE [q1, R: like digit]
-			qs: TUPLE [q2, S: like digit]
-			r: TUPLE [r1, r2: like digit]
-			f: like digit
-			quot, rem: like Current
-		do
-			tup := as_half_digits (a_dividend.i_th (1))
-			qr := div_three_halves_by_two (a_dividend.i_th (2), tup.a3, a_divisor.i_th (1))
-			r := as_half_digits (qr.R)
-			qs := div_three_halves_by_two (qr.R, tup.a4, a_divisor.i_th (1))
-			f := as_full_digit (qr.q1, qs.q2)
-			quot := new_big_number (f, base)
-			rem := new_big_number (qs.s, base)
-			Result := [quot, rem]
-		end
-
-	div_three_halves_by_two (A, a3, B: like digit): TUPLE [quot, rem: like digit]
-			-- Divide three half-digits, "a1" and "a2" (contained in `A') and
-			-- `a3' by two half-digits, "b1" and "b2" (contained in `B'), in
-			-- such a way that the computations fit into the representation
-			-- (i.e. the number of bits) of a digit.
-			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3.
-		local
-			tup: TUPLE [b1, b2: like digit]
-			q, c, d, r: like digit
-			t: like digit
-		do
-			tup := as_half_digits (B)
-			q := A // tup.b1
-			c := A - q * tup.b1
-			d := q * tup.b2
-				-- Digits can never be negative, so in order to perform the test
-				-- "if (R < 0)" on lines 10 and 13 of Burnikel's algoritm page 3,
-				-- we use temporary, `t', which is [c, a3], and check it against
-				-- `d'.  Instead of subtracting d from R, which would not work,
-				-- we subtract `d' from `t' only after adding `b' to it (once or
-				-- twice), which prevents integer underflow.
-			t := as_full_digit (c, a3)
-			if t < d then				-- Same as "if (R < 0)".
-				q := q - one_value
-				t := t + b
-				if t < d then			-- Same as "if (R + B < 0)".
-					q := q - one_value
-					t := t + b
-				end
-			end
-			r := t - d					-- Now R is correct.
-			Result := [q, r]
-		end
-
-	as_half_digits (a_digit: like digit): TUPLE [high, low: like digit]
-			-- Split `a_digit' into two half-digits.
-			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3.
-		local
-			h: INTEGER
-		do
-			h := a_digit.bit_count // 2
-			Result := [a_digit.bit_shift_right (h),
-						a_digit.bit_shift_left (h).bit_shift_right (h)]
-		end
-
-	as_full_digit (a_high, a_low: like digit): like digit
-			-- Combine `a_high' half and `a_low' half into a single digit
-		do
-			Result := a_high.bit_shift_left (base.bit_count // 2) + a_low
-		end
 
 --	digits_divided (a_digit, a_other: like digit): TUPLE [high, low: like digit]
 --			-- Divide a_digit by other giving a quotient and remainder
@@ -1578,7 +1807,7 @@ feature -- Output
 			io.put_string ("base = " + base.out + "%N")
 			io.put_string ("max_base = " + max_base.out + "%N")
 --			io.put_string ("internal_bit_count = " + internal_bit_count.out + "%N")
-			io.put_string ("Bits_required_for_base = " + bits_used_for_digit.out + "%N")
+			io.put_string ("Bits_required_for_base = " + bits_utilized.out + "%N")
 			io.put_string ("Largest_digit = " + base_minus_one_value.out + "%N")
 			io.put_string (count.out + " digits")
 			io.put_string ("%T" + out_as_bits)
@@ -1668,7 +1897,7 @@ feature -- Output
 			-- Output as groups of bits.
 		local
 			i: INTEGER
-			j: like bits_used_for_digit
+			j: like bits_utilized
 			dig: like digit
 			bc: INTEGER_32
 			n: INTEGER
@@ -1686,7 +1915,7 @@ feature -- Output
 				until j > bc
 				loop
 					n := bc - j + 1		-- which bit?
-					if not is_unstable and n > bits_used_for_digit then
+					if not is_unstable and n > bits_utilized then
 						Result.append ("x")
 					else
 						if dig.bit_test (n - 1) then		-- zero base test
@@ -1756,8 +1985,6 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 			d: like digit
 			i: INTEGER
 		do
---			c := i_th (1).bit_shift_right (base.bit_count - a_shift)
---			put_i_th (i_th (1).bit_shift_left (a_shift)
 			c := zero_value
 			from i := 1
 			until i > count
@@ -1772,27 +1999,6 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 			if c > zero_value then
 				extend (c)
 			end
-
---			from i := 2
---			until c = zero_value
---			loop
---				if i > count then
---					extend (c)
---					c := zero_value
---				else
---					d := i_th (i)
---					if d <= d.max_value - c then
---							-- No overflow will occur, so just add.
---						c := zero_value
---					else
---							-- The add will overflow, but by no more than one.
---						c := one_value
---					end
---					d := d + c
---					put_i_th (d, i)
---				end
---				i := i + 1
---			end
 		ensure
 --			conforms: not is_nonconforming
 			correct_count: count <= old count + 1
@@ -1948,11 +2154,11 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 		local
 			n: INTEGER
 		do
-			Result := bits_used_for_digit - i_th (count).most_significant_bit
+			Result := bits_utilized - i_th (count).most_significant_bit
 			bit_shift_left (Result)
 		ensure
 			is_normalized: is_normalized
-			is_nonconforming: not is_nonconforming
+--			is_nonconforming: not is_nonconforming
 		end
 
 	is_normalized: BOOLEAN
@@ -1962,7 +2168,7 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 			Result := i_th (count) >= base // two_value
 		ensure
 			definition: Result implies i_th (count) >= base // two_value
-			is_nonconforming: Result implies is_nonconforming
+--			is_nonconforming: Result implies is_nonconforming
 		end
 
 	is_unstable: BOOLEAN
@@ -2196,24 +2402,42 @@ feature {NONE} -- Implementation (multiplication)
 
 feature {NONE} -- Implementation
 
+
 	new_big_number (a_value: like digit; a_base: like base): like Current
 			-- Create an instance containing `a_value' in `a_base'.
 			-- Used throughout to obtain a {JJ_BIG_NUMBER} of the correct type.
 		deferred
 		end
 
-	new_sub_number (a_start, a_end: INTEGER; other: like Current): like Current
-			-- Copy of the digits indexed from `a_start' and `a_end'.min(count)
-			-- inclusive without any leading zero digits from `other'.
-			-- This wraps `make_from_other', allowing routines to obtain a new
+	new_sub_number (a_low, a_high: INTEGER; a_other: like Current): like Current
+			-- Copy of the digits indexed from `a_low' up to `a_high' inclusive
+			-- without any leading zero digits from `other'.
+			-- This feature required to allow routines to obtain a new
 			-- {JJ_BIG_NUMBER} in places where an object of a deferred class
 			-- is needed but cannot be created.
 		require
-			other_exists: other /= Void
-			start_big_enough: a_start >= 1
-			start_small_enough: a_start <= other.count
-			end_after_start: a_end >= a_start
+			other_exists: a_other /= Void
+			low_big_enough: a_low >= 1
+			high_small_enough: a_high <= a_other.count
+			low_before_high: a_low <= a_high
 		deferred
+		end
+
+	new_combined_number (a_high, a_low: like Current): like Current
+			-- A new number made from two others where `a_high' contains the
+			-- high-order digits and `a_low' contains the low-order digits.
+		require
+			same_base: a_high.base = a_low.base
+		local
+			i: INTEGER
+		do
+			Result := a_low.twin
+			from i := 1
+			until i > a_high.count
+			loop
+				Result.extend (a_high.i_th (i))
+				i := i + 1
+			end
 		end
 
 	new_filled_list (n: INTEGER): like Current
@@ -2222,25 +2446,31 @@ feature {NONE} -- Implementation
 			Result := new_big_number (zero_value, base)
 		end
 
-	bits_used_for_digit: INTEGER_32
-			-- Number of bits needed in order to represent a number in the `base'
-			-- while leaving one bit for a carry.
+	bits_utilized: INTEGER_32
+			-- Number of bits needed in order to represent a number in
+			-- the `base'.  For example, an eight-bit representation could
+			-- utilize up to seven bits, because the `max_base' would be 128
+			-- (10000000 in binary) and the `max_digit_value' would be 127
+			-- (x1111111 in binary).  Setting the `base' to a smaller value,
+			-- say base 15 (xxxx1111 in binary) gives a `max_digit_value' of
+			-- 14 (xxxx1110 in binary) which utilizes four bits.
 		local
 			temp: like digit
 		do
-				-- This is naive approach.  It might be better to start high
-				-- since the point of this class is a really big number with
-				-- a large base.
-			temp := base.one
-			from Result := 0
-			until temp >= base
-			loop
-				Result := Result + 1
-				temp := temp.bit_shift_left (1) + base.one
-			end
+--				-- This is naive approach.  It might be better to start high
+--				-- since the point of this class is a really big number with
+--				-- a large base.
+--			temp := base.one
+--			from Result := 0
+--			until temp >= base
+--			loop
+--				Result := Result + 1
+--				temp := temp.bit_shift_left (1) + base.one
+--			end
+			Result := max_digit_value.most_significant_bit
 		ensure
 			result_big_enough: Result >= 2
-			result_small_enough: Result <= base.bit_count
+			result_small_enough: Result < base.bit_count
 		end
 
 	new_value_from_character (a_character: CHARACTER_8): like digit
@@ -2300,14 +2530,17 @@ feature {NONE} -- Implementation
 		do
 			num := power_of_ten_table.item (a_power)
 			if not attached num then
-				ten := new_big_number (ten_value, base)
 				if a_power ~ zero then
 					num := new_big_number (one_value, base)
 					power_of_ten_table.extend (num, zero)
 				elseif a_power ~ one then
-					num := ten.twin
+					if not power_of_ten_table.has (zero) then
+						num := ten_to_the_power (zero)
+					end
+					num := new_big_number (ten_value, base)
 					power_of_ten_table.extend (num, one)
 				else
+					ten := new_big_number (ten_value, base)
 					num := ten_to_the_power (a_power - one) * ten
 					power_of_ten_table.extend (num, a_power)
 				end
@@ -2327,6 +2560,9 @@ feature {NONE} -- Implementation
 		deferred
 		end
 
+	Default_table_size: INTEGER = 10
+			-- The initial capacity assigned to the `power_of_ten_table'.
+
 invariant
 
 	base_big_enough: base >= zero_value
@@ -2334,7 +2570,6 @@ invariant
 	has_at_least_one_digit: count >= 1
 	no_leading_zeroes_if_stable: not is_unstable implies (count > 1 implies last >= base.one)
 	is_zero_implication: not is_unstable implies (is_zero implies count = 1)
-	is_one_implication: is_one implies count = 1
 
 	is_zero_implies_non_negative: is_zero implies not is_negative
 	is_negative_implies_non_zero: is_negative implies not is_zero

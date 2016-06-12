@@ -29,6 +29,17 @@ feature {NONE} -- Initialization
 			end
 				-- Create the `tester' object
 			create tester
+				-- Test implementation features.
+			io.put_string ("------------- Implementation ----------------- %N")
+--			tester.from_array
+--			tester.set_with_string
+--			tester.new_sub_number
+--			tester.power_of_ten_table
+--			tester.ten_to_the_power
+--			tester.bits_utilized
+
+			tester.is_zero
+			
 				-- Test initialization features.
 --			io.put_string ("------------- Initization -------------------- %N")
 --			tester.set_verbose
@@ -64,7 +75,7 @@ feature {NONE} -- Initialization
 
 feature -- Access
 
-	tester: BIG_NATURAL_TESTS
+	tester: BIG_NATURAL_8_TESTS
 			-- To test big numbers.
 
 
