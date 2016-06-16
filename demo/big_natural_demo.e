@@ -38,8 +38,23 @@ feature {NONE} -- Initialization
 --			tester.ten_to_the_power
 --			tester.bits_utilized
 
-			tester.is_zero
-			
+--			tester.is_zero
+
+			tester.base
+
+
+			tester.scalar_multiply
+
+			tester.to_base
+			tester.scalar_add
+
+			tester.set_base
+			tester.set_base_failing
+
+			tester.bit_shift_left
+			tester.simple_add
+			tester.add
+
 				-- Test initialization features.
 --			io.put_string ("------------- Initization -------------------- %N")
 --			tester.set_verbose

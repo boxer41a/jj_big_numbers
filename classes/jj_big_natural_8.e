@@ -77,11 +77,11 @@ feature -- Constants
 --			-- To obtain the absolutely largest value representable by a
 --			-- `digit' of Current use {like digit}.max_value.
 
-	max_base: NATURAL_8 = 128		-- (x80)
-			-- The maximum allowed value for `base'.
-			-- It is the number represented by a one in only the high-order bit.
-			-- Examples:
-			--    NATURAL_8  ==>  10000000 = 128
+--	max_base: NATURAL_8 = 128		-- (x80)
+--			-- The maximum allowed value for `base'.
+--			-- It is the number represented by a one in only the high-order bit.
+--			-- Examples:
+--			--    NATURAL_8  ==>  10000000 = 128
 
 	max_representable_value: NATURAL_8 = 255
 			-- The largest number representable by a `digit'.
@@ -131,7 +131,7 @@ feature {NONE} -- Implementation
 		local
 			i: INTEGER
 		do
-			create Result
+			create Result.make_with_base (a_other.base)
 			Result.put_i_th (a_other.i_th (a_low), 1)
 				-- Loop through the rest of the digits.
 			from i := a_low + 1

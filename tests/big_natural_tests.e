@@ -239,6 +239,11 @@ feature -- Basic operations (element change tests)
 		deferred
 		end
 
+	set_with_array
+			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
 feature -- Basic operations (conversion tests)
 
 	to_base
@@ -292,30 +297,71 @@ feature -- Basic operations (status report tests)
 
 feature -- Basic operations (basic operations tests)
 
-	scalar_add
-			-- Test/demo the `scalar_add' and `scalar_sum' functions
-			-- from {JJ_BIG_NATURAL}.
+	negate
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		deferred
 		end
 
-	scalar_multiply
-			-- Test/demo the `scalar_multiply' and `scalar_product' functions
-			-- from {JJ_BIG_NATURAL}.
+	identity
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	opposite
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	scalar_add
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+
+	scalar_sum
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		deferred
 		end
 
 	add
-			-- Test and demonstrate features `add', `plus', and `+' from
-			-- {JJ_BIG_NATURAL}.  I checked the calculations at
-			-- "https://defuse.ca/big-number-calculator.htm".
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		deferred
 		end
 
+	plus
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	subtract
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
 
 	minus
-			-- Test and demonstrate features `subtract', `minus', and `-'
-			-- from {JJ_BIG_NATURAL}.  I checked the calculations at
-			-- "https://defuse.ca/big-number-calculator.htm".
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	simple_add
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	simple_subtract
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+feature -- Basic operations (multiply)
+
+	scalar_multiply
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	scalar_product
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		deferred
 		end
 

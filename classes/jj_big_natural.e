@@ -150,8 +150,9 @@ feature {NONE} -- Initialization
 	make_with_base (a_base: like base)
 			-- Initialize Current, setting the `base'
 		require
-			base_big_enough: a_base >= two_value
-			base_small_enough: a_base <= max_base
+--			base_big_enough: a_base >= two_value
+--			base_small_enough: a_base <= max_base
+			valid_base: a_base /= one_value
 		do
 			default_create
 			base := a_base
@@ -163,8 +164,9 @@ feature {NONE} -- Initialization
 			-- Initialize Current so it is equivalent to `a_value' and set
 			-- the `base' to `a_base'
 		require
-			base_big_enough: a_base > base.one
-			base_small_enough: a_base <= max_base
+--			base_big_enough: a_base > base.one
+--			base_small_enough: a_base <= max_base
+			valid_base: a_base /= one_value
 		do
 			default_create
 			base := a_base
@@ -177,12 +179,12 @@ feature {NONE} -- Initialization
 			-- Create an instance from `a_value'.
 		require
 			string_long_enough: a_string.count >= 1
-			is_number: a_string.is_number_sequence
+			is_number: is_valid_string (a_string)
 		do
 			default_create
 			set_with_string (a_string)
 		ensure
-			base_is_max: base = max_base
+			base_ten: base = ten_value
 		end
 
 	from_array (a_array: ARRAY [like digit])
@@ -212,10 +214,11 @@ feature {NONE} -- Initialization
 		require
 			array_exists: a_array /= Void
 			array_not_empty: not a_array.is_empty
-			has_valid_digits: across a_array as it all it.item < base end
+			has_valid_digits: across a_array as it all it.item < a_base end
 			not_all_zero: across a_array as it some it.item > zero_value end
-			base_big_enough: a_base >= two_value
-			base_small_enough: a_base <= max_base
+--			base_big_enough: a_base >= two_value
+--			base_small_enough: a_base <= max_base
+			valid_base: a_base /= one_value
 		do
 			make_with_base (a_base)
 			set_with_array (a_array)
@@ -228,8 +231,9 @@ feature {NONE} -- Initialization
 			-- with `a_base'.
 		require
 			count_big_enough: a_count >= 1
-			base_big_enough: a_base >= two_value
-			base_small_enough: a_base <= max_base
+--			base_big_enough: a_base >= two_value
+--			base_small_enough: a_base <= max_base
+			valid_base: a_base /= one_value
 		local
 			i: INTEGER
 			r: INTEGER
@@ -360,15 +364,23 @@ feature -- Constants
 			definition: Result = base.max_value
 		end
 
+--	max_base: like base
+--			-- The maximum allowed value for `base'.
+--			-- It is the number represented by a one in the high-order bit.
+--			-- Examples:
+--			--    NATURAL_8  ==>  10000000 = 128
+--			--    NATURAL_16 ==>  10000000 00000000 = 32,768
+--		deferred
+--		ensure
+--			definition: Result = base.one.bit_shift_left (base.bit_count - 1)
+--		end
+
 	max_base: like base
 			-- The maximum allowed value for `base'.
-			-- It is the number represented by a one in the high-order bit.
-			-- Examples:
-			--    NATURAL_8  ==>  10000000 = 128
-			--    NATURAL_16 ==>  10000000 00000000 = 32,768
-		deferred
-		ensure
-			definition: Result = base.one.bit_shift_left (base.bit_count - 1)
+			-- Since this maximum is not representable in the number of bits
+			-- available, a ` base' = `zero_value' represents the maximum.	
+		do
+			Result := zero_value
 		end
 
 	Default_karatsuba_threshold: INTEGER = 4
@@ -419,7 +431,7 @@ feature -- Access
 			-- The value above which multiplications use `karatsuba_product'.
 			-- Change with `set_karatsuba_threshold'.
 		do
-			Result := karatsuba_threshold_imp
+			Result := karatsuba_threshold_imp.item
 		ensure
 			result_big_enough: Result >= 2
 		end
@@ -466,142 +478,80 @@ feature -- Element change
 			end
 		end
 
-	is_representable_string (a_string: STRING_8): BOOLEAN
-			-- Is `a_string' in the correct format (i.e. digits seperated
-			-- by commas with an optional positive or negative sign at the
-			-- beginning of the string).
-			-- Each digit must be less than the `base'.
-			-- Valid examples:
-			--     "-99,505,999" for a base >= 1000.
-			--     "7,15,15,15"  for a base >= 16
-		local
-			s, ss: STRING_8
-			pos: INTEGER
-		do
-			s := a_string.twin
-			Result := a_string /= Void and then a_string.count >= 1
-			if Result then
-					-- Is the first character a plus or minus sign?
-				ss := s.substring (1, 1)
-				if ss ~ "+" or ss ~ "-" then
-					s.keep_tail (s.count - 1)
-				else
-					do_nothing
-				end
-				from
-				until s.count = 0 or else not result
-				loop
-					pos := s.index_of (',', 1)
-					if pos > 0 then
-						ss := s.substring (1, pos - 1)
-						s.keep_tail (s.count - pos)
-					else
-						ss := s.twin
-						s.wipe_out
-					end
-					if not ss.is_number_sequence then
-						Result := false
-					end
-				end
-			end
-		end
-
-	set_with_string (a_string: STRING_8)
-			-- Set the digits of Current from the comma-seperated digits
-			-- contained in `a_string' with high-order digits at the
-			-- beginning of the string.
+	is_valid_string (a_string: STRING_8): BOOLEAN
+			-- Is `a_string' in the correct format?
+			-- Yes if it contains only characters '0'..'9', optional
+			-- commas, and optional leading '+' or '-'.
+			-- (The placement of commas is unimportant and ignored.)
+			-- Valid strings:
+			--    "-99,505,999"
+			--    "9950,599,9"
+			--    ""
 		require
-			string_long_enough: a_string.count >= 1
-			is_number: is_representable_string (a_string)
+			string_exists: a_string /= Void
 		local
 			s, ss: STRING_8
-			pos: INTEGER
-			neg: BOOLEAN
-			n: like digit
+			i: INTEGER
 		do
-			Default_create
-			wipe_out
+			Result := true
 			s := a_string.twin
-				-- Is the first character a plus or minus sign?
+			s.prune_all (',')
+					-- Is the first character a plus or minus sign?
 			ss := s.substring (1, 1)
-			if ss ~ "-" then
-				neg := true
-				s.keep_tail (s.count - 1)
-			elseif s ~ "+" then
+			if ss ~ "+" or ss ~ "-" then
 				s.keep_tail (s.count - 1)
 			else
 				do_nothing
 			end
-			from
-			until s.count = 0
+			from i := 1
+			until i > s.count or not Result
 			loop
-					-- Start at end of string, which is low-order digits.
-				pos := s.last_index_of (',', s.count)
-				if pos > 0 then
-					ss := s.substring (pos + 1, s.count)
-					s.keep_head (pos - 1)
+				Result := s.item (i).is_digit
+				i := i + 1
+			end
+		ensure
+			base_ten: base = ten_value
+		end
+
+	set_with_string (a_string: STRING_8)
+			-- Set the `base' to 10 and store each character as a digit.
+			-- If `a_string' is empty, then Current is equivalent to zero.
+		require
+			is_number: is_valid_string (a_string)
+		local
+			s, ss: STRING_8
+			neg: BOOLEAN
+			i: INTEGER
+		do
+			Default_create
+			set_base (ten_value)
+			if a_string.count > 0 then
+				wipe_out
+				s := a_string.twin
+				s.prune_all (',')
+					-- Is the first character a plus or minus sign?
+				ss := s.substring (1, 1)
+				if ss ~ "-" then
+					neg := true
+					s.keep_tail (s.count - 1)
+				elseif s ~ "+" then
+					s.keep_tail (s.count - 1)
 				else
-					ss := s.twin
-					s.wipe_out
+					do_nothing
 				end
-				check
-					is_number: ss.is_number_sequence
-						-- because of precondition
+				from i := s.count
+				until i = 0
+				loop
+					extend (new_value_from_character (s.item (i)))
+					i := i - 1
 				end
-					-- Convert the string to a number in the largest representation.
-					-- Then convert it to the same type as `digit', using `zero_value'
-					-- just to express the desired type.
-				n := (ss.to_natural_64).as_other_type (zero_value)
-				extend (n)
 			end
 			if neg then
 				set_is_negative (true)
 			end
 			remove_leading_zeros
-	-- The commented code reads a string of characters as digits 0..9, storing
-	-- the resulting number in base ten.  No good.
---				-- Save the `base; calculate in `max_base' and restore at end.
---			old_base := base
---			default_create
---				-- Assume the string is a decimal number.
---				-- Step through the string converting each digit to a
---				-- JJ_NATURAL of the same type as `base'.
---				-- Use a BIG_NUMBER so we can `raise' and `scalar_multiply'.
---			e := new_big_number (zero_value, base)	-- The exponent starts at 0.
---			bn := new_big_number (zero_value, base)
---			l_one := new_big_number (one_value, base)
---			ten := new_big_number (ten_value, base)
---			from i := a_string.count
---			until i < 1
---			loop
---				s := a_string.substring (i, i).as_string_8
---				c := a_string.item (i)
---				if s ~ "+" then
---					do_nothing
---				elseif s ~ "-" then
---					negate
---				elseif s ~ "0" then
---					do_nothing
---				else
---					check
---						is_number: s.is_number_sequence
---							-- because of precondition "is_number"
---					end
---						-- Use `from_hex_string' because digits 0..9 are okay;
---						-- we are assuming the string is decimal.
---					n := new_value_from_character (c)
---					bn.set_value (n)
---					bn.multiply (ten_to_the_power (e))
---					add (bn)
---				end
---				e := e + l_one
---				i := i - 1
---			end
---			if old_base > zero_value and base /= old_base then
---				set_base (old_base)
---			end
 		ensure
-			base_unchanged: base = old base
+			base_set: base = ten_value
 		end
 
 	set_base (a_new_base: like base)
@@ -685,73 +635,101 @@ feature -- Conversion
 
 	as_base (a_new_base: like base): like Current
 			-- New object equivalent to Current but converted to `a_new_base'.
-			-- See "A Recursive Radix Conversion Formula and Its Application
-			-- to Multiplication and Division", H. Asai, Lockheed Electronics
-			-- Company, 1976, theorem 2 and equations 2.17, 2.18, and 2.19.
+			-- "Knuth, "The Art of Computer Programming", Vol 2, p. 302.	
 		require
+			base_big_enough: base >= two_value
 			base_small_enough: base <= max_base
 		local
-			d: like Current	-- the present radix
-			b: like Current	-- the target radix
-			p: like Current
-			s, r: like Current
-			t: like Current	-- the accumulated result
+			n: like Current
 			i: INTEGER
-			eta_hat: like digit	-- the i_th digit
 		do
-			if base = a_new_base then
+			if a_new_base = base then
 				Result := deep_twin
 			else
--- ?				-- "Calculations must be done in the new radix."  This
-					-- means that the arithmatic is modulo `a_new_base', so we
-					-- discard any digits that "overflow".
---print ("%N")
---print (generating_type + "  " + out_as_stored + " base " + base.out +
---					"  as_base (" + a_new_base.out + ") %N")
-				d := new_big_number (base, a_new_base)
-				b := new_big_number (a_new_base, a_new_base)
-				p := d - b
-				s := new_big_number (i_th (count), a_new_base)
-				r := new_big_number (zero_value, a_new_base)
-					-- t_zero = s
-				t := new_big_number (i_th (count), a_new_base)
---print ("  initialize: %N")
---print ("     d = " + d.out_as_bits + "%T%T" + d.out_as_stored + "%N")
---print ("     b = " + b.out_as_bits + "%T%T" + b.out_as_stored + "%N")
---print ("     p = " + p.out_as_bits + "%T%T" + p.out_as_stored + "%N")
---print ("     s = " + s.out_as_bits + "%T%T" + s.out_as_stored + "%N")
---print ("     r = " + r.out_as_bits + "%T%T" + r.out_as_stored + "%N")
---print ("     t = " + t.out_as_bits + "%T%T" + t.out_as_stored + "%N")
+					-- Use arithmatic in the new base
+				n := new_big_number (i_th (count), a_new_base)
 				from i := count - 1
 				until i < 1
 				loop
---print ("  i = " + i.out + ": %N")
-					eta_hat := i_th (i)
---print ("   eta = " + eta_hat.out + "%N")
-						--  s[i] := s[i-1]P + n[i]
-					s := s * p
---print ("     s = s * p = " + s.out_as_bits + "%T%T" + s.out_as_stored + "%N")
-					s.scalar_add (eta_hat)
---print ("     s.add (eta) = " + s.out_as_bits + "%T%T" + s.out_as_stored + "%N")
-						-- r[i] := t[i-1] + r[i-1]P
-					r := r * p
---print ("     r = r * p = " + r.out_as_bits + "%T%T" + r.out_as_stored + "%N")
-					r.add (t)
---print ("     r.add (t) = " + r.out_as_bits + "%T%T" + r.out_as_stored + "%N")
-						-- t[i] := r[i]B + s[i]
-					t := r * b
---print ("     t = r * b = " + t.out_as_bits + "%T%T" + t.out_as_stored + "%N")
-					t.add (s)
---print ("     t.add (s) = " + t.out_as_bits + "%T%T" + t.out_as_stored + "%N")
+					n.scalar_multiply (base)
+					n.scalar_add (i_th (i))
 					i := i - 1
 				end
-				Result := t
-				Result.set_is_negative (is_negative)
+				Result := n
 				Result.assign_to_base (a_new_base)
-				Result.conform
 			end
---			Result := Current
 		end
+
+--	as_base (a_new_base: like base): like Current
+--			-- New object equivalent to Current but converted to `a_new_base'.
+--			-- See "A Recursive Radix Conversion Formula and Its Application
+--			-- to Multiplication and Division", H. Asai, Lockheed Electronics
+--			-- Company, 1976, theorem 2 and equations 2.17, 2.18, and 2.19,
+--			-- p 262.
+--		require
+--			base_small_enough: base <= max_base
+--		local
+--			d: like Current	-- the present radix
+--			b: like Current	-- the target radix
+--			p: like Current
+--			s, r: like Current
+--			t: like Current	-- the accumulated result
+--			i: INTEGER
+--			eta_hat: like digit	-- the i_th digit
+--		do
+--			if base = a_new_base then
+--				Result := deep_twin
+--			else
+---- ?				-- "Calculations must be done in the new radix."  This
+--					-- means that the arithmatic is modulo `a_new_base', so we
+--					-- discard any digits that "overflow".
+----print ("%N")
+----print (generating_type + "  " + out_as_stored + " base " + base.out +
+----					"  as_base (" + a_new_base.out + ") %N")
+--				d := new_big_number (base, a_new_base)
+--				b := new_big_number (a_new_base, a_new_base)
+--				p := d - b
+--				s := new_big_number (i_th (count), a_new_base)
+--				r := new_big_number (zero_value, a_new_base)
+--					-- t_zero = s
+--				t := new_big_number (i_th (count), a_new_base)
+----print ("  initialize: %N")
+----print ("     d = " + d.out_as_bits + "%T%T" + d.out_as_stored + "%N")
+----print ("     b = " + b.out_as_bits + "%T%T" + b.out_as_stored + "%N")
+----print ("     p = " + p.out_as_bits + "%T%T" + p.out_as_stored + "%N")
+----print ("     s = " + s.out_as_bits + "%T%T" + s.out_as_stored + "%N")
+----print ("     r = " + r.out_as_bits + "%T%T" + r.out_as_stored + "%N")
+----print ("     t = " + t.out_as_bits + "%T%T" + t.out_as_stored + "%N")
+--				from i := count - 1
+--				until i < 1
+--				loop
+----print ("  i = " + i.out + ": %N")
+--					eta_hat := i_th (i)
+----print ("   eta = " + eta_hat.out + "%N")
+--						--  s[i] := s[i-1]P + n[i]
+--					s := s * p
+----print ("     s = s * p = " + s.out_as_bits + "%T%T" + s.out_as_stored + "%N")
+--					s.scalar_add (eta_hat)
+----print ("     s.add (eta) = " + s.out_as_bits + "%T%T" + s.out_as_stored + "%N")
+--						-- r[i] := t[i-1] + r[i-1]P
+--					r := r * p
+----print ("     r = r * p = " + r.out_as_bits + "%T%T" + r.out_as_stored + "%N")
+--					r.add (t)
+----print ("     r.add (t) = " + r.out_as_bits + "%T%T" + r.out_as_stored + "%N")
+--						-- t[i] := r[i]B + s[i]
+--					t := r * b
+----print ("     t = r * b = " + t.out_as_bits + "%T%T" + t.out_as_stored + "%N")
+--					t.add (s)
+----print ("     t.add (s) = " + t.out_as_bits + "%T%T" + t.out_as_stored + "%N")
+--					i := i - 1
+--				end
+--				Result := t
+--				Result.set_is_negative (is_negative)
+--				Result.assign_to_base (a_new_base)
+----				Result.conform
+--			end
+----			Result := Current
+--		end
 
 feature -- Status setting
 
@@ -791,7 +769,7 @@ feature -- Status report
 		do
 				-- Must account for leading zeros
 			from i := count
-			until i = 1 or else i_th (i) /= one_value
+			until i = 1 or else i_th (i) /= zero_value
 			loop
 				i := i - 1
 			end
@@ -805,11 +783,11 @@ feature -- Status report
 		do
 				-- Must account for leading zeros
 			from i := count
-			until i = 2 or else i_th (i) /= one_value
+			until i = 2 or else i_th (i) /= zero_value
 			loop
 				i := i - 1
 			end
-			Result := i = 2 and then (i_th (1) = 0 and i_th (2) = 1)
+			Result := i = 2 and then (i_th (1) = zero_value and i_th (2) = one_value)
 		end
 
 	is_negative: BOOLEAN
@@ -820,6 +798,13 @@ feature -- Status report
 		do
 			Result := (is_zero or other.is_zero) or
 						(is_negative = other.is_negative)
+		end
+
+	is_reduced_base: BOOLEAN
+			-- Is Current using a base smaller than the `max_base'?
+			-- That is, is Current not using all available bits?
+		do
+			Result := base /= 0
 		end
 
 	divisible (other: like Current): BOOLEAN
@@ -836,7 +821,32 @@ feature -- Status report
 		do
 		end
 
-feature -- Basic operations
+feature -- Basic operations (simple)
+
+	negate
+			-- Reverse the sign of Current.
+		do
+			if not is_zero then
+				is_negative := not is_negative
+			end
+		ensure
+			sign_toggled: not is_zero implies is_negative = not (old is_negative)
+		end
+
+	identity alias "+": like Current
+			-- Unary plus.
+		do
+			Result := twin
+		end
+
+	opposite alias "-": like Current
+			-- Unary minus.
+		do
+			Result := twin
+			Result.negate
+		end
+
+feature -- Basic operations (addition & subtraction)
 
 	scalar_add (a_value: like digit)
 			-- Change Current by adding `a_value' to Current.
@@ -857,71 +867,22 @@ feature -- Basic operations
 			Result.scalar_add (a_value)
 		end
 
-	scalar_multiply (a_value: like digit)
-			-- Multipy Current by `a_value'.
-		require
-			value_small_enough: a_value <= base_minus_one_value
-		local
-			i: INTEGER
-			c: like digit
-			tup: like digits_multiplied
-			t, t2: like digit
-		do
-			if is_zero then
-				do_nothing
-			elseif a_value = zero_value then
-				wipe_out
-				extend (zero_value)
-				is_negative := false
-			else
-				c := zero_value
-				from i := 1
-				until i > count
-				loop
---					io.put_string ("    " + generating_type + ".scalar_multiply:  i = " + i.out + "  ")
---					io.put_string ("c = " + c.out + "   ")
-					tup := digits_multiplied (i_th (i), a_value)
-					t := tup.low + c
-					put_i_th (t \\ base, i)
-					c := tup.high + (t // base)
-					i := i + 1
-				end
-				from
-				until c = zero_value
-				loop
-					extend (c \\ base)
-					c := c // base
-				end
-				if (is_negative and a_value >= zero_value) or
-						(not is_negative and a_value < zero_value) then
-					set_is_negative (true)
-				else
-					set_is_negative (false)
-				end
-			end
-		end
-
-	scalar_product (a_value: like digit): like Current
-			-- New object equivalent to Current multiplied by `a_value'.
-			-- Do not change Current.
-		require
-			value_small_enough: a_value <= max_representable_value
-		do
-			Result := twin
-			Result.scalar_multiply (a_value)
-		end
-
 	add (other: like Current)
 			-- Change Current by adding other to Current.
 		require
 			other_exists: other /= Void
+--			same_bases: other.base = base
 		local
 			subtrahend, minuend: detachable like Current
 			is_neg_o, sign_max: BOOLEAN
+			b: like base
 		do
-				-- Save the sign of `other' for restoration at end
+				-- Save the sign and `base' of `other' for restoration
+				-- at the end of the feature.
 			is_neg_o := other.is_negative
+			b := other.base
 				-- Do the addition
+			other.set_base (base)
 			if is_same_sign (other) then
 				simple_add (other)
 			else
@@ -959,6 +920,7 @@ feature -- Basic operations
 			if is_zero then
 				is_negative := false
 			end
+			other.set_base (b)
 		end
 
 	plus alias "+" (other: like Current): like Current
@@ -986,15 +948,266 @@ feature -- Basic operations
 			Result.subtract (other)
 		end
 
+feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
+
+	simple_add (other: like Current)
+			-- Change Current by adding `other' to it.
+			-- Used internally for `add' and `subtract'.
+		require
+			other_exists: other /= Void
+			same_sign: is_same_sign (other)
+			same_base: base = other.base
+		local
+			i: like count
+			d: like digit
+			c: like digit
+		do
+			c := zero_value
+			d := zero_value
+			if is_zero then
+				copy (other)
+			elseif not other.is_zero then
+					-- Add each paired `digit'
+				from i := 1
+				until i > count or i > other.count
+				loop
+					d := i_th (i) + other.i_th (i) + c
+					c := d // base
+					d := d \\ base
+					check
+						item_small_enough: d <= base_minus_one_value
+					end
+					put_i_th (d, i)
+					i := i + 1
+				end
+					-- Include the unpaired digits
+				if i > count then
+						-- Bring the rest of the digits of other into Current
+					check
+						finished_with_currents_digits: i = count + 1
+					end
+					from
+					until i > other.count
+					loop
+						d := other.i_th (i) + c
+						c := d // base
+						extend (d \\ base)
+						i := i + 1
+					end
+				elseif i > other.count then
+						-- Add carry into Current's digits
+					check
+						finished_with_others_digits: i = other.count + 1
+					end
+					from
+					until i > count
+					loop
+						d := i_th (i) + c
+						c := d // base
+						put_i_th (d \\ base, i)
+						i := i + 1
+					end
+				end
+					-- If still have a carry (overflow), add a digit
+				if c > zero_value then
+					extend (d.one)
+				end
+			end
+		end
+
+	simple_subtract (other: like Current)
+			-- Change Current by subtracting `other' from Current.
+		require
+			other_exists: other /= Void
+			same_sign: is_same_sign (other)
+			same_base: base = other.base
+			other_is_less: other.magnitude <= magnitude
+		local
+			i: INTEGER
+		do
+				-- Step through values changing `minuend' which will be returned
+			from i := 1
+			until i > count or i > other.count
+			loop
+				subtract_i_th (other.i_th (i), i)
+				i := i + 1
+			end
+			check
+				i >= other.count
+					-- because subtrahend (other) is less than the minuend (Current)
+			end
+			if is_zero then
+				is_negative := false
+			end
+		end
+
+	can_borrow (a_index: INTEGER): BOOLEAN
+			-- Is it possible to borrow from `a_index'th digit?
+			-- In other words, can we subtract one place-value amount from
+			-- Current at `a_index' and add that amount to the lower-order
+			-- digit without overflowing the representation of a digit?
+		local
+			i: INTEGER
+		do
+				-- Check the index in range and then we know we can borrow if
+				-- there is a higher-order digit at least.
+			Result := (a_index > 1 and a_index <= count)
+				-- Can the next lower-order digit accept a borrowed value?
+				-- Yes, if the value + base < base.max_value, because we can
+				-- add a base.
+			Result := Result and base.max_value - base > i_th (a_index - 1)
+				-- Ignore any leading zeros.
+			if Result then
+				from i := count
+				until i_th (i) >= one_value or i < a_index
+				loop
+					i := i - 1
+				end
+				Result := i >= a_index
+			end
+		end
+
+	borrow (a_index: INTEGER)
+			-- Modify current by borrowing from the `a_index'-th digit and
+			-- increasing the next lower-order digit by the `base' amount.
+		require
+			is_unstable: is_unstable
+			index_large_enough: a_index > 1
+			index_small_enough: a_index <= count
+			can_borrow: can_borrow (a_index)
+		local
+			i: INTEGER
+		do
+			check
+				lower_digit_can_increase: base.max_value - base > i_th (a_index - 1)
+					-- because of precondition "can_borrow".
+			end
+			put_i_th (i_th (a_index - 1) + base, a_index - 1)
+			from i := a_index
+			until i_th (i) > zero_value
+			loop
+				check
+					eventually_find_a_borrow: i < count
+						-- because of precondition "can_borrow".
+				end
+				put_i_th (base - base.one, i)
+				i := i + 1
+			end
+			put_i_th (i_th (i) - base.one, i)
+			if i = count and i_th (count) = 0 then
+				go_i_th (count)
+				remove
+			end
+		end
+
+	subtract_i_th (a_value: like digit; a_index: INTEGER)
+			-- Modify current by subtracting `a_value' from `a_index'th digit,
+			-- borrowing if necessary.
+		require
+			index_big_enough: a_index >= 1
+			index_small_enough: a_index <= count
+			subtraction_allowed: a_value <= i_th (a_index) or can_borrow (a_index + 1)
+		local
+			d: like digit
+		do
+				-- Mark as unstable, because a `borrow' might happen, which
+				-- will make the borrowing digit greater than the base,
+				-- otherwise violating the invariant.
+			set_unstable
+			if i_th (a_index) < a_value then
+				borrow (a_index + 1)
+			end
+			check
+				is_larger: i_th (a_index) >= a_value
+					-- because of if statement and `borrow'
+			end
+			d := i_th (a_index) - a_value
+			put_i_th (d, a_index)
+			if a_index = count and d = 0 then
+				remove_leading_zeros
+			end
+			set_stable
+		end
+
+feature -- Basic operations (multiplication)
+
+	scalar_multiply (a_value: like digit)
+			-- Multipy Current by `a_value'.
+		require
+--			value_small_enough: a_value <= max_digit_value
+		local
+			temp: like Current
+			i: INTEGER
+			c: like digit
+			tup: like digits_multiplied
+			t, t2: like digit
+		do
+			if is_zero then
+				do_nothing
+			elseif a_value = zero_value then
+				wipe_out
+				extend (zero_value)
+				is_negative := false
+			else
+				temp := twin
+				wipe_out
+--				c := zero_value
+				c := temp.i_th (1)
+				from i := 1
+				until i > temp.count
+				loop
+					tup := digits_multiplied (temp.i_th (i), a_value)
+					check
+						no_pending_overflow: tup.low <= max_representable_value
+							-- because  why?
+					end
+					t := tup.low + c
+					extend (t \\ base)
+					c := tup.high + (t // base)
+					i := i + 1
+				end
+				from
+				until c = zero_value
+				loop
+					extend (c \\ base)
+					c := c // base
+				end
+				if (is_negative and a_value >= zero_value) or
+						(not is_negative and a_value < zero_value) then
+					set_is_negative (true)
+				else
+					set_is_negative (false)
+				end
+			end
+		end
+
+	scalar_product (a_value: like digit): like Current
+			-- New object equivalent to Current multiplied by `a_value'.
+			-- Do not change Current.
+		require
+			value_small_enough: a_value <= max_digit_value
+		do
+			Result := twin
+			Result.scalar_multiply (a_value)
+		end
+
 	multiply (other: like Current)
 			-- Change Current by multiplying it by `other'.
+		require
+			same_base: base = other.base
 		do
 			copy (Current * other)
 		end
 
 	product alias "*" (other: like Current): like Current
 			-- Product by `other'.
+		require else
+			same_base: base = other.base
 		do
+			check
+				same_base: other.base = base
+					-- because the precondition is ineffective
+			end
 				-- Unlike the relationship between `add' and `+', where the
 				-- work is done in `add' and `+' is a copy; the work for
 				-- multiplication is done in `*' and `multiply' performs the
@@ -1033,6 +1246,8 @@ feature -- Basic operations
 			zero_factor_implies_is_zero: (is_zero or other.is_zero) implies Result.is_zero
 			zero_result_implies_count: Result.is_zero implies Result.count = 1
 		end
+
+feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 
 	simple_product (other: like Current): like Current
 			-- The result of multiplying Current and `other'.
@@ -1124,7 +1339,7 @@ feature -- Basic operations
 					p.shift_left (t * (i - 1))
 				end
 				Result := Result + p
-				i := i + n
+				i := i + 1
 			end
 			if e > 0 then
 					-- There's one or more digits remaining at high end that
@@ -1187,28 +1402,109 @@ feature -- Basic operations
 			end
 		end
 
-	identity alias "+": like Current
-			-- Unary plus.
+	digits_multiplied (a_digit, a_other: like digit): TUPLE [high: like digit; low: like digit]
+			-- Multiply two "digits", giving the result as two digits of the
+			-- same size as `digit'; the sum is in `value' and the overflow is
+			-- in `carry'.
+			-- This decomposition feature is used by `scalar_multiply'.
+		require
+--			digit_small_enough: a_digit <= max_digit_value
+--			other_small_enough: a_other <= max_digit_value
+--			will_not_overflow: a_digit.max (a_other) <= base.max_value - a_digit.min (a_other)
+		local
+			h: INTEGER_32
+			a, b, c, d: like digit
+			ac, ad, bc, bd: like digit
+			high, low: like digit
+			car: like digit
 		do
-			Result := twin
-		end
-
-	opposite alias "-": like Current
-			-- Unary minus.
-		do
-			Result := twin
-			Result.negate
-		end
-
-	negate
-			-- Reverse the sign of Current.
-		do
-			if not is_zero then
-				is_negative := not is_negative
-			end
+			-- Options:
+			--   1)  Cast each digit to the next higher representation (e.g.
+			--       replace a {NATURAL_8} with a {NATURAL_16})  I rejected
+			--       this idea, because there is nothing to which to cast a
+			--       {NATURAL_64}.
+			--   2)  Split each digit into two digits of half the size of the
+			--       current representation treating the resulting values as the
+			--       coefficients of a factored polynomial and multiply:
+			--
+			--                       a   b
+			--           a_digit =  0111 1111     ==>  Ax + B
+			--           a_other =  0111 1111     ==>  Cx + D
+			--                       c   d
+			--
+			--       Evaluating the terms gives:
+			--           ac  =  00000111 * 00000111 = 00110001
+			--           ad  =  00000111 * 00001111 = 01101001
+			--           bc  =  00001111 * 00000111 = 01101001
+			--           bd  =  00001111 * 00001111 = 11100001
+			--       So, for the multiplication of  (Ax + B)(Cx + D), showing only
+			--       the coefficients gives:
+			--          ac + (ad + bc) + bd
+			--
+			--       I rejected this approach, because it is not clear how to
+			--       handle the middle term in relation to both the first and
+			--       third term.
+			--
+			--   3)  Multiply the digits in place, keeping the result as the
+			--      `value' and temporarily accepting the lose of any overflow.
+			--      Then calculate the lost overflow using an algorithm from
+			--      http://stackoverflow.com/questions/28868367/getting-the-
+			--      high-part-of-64-bit-integer-multiplication, storing that
+			--      overflow in the `carry'.
+			--
+			--       This approach works for any size representation, because
+			--       it always shifts right [into a smaller representation].
+			--
+				-- Calculate the low-order half of the Result.
+				-- Any overflow is discarded.
+			low := a_digit * a_other
+				-- Now calculate the high-order half of the Result.
+				-- Find the shift amount
+			h := base.bit_count // 2
+				-- High & low order bits of `a_digit'
+			a := a_digit.bit_shift_right (h)
+			b := a_digit.bit_shift_left (h).bit_shift_right (h)
+				-- High and low order bits of `a_other'
+			c := a_other.bit_shift_right (h)
+			d := a_other.bit_shift_left (h).bit_shift_right (h)
+				-- Calculate the four terms.
+			ac := a * c
+			ad := a * d
+			bc := b * c
+			bd := b * d
+				--  ((ad + bc) + (bd >> h)) >> h
+			car := ((ad.bit_shift_left (h).bit_shift_right (h) +
+					bc.bit_shift_left (h).bit_shift_right (h)) +
+					bd.bit_shift_right (h)).bit_shift_right (h)
+				--  ac + (ad >> h) + (bc >> h) + car
+			high := ac + ad.bit_shift_right (h) + bc.bit_shift_right (h) + car
+				-- At this point we have a binary number split into high and
+				-- low bits.  Now must get the two values into the correct
+				-- base (i.e. the `max_base').  By experiment, I determined:
+				--    1) shift the high bits to the left by one
+				--    2) add a carry bit (if there is one) from the low bits
+				-- This result should still fit in the tuple, because the value
+				-- of the arguments are garanteed by the invariant to not have
+				-- a one in the high bit, so, before the shift, `high' will
+				-- start with two zeros and can't overflow.
+--			high := high.bit_shift_left (1)
+--			high := high + (low // base)
+--			low := low \\ base
+			Result := [high, low]
 		ensure
-			sign_toggled: not is_zero implies is_negative = not (old is_negative)
+--			value_small_enough: Result.high <= base_minus_one_value
+--			carry_small_enough: Result.low <= base_minus_one_value
 		end
+
+	karatsuba_threshold_imp: INTEGER_32_REF
+			-- Implementation of the `karatsuba_threshold, the value above
+			-- which multiplication operations use `karatsuba_product'.
+		once
+			create Result
+			Result.set_item (Default_karatsuba_threshold)
+		end
+
+feature -- Basic operations (other)
 
 	raise (a_power: like Current)
 			-- Raise Current by `a_power'.
@@ -1299,6 +1595,23 @@ feature -- Basic operations
 
 feature  -- Division
 
+	divide (a_other: like Current): like Current
+			-- Modify Current to contain the integer quotient between Current
+			-- and `a_other' and return the remainder.
+		require
+			divisor_not_zero: a_other /~ zero
+		local
+--			q, r: like Current
+			t: like quotient
+		do
+--			q := twin
+--			r := q.divide (a_other)
+--			Result := [q, r]
+			t := quotient (a_other)
+			copy (t.quot)
+			Result := t.rem
+		end
+
 	quotient alias "/" (a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The quotient and remainder resulting from dividing Current
 			-- by `a_other' without changing Current.
@@ -1332,22 +1645,8 @@ feature  -- Division
 			a_other.set_stable
 		end
 
-	divide (a_other: like Current): like Current
-			-- Modify Current to contain the integer quotient between Current
-			-- and `a_other' and return the remainder.
-		require
-			divisor_not_zero: a_other /~ zero
-		local
---			q, r: like Current
-			t: like quotient
-		do
---			q := twin
---			r := q.divide (a_other)
---			Result := [q, r]
-			t := quotient (a_other)
-			copy (t.quot)
-			Result := t.rem
-		end
+
+feature {JJ_BIG_NATURAL} -- Implementation (division)
 
 	two_by_one_divide (a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The result of dividing Current by `a_other' when Current
@@ -1587,6 +1886,71 @@ feature  -- Division
 		do
 			Result := a_high.bit_shift_left (base.bit_count // 2) + a_low
 		end
+
+	normalize: INTEGER
+			-- Ensure Current `is_normalized', possibly shifting the bits of
+			-- each digit in Current until the most high-order digit is greater
+			-- or equal to the `base' // 2, returning the number of shifts
+			-- required to do so.
+			-- Knuth: The Art of Computer Programming, Volumn 2", pp 257-258.
+		require
+			not_zero: magnitude > zero
+		local
+			n: INTEGER
+			c, c_out: like digit
+			d: like digit
+			i: INTEGER
+		do
+			Result := bits_utilized - i_th (count).most_significant_bit
+			bit_shift_left (Result)
+		ensure
+			is_normalized: is_normalized
+			unchanged_count: count = old count
+		end
+
+	is_normalized: BOOLEAN
+			-- Is the most high-order digit greater than or equal to `base'//2?
+			-- (See Knuth: The Art of Computer Programming, Volumn 2".)
+		do
+			Result := i_th (count) >= base // two_value
+		ensure
+			definition: Result implies i_th (count) >= base // two_value
+		end
+
+	bit_shift_left (a_shift: INTEGER_32)
+			-- Change Current by shifting the bits left by `a_number', carrying
+			-- into the next digit if required.
+		require
+			shift_big_enough: a_shift >= 0
+			shift_small_enough: a_shift <= bits_utilized
+		local
+			c, c_out: like digit
+			d: like digit
+			i: INTEGER
+		do
+			c := zero_value
+			from i := 1
+			until i > count
+			loop
+					-- Determine the carry out
+				c_out := i_th (i).bit_shift_right (bits_utilized - a_shift)
+					-- Shift to far to zero out unutilized bits.
+				d := i_th (i).bit_shift_left (a_shift + base.bit_count - bits_utilized)
+					-- Shift back to prepare for modulo add
+				d := d.bit_shift_right (base.bit_count - bits_utilized)
+					-- Modulo add the carry
+				put_i_th (d + c, i)
+				c := c_out
+				i := i + 1
+			end
+			if c > zero_value then
+				extend (c)
+			end
+		ensure
+			conforms: not is_nonconforming
+			count_might_grow: count <= old count + 1
+		end
+
 
 --	scalar_divide (a_digit: like digit): TUPLE [quot: like Current; rem: like digit]
 --			-- Divide Current by `a_digit' giving a quotient and remainder.
@@ -1875,7 +2239,7 @@ feature -- Output
 		do
 				-- Determine the length of string needed to represent
 				-- the `largest_digit'.
-			s := base_minus_one_value.out
+			s := max_digit_value.out
 			n := s.count
 			create Result.make (count * n)
 			if is_negative then
@@ -1915,14 +2279,12 @@ feature -- Output
 				until j > bc
 				loop
 					n := bc - j + 1		-- which bit?
-					if not is_unstable and n > bits_utilized then
+					if dig.bit_test (n - 1) then		-- zero base test
+						Result.append ("1")
+					elseif not is_unstable and n > bits_utilized then
 						Result.append ("x")
 					else
-						if dig.bit_test (n - 1) then		-- zero base test
-							Result.append ("1")
-						else
-							Result.append ("0")
-						end
+						Result.append ("0")
 					end
 					j := j + 1
 				end
@@ -1933,8 +2295,7 @@ feature -- Output
 			end
 		end
 
-
-feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
+feature {JJ_BIG_NATURAL} -- Implementation
 
 	force_extend (a_digit: JJ_NATURAL)
 			-- Attempt to add `a_digit' to Current, bypassing some type checking
@@ -1947,8 +2308,9 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 			-- Assign `a_new_base' to `base'.
 			-- This is used internally in `as_base' to finish the feature.
 		require
-			base_big_enough: a_new_base >= min_base
-			base_small_enough: base <= max_base
+--			base_big_enough: a_new_base >= min_base
+--			base_small_enough: base <= max_base
+			valid_base: a_new_base /= 1
 		do
 			base := a_new_base
 		end
@@ -1969,131 +2331,6 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 			end
 		end
 
-	bit_shift_left (a_shift: INTEGER_32)
-			-- Change Current by shifting the bits left by `a_number', carrying
-			-- into the next digit if required.  Current must be marked as
-			-- `is_unstable' by the caller to demonstrate that the caller
-			-- recognizes that this feature might violate the invariant if the
-			-- shift happens to make a digit greater than the `max_digit'.
-		require
-			is_unstable: is_unstable
---			conforms: not is_nonconforming
-			shift_big_enough: a_shift >= 0
-			shift_small_enough: a_shift <= base.bit_count - 1
-		local
-			c, c_out: like digit
-			d: like digit
-			i: INTEGER
-		do
-			c := zero_value
-			from i := 1
-			until i > count
-			loop
-					-- Determine the carry out
-				c_out := i_th (i).bit_shift_right (base.bit_count - a_shift)
-					-- Shift and then modulo add
-				put_i_th (i_th (i).bit_shift_left (a_shift) + c, i)
-				c := c_out
-				i := i + 1
-			end
-			if c > zero_value then
-				extend (c)
-			end
-		ensure
---			conforms: not is_nonconforming
-			correct_count: count <= old count + 1
-		end
-
-	simple_add (other: like Current)
-			-- Change Current by adding `other' to it.
-			-- Used internally for `add' and `subtract'.
-		require
-			other_exists: other /= Void
-			same_sign: is_same_sign (other)
-		local
-			i: like count
-			d: like digit
-			c: like digit
-		do
-			c := zero_value
-			d := zero_value
-			if is_zero then
-				copy (other)
-			elseif not other.is_zero then
-					-- Add each paired `digit'
-				from i := 1
-				until i > count or i > other.count
-				loop
-					d := i_th (i) + other.i_th (i) + c
-					c := d // base
-					d := d \\ base
-					check
-						item_small_enough: d <= base_minus_one_value
-					end
-					put_i_th (d, i)
-					i := i + 1
-				end
-					-- Include the unpaired digits
-				if i > count then
-						-- Bring the rest of the digits of other into Current
-					check
-						finished_with_currents_digits: i = count + 1
-					end
-					from
-					until i > other.count
-					loop
-						d := other.i_th (i) + c
-						c := d // base
-						extend (d \\ base)
-						i := i + 1
-					end
-				elseif i > other.count then
-						-- Add carry into Current's digits
-					check
-						finished_with_others_digits: i = other.count + 1
-					end
-					from
-					until i > count
-					loop
-						d := i_th (i) + c
-						c := d // base
-						put_i_th (d \\ base, i)
-						i := i + 1
-					end
-				end
-					-- If still have a carry (overflow), add a digit
-				if c > zero_value then
-					extend (d.one)
-				end
-			end
-		end
-
-	simple_subtract (other: like Current)
-			-- Change Current by subtracting `other' from Current.
-		require
---			other_non_zero: not other.is_zero
-			other_exists: other /= Void
-			same_sign: is_same_sign (other)
-			other_is_less: other.magnitude <= magnitude
-		local
-			i: INTEGER
-		do
-				-- Step through values changing `minuend' which will be returned
-			from i := 1
-			until i > count or i > other.count
-			loop
-				subtract_i_th (other.i_th (i), i)
-				i := i + 1
-			end
-			check
-				i >= other.count
-					-- because subtrahend (other) is less than the minuend (Current)
-			end
-			if is_zero then
-				is_negative := false
-			end
-		end
-
 	conform
 			-- Ensure the digits contain no overflow, by carrying into the next
 			-- digit if required.  In other words, ensure that each digit is
@@ -2108,20 +2345,24 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 			i: INTEGER
 			r, c: like digit
 		do
-			from i := 1
-			until i > count
-			loop
-				r := i_th (i) \\ base
-				c := i_th (i) // base
-				put_i_th (r, i)
-				if c > zero_value then
-					if i < count then
-						put_i_th (i_th (i + 1) + c, i + 1)
-					else
-						extend (c)
+			if is_reduced_base then
+				from i := 1
+				until i > count
+				loop
+					r := i_th (i) \\ base
+					c := i_th (i) // base
+					put_i_th (r, i)
+					if c > zero_value then
+						if i < count then
+							put_i_th (i_th (i + 1) + c, i + 1)
+						else
+							extend (c)
+						end
 					end
+					i := i + 1
 				end
-				i := i + 1
+			else
+				-- Nothing to do, because Current cannot be `is_nonconforming'.
 			end
 		ensure
 			conforms: not is_nonconforming
@@ -2135,40 +2376,17 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 			i: INTEGER
 		do
 			Result :=  count > 1 and then i_th (count) = zero_value
-			from i := 1
-			until i > count or Result
-			loop
-				Result :=  i_th (i) >= base
-				i := i + 1
+			if not Result and then is_reduced_base then
+					-- Current may be, if any digit is less than `base'.
+				from i := 1
+				until i > count or Result
+				loop
+					Result :=  i_th (i) >= base
+					i := i + 1
+				end
+			else
+					-- Current can't be non-conforming
 			end
-		end
-
-	normalize: INTEGER
-			-- Ensure Current `is_normalized', possibly shifting the bits of
-			-- each digit in Current until the most high-order digit is greater
-			-- or equal to the `base' // 2.  (See Knuth: The Art of Computer
-			-- Programming, Volumn 2", pp 257-258.)  Also return the number of
-			-- shifts required to do so.
-		require
-			is_unstable: is_unstable
-		local
-			n: INTEGER
-		do
-			Result := bits_utilized - i_th (count).most_significant_bit
-			bit_shift_left (Result)
-		ensure
-			is_normalized: is_normalized
---			is_nonconforming: not is_nonconforming
-		end
-
-	is_normalized: BOOLEAN
-			-- Is the most high-order digit greater than or equal to `base'//2?
-			-- (See Knuth: The Art of Computer Programming, Volumn 2".)
-		do
-			Result := i_th (count) >= base // two_value
-		ensure
-			definition: Result implies i_th (count) >= base // two_value
---			is_nonconforming: Result implies is_nonconforming
 		end
 
 	is_unstable: BOOLEAN
@@ -2201,207 +2419,28 @@ feature -- {JJ_BIG_NATURAL} -- Implementation (to {JJ_BIG_NUMBER}
 			end
 		end
 
-feature {NONE} -- Implementation (subtraction)
-
-	can_borrow (a_index: INTEGER): BOOLEAN
-			-- Is it possible to borrow from `a_index'th digit?
-			-- In other words, can we subtract one place-value amount from
-			-- Current at `a_index' and add that amount to the lower-order
-			-- digit without overflowing the representation of a digit?
+	bits_utilized: INTEGER_32
+			-- Number of bits needed in order to represent a number in
+			-- the `base'.  For example, an eight-bit representation could
+			-- utilize up to seven bits, because the `max_base' would be 128
+			-- (10000000 in binary) and the `max_digit_value' would be 127
+			-- (x1111111 in binary).  Setting the `base' to a smaller value,
+			-- say base 15 (xxxx1111 in binary) gives a `max_digit_value' of
+			-- 14 (xxxx1110 in binary) which utilizes four bits.
 		local
-			i: INTEGER
+			temp: like digit
 		do
-				-- Check the index in range and then we know we can borrow if
-				-- there is a higher-order digit at least.
-			Result := (a_index > 1 and a_index <= count)
-				-- Can the next lower-order digit accept a borrowed value?
-				-- Yes, if the value + base < base.max_value, because we can
-				-- add a base.
-			Result := Result and base.max_value - base > i_th (a_index - 1)
-				-- Ignore any leading zeros.
-			if Result then
-				from i := count
-				until i_th (i) >= one_value or i < a_index
-				loop
-					i := i - 1
-				end
-				Result := i >= a_index
+			if is_reduced_base then
+				Result := max_digit_value.most_significant_bit
+			else
+				Result := base.bit_count
 			end
-		end
-
-	borrow (a_index: INTEGER)
-			-- Modify current by borrowing from the `a_index'-th digit and
-			-- increasing the next lower-order digit by the `base' amount.
-		require
-			is_unstable: is_unstable
-			index_large_enough: a_index > 1
-			index_small_enough: a_index <= count
-			can_borrow: can_borrow (a_index)
-		local
-			i: INTEGER
-		do
-			check
-				lower_digit_can_increase: base.max_value - base > i_th (a_index - 1)
-					-- because of precondition "can_borrow".
-			end
-			put_i_th (i_th (a_index - 1) + base, a_index - 1)
-			from i := a_index
-			until i_th (i) > zero_value
-			loop
-				check
-					eventually_find_a_borrow: i < count
-						-- because of precondition "can_borrow".
-				end
-				put_i_th (base - base.one, i)
-				i := i + 1
-			end
-			put_i_th (i_th (i) - base.one, i)
-			if i = count and i_th (count) = 0 then
-				go_i_th (count)
-				remove
-			end
-		end
-
-	subtract_i_th (a_value: like digit; a_index: INTEGER)
-			-- Modify current by subtracting `a_value' from `a_index'th digit,
-			-- borrowing if necessary.
-		require
-			index_big_enough: a_index >= 1
-			index_small_enough: a_index <= count
-			subtraction_allowed: a_value <= i_th (a_index) or can_borrow (a_index + 1)
-		local
-			d: like digit
-		do
-				-- Mark as unstable, because a `borrow' might happen, which
-				-- will make the borrowing digit greater than the base,
-				-- otherwise violating the invariant.
-			set_unstable
-			if i_th (a_index) < a_value then
-				borrow (a_index + 1)
-			end
-			check
-				is_larger: i_th (a_index) >= a_value
-					-- because of if statement and `borrow'
-			end
-			d := i_th (a_index) - a_value
-			put_i_th (d, a_index)
-			if a_index = count and d = 0 then
-				remove_leading_zeros
-			end
-			set_stable
-		end
-
-feature {NONE} -- Implementation (multiplication)
-
-	digits_multiplied (a_digit, a_other: like digit): TUPLE [high: like digit; low: like digit]
-			-- Multiply two "digits", giving the result as two digits of the
-			-- same size as `digit'; the sum is in `value' and the overflow is
-			-- in `carry'.
-			-- This decomposition feature is used by `scalar_multiply'.
-		require
-			digit_small_enough: a_digit <= max_digit_value
-			other_small_enough: a_other <= max_digit_value
---			will_not_overflow: a_digit.max (a_other) <= base.max_value - a_digit.min (a_other)
-		local
-			h: INTEGER_32
-			a, b, c, d: like digit
-			ac, ad, bc, bd: like digit
-			high, low: like digit
-			car: like digit
-		do
-			-- Options:
-			--   1)  Cast each digit to the next higher representation (e.g.
-			--       replace a {NATURAL_8} with a {NATURAL_16})  This idean was
-			--       rejected because there is nothing to which to cast a
-			--       {NATURAL_64}.
-			--   2)  Split each digit into two digits of half the size of the
-			--       current representation treating the resulting values as the
-			--       coefficients of a factored polynomial and multiply:
-			--
-			--                       a   b
-			--           a_digit =  0111 1111     ==>  Ax + B
-			--           a_other =  0111 1111     ==>  Cx + D
-			--                       c   d
-			--
-			--       Evaluating the terms gives:
-			--           ac  =  00000111 * 00000111 = 00110001
-			--           ad  =  00000111 * 00001111 = 01101001
-			--           bc  =  00001111 * 00000111 = 01101001
-			--           bd  =  00001111 * 00001111 = 11100001
-			--       So, for the multiplication of  (Ax + B)(Cx + D), showing only
-			--       the coefficients gives:
-			--          ac + (ad + bc) + bd
-			--
-			--       This approach was rejected because it is not clear how to
-			--       handle the middle term in relation to both the first and
-			--       third term.
-			--
-			--   3)  Multiply the digits in place, keeping the result as the
-			--      `value' and temporarily accepting the lose of any overflow.
-			--      Then calculate the lost overflow using an algorithm from
-			--      http://stackoverflow.com/questions/28868367/getting-the-
-			--      high-part-of-64-bit-integer-multiplication, storing that
-			--      overflow in the `carry'.
-			--
-			--       This approach works for any size representation, because
-			--       it always shifts right [into a smaller representation].
-			--
-				-- Calculate the low-order half of the Result.
-				-- Any overflow is discarded.
-			low := a_digit * a_other
-				-- Now calculate the high-order half of the Result.
-				-- Find the shift amount
-			h := base.bit_count // 2
-				-- High & low order bits of `a_digit'
-			a := a_digit.bit_shift_right (h)
-			b := a_digit.bit_shift_left (h).bit_shift_right (h)
-				-- High and low order bits of `a_other'
-			c := a_other.bit_shift_right (h)
-			d := a_other.bit_shift_left (h).bit_shift_right (h)
-				-- Calculate the four terms.
-			ac := a * c
-			ad := a * d
-			bc := b * c
-			bd := b * d
-				--  ((ad + bc) + (bd >> h)) >> h
-			car := ((ad.bit_shift_left (h).bit_shift_right (h) +
-					bc.bit_shift_left (h).bit_shift_right (h)) +
-					bd.bit_shift_right (h)).bit_shift_right (h)
-				--  ac + (ad >> h) + (bc >> h) + car
-			high := ac + ad.bit_shift_right (h) + bc.bit_shift_right (h) + car
-				-- At this point we have a binary number split into high and
-				-- low bits.  Now must get the two values into the correct
-				-- base (i.e. the `max_base').  By experiment, I determined:
-				--    1) shift the high bits to the left by one
-				--    2) add a carry bit (if there is one) from the low bits
-				-- This result should still fit in the tuple, because the value
-				-- of the arguments are garanteed by the invariant to not have
-				-- a one in the high bit, so, before the shift, `high' will
-				-- start with two zeros and can't overflow.
---			print (generating_type + ".digits_multiplied (")
---			print (a_digit.out + ", " + a_other.out + ") = %T")
---			print ("[" + high.out + "," + low.out + "] %T")
-			high := high.bit_shift_left (1)
-			high := high + (low // base)
-			low := low \\ base
---			print ("  shifted to  ")
---			print ("[" + high.out + "," + low.out + "] %N")
-			Result := [high, low]
 		ensure
-			value_small_enough: Result.high <= base_minus_one_value
-			carry_small_enough: Result.low <= base_minus_one_value
-		end
-
-	karatsuba_threshold_imp: INTEGER_32_REF
-			-- Implementation of the `karatsuba_threshold, the value above
-			-- which multiplication operations use `karatsuba_product'.
-		once
-			create Result
-			Result.set_item (Default_karatsuba_threshold)
+			result_big_enough: Result >= 2
+			result_small_enough: Result <= base.bit_count
 		end
 
 feature {NONE} -- Implementation
-
 
 	new_big_number (a_value: like digit; a_base: like base): like Current
 			-- Create an instance containing `a_value' in `a_base'.
@@ -2421,6 +2460,8 @@ feature {NONE} -- Implementation
 			high_small_enough: a_high <= a_other.count
 			low_before_high: a_low <= a_high
 		deferred
+		ensure
+			same_base: Result.base = a_other.base
 		end
 
 	new_combined_number (a_high, a_low: like Current): like Current
@@ -2446,32 +2487,6 @@ feature {NONE} -- Implementation
 			Result := new_big_number (zero_value, base)
 		end
 
-	bits_utilized: INTEGER_32
-			-- Number of bits needed in order to represent a number in
-			-- the `base'.  For example, an eight-bit representation could
-			-- utilize up to seven bits, because the `max_base' would be 128
-			-- (10000000 in binary) and the `max_digit_value' would be 127
-			-- (x1111111 in binary).  Setting the `base' to a smaller value,
-			-- say base 15 (xxxx1111 in binary) gives a `max_digit_value' of
-			-- 14 (xxxx1110 in binary) which utilizes four bits.
-		local
-			temp: like digit
-		do
---				-- This is naive approach.  It might be better to start high
---				-- since the point of this class is a really big number with
---				-- a large base.
---			temp := base.one
---			from Result := 0
---			until temp >= base
---			loop
---				Result := Result + 1
---				temp := temp.bit_shift_left (1) + base.one
---			end
-			Result := max_digit_value.most_significant_bit
-		ensure
-			result_big_enough: Result >= 2
-			result_small_enough: Result < base.bit_count
-		end
 
 	new_value_from_character (a_character: CHARACTER_8): like digit
 			-- Get the number given by `a_character'
@@ -2565,15 +2580,19 @@ feature {NONE} -- Implementation
 
 invariant
 
-	base_big_enough: base >= zero_value
-	base_small_enough: base <= base.max_value
+	valid_base: base /= one_value
+	is_reduced_base_implication: is_reduced_base implies base /= zero_value
+	is_zero_base_implication: base /= zero_value implies is_reduced_base
+
+--	base_big_enough: base >= zero_value
+--	base_small_enough: base <= base.max_value
 	has_at_least_one_digit: count >= 1
-	no_leading_zeroes_if_stable: not is_unstable implies (count > 1 implies last >= base.one)
-	is_zero_implication: not is_unstable implies (is_zero implies count = 1)
+--	no_leading_zeroes_if_stable: not is_unstable implies (count > 1 implies last >= base.one)
+--	is_zero_implication: not is_unstable implies (is_zero implies count = 1)
 
 	is_zero_implies_non_negative: is_zero implies not is_negative
 	is_negative_implies_non_zero: is_negative implies not is_zero
 
-	all_digits_small_enough: not is_unstable implies not is_nonconforming
+--	all_digits_small_enough: not is_unstable implies not is_nonconforming
 
 end

@@ -89,40 +89,27 @@ feature -- Basic operations (initialization tests)
 			-- Test the `from_string' feature;
 		local
 			str, s: STRING_8
-			bn: like number_anchor
-			e: STRING_8
-			i: INTEGER
+			n: like number_anchor
 		do
 			str := ".from_string:  "
 				-- Base 10 number
-			create bn.from_string ("3852")
-			s := str + "3852 max_base"
-			report (s, bn)
-			assert (s + " base", bn.base.out ~ bn.max_base.out)
-			assert (s + " out ", bn.out ~ "3852")
-			assert (s + " out_fomatted ", bn.out_formatted ~ "3,852")
-				-- Convert to base 9
-			bn.to_base (bn.nine_value)
-			s := str + "3852 base nine"
-			report (s, bn)
-			assert (s + " base", bn.base.out ~ "9")
-			assert (s + " out ", bn.out ~ "3852")
-			assert (s + " out_fomatted ", bn.out_formatted ~ "3,852")
+			create n.from_string ("3852")
+			s := str + "(%"3852%")"
+			io.put_string (s + " = " + n.out_as_stored + "%N")
+			assert (s + " base", n.base = n.ten_value )
+			assert (s + " out_as_stored ", n.out_as_stored ~ "3,8,5,2")
 				-- Number 852
-			create bn.from_string ("852")
-			s := str + "852 max_base"
-			report (s, bn)
-			assert (s + " base", bn.base.out ~ bn.max_base.out)
-			assert (s + " out ", bn.out ~ "852")
-			assert (s + " out_fomatted ", bn.out_formatted ~ "852")
+			create n.from_string ("10,987,654,321")
+			s := str + "(%"10,987,654,321%")"
+			io.put_string (s + " = " + n.out_as_stored + "%N")
+			assert (s + " base", n.base = n.ten_value )
+			assert (s + " out_as_stored ", n.out_as_stored ~ "1,0,9,8,7,6,5,4,3,2,1")
 				-- Negative number
-			create bn.from_string ("-1325839")
-			s := str + "-1325839 max_base"
-			report (s, bn)
-			assert (s + " base", bn.base.out ~ bn.max_base.out)
-			assert (s + " out ", bn.out ~ "-1325839")
-			assert (s + " out_fomatted ", bn.out_formatted ~ "-1,325,839")
-			io.new_line
+			create n.from_string ("-00012,34")
+			s := str + "(%"-00012,34%")"
+			io.put_string (s + " = " + n.out_as_stored + "%N")
+			assert (s + " base", n.base = n.ten_value )
+			assert (s + " out_as_stored ", n.out_as_stored ~ "-1,2,3,4")
 		end
 
 	from_array
@@ -367,15 +354,17 @@ feature -- Basic operations (constants tests)
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
-			str: STRING_8
+			str, fn: STRING_8
 			n: like number_anchor
 			v: like digit_anchor
 		do
-			str := ".ten_value:  "
+			fn := ".max_base"
 			create n
-			v := n.ten_value
-			io.put_string (str + v.out + "%N")
-			assert (str, v.out ~ "10")
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			io.put_string (str)
+			v := n.max_base
+			io.put_string (" = " + v.out + "%N")
+			assert (str, v ~ n.max_base.out)
 		end
 
 	default_karatsuba_threshold
@@ -401,20 +390,17 @@ feature -- Basic operations (Access)
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
-			str: STRING_8
+			str, fn: STRING_8
 			n: like number_anchor
 			b: like digit_anchor
 		do
-			str := ".base:  "
+			fn := ".base:  "
 			create n
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			io.put_string (str + " = ")
 			b := n.base
-			io.put_string (str + b.out + "%N")
+			io.put_string (b.out + "%N")
 			assert (str, b.out ~ n.max_base.out)
-				-- Another test
-			n.set_base (33)
-			b := n.base
-			io.put_string (str + b.out + "%N")
-			assert (str, b.out ~ "33")
 		end
 
 
@@ -422,22 +408,25 @@ feature -- Basic operations (Access)
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
-			str, s: STRING_8
+			str, fn: STRING_8
 			n: like number_anchor
 			b: like digit_anchor
 		do
-			str := ".base_minus_one_value:  "
+			fn := ".base_minus_one_value"
 			create n
 			b := n.base_minus_one_value
-			s := str + "n.base = " + n.base.out + "   minus one = "
-			io.put_string (s + b.out + "%N")
-			assert (s, b.out ~ (n.max_base - n.one_value).out)
-				-- Another test
-			n.set_base (33)
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			io.put_string (str + " = ")
 			b := n.base_minus_one_value
-			s := str + "n.base = " + n.base.out + "   minus one = "
-			io.put_string (s + b.out + "%N")
-			assert (s, b.out ~ "32")
+			io.put_string (b.out + "%N")
+			assert (str, b ~ (n.max_base - n.one_value))
+				-- Does not matter what the `base' is.
+			create n.make_with_value_and_base (n.nine_value, n.sixteen_value)
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			io.put_string (str + " = ")
+			b := n.base_minus_one_value
+			io.put_string (b.out + "%N")
+			assert (str, b ~ (n.sixteen_value - n.one_value))
 		end
 
 	min_base
@@ -491,12 +480,13 @@ feature -- Basic operations (Access)
 			n: like number_anchor
 			k: INTEGER_32
 		do
-			str := ".karatsuba_threshold:  "
+			str := ".karatsuba_threshold "
 			create n
+			n.set_karatsuba_threshold (50)
 			k := n.karatsuba_threshold
-			s := str + "default = "
+			s := str + " = "
 			io.put_string (s + k.out + "%N")
-			assert (s, k.out ~ n.default_karatsuba_threshold.out)
+			assert (s, k.out ~ "50")
 		end
 
 feature -- Basic operations (element change tests)
@@ -567,7 +557,7 @@ feature -- Basic operations (element change tests)
 			str := ".set_with_string:  "
 				-- First test
 			create n
-			n.set_with_string ("1,2,3,4,5,6,7,8,9")
+			n.set_with_string ("123456789")
 			s := str + "set_with_string (%"1,2,3,4,5,6,7,8,9%")"
 			io.put_string (s + " = " + n.out_as_stored + "%N")
 			assert (s, n.out_as_stored ~ "1,2,3,4,5,6,7,8,9")
@@ -580,27 +570,137 @@ feature -- Basic operations (element change tests)
 				-- Negative test
 			create n
 			n.set_with_string ("-11,2,3,4,5,6,7,8,99")
-			s := str + "set_with_string (%"-11,2,3,4,5,6,7,8,99%")"
+			s := str + "set_with_string (%"-11,2345,678,9,9%")"
 			io.put_string (s + " = " + n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "-11,2,3,4,5,6,7,8,99")
+			assert (s, n.out_as_stored ~ "-1,1,2,3,4,5,6,7,8,9,9")
 			assert (s, n.is_negative)
 		end
 
 	set_base
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		local
-			str, s: STRING_8
+			fn, str: STRING_8
 			n: like number_anchor
+			b: like digit_anchor
 		do
-			str := ".set_base:  "
-			create n.from_string ("123456789")
-			assert (str + "default_base", n.out ~ "123456789")
-				-- Set base to 10
-			n.set_base (n.ten_value)
-			s := str + (n.out) + ".set_base (10) = "
-			io.put_string (s + n.out_as_stored + "%N")
-			assert (s, n.out ~ "123456789")
-			assert (s, n.out_as_stored ~ "1")
+			fn := ".set_base "
+				-- Max_base
+			create n
+			b := n.max_base
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + b.out + ")"
+			io.put_string (str)
+			n.set_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "0")
+			assert (str + " base", n.base ~ n.max_base)
+				-- (16 base 128).set_base (17) = 1,1 base 15
+			create n.make_with_value (n.sixteen_value)
+			b := n.sixteen_value - 1
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + b.out + ")"
+			io.put_string (str)
+			n.set_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "1,1")
+			assert (str + " base", n.base ~ b)
+				-- (1,1 base 100).set_base (10)
+			create n.make_with_base (n.ten_value * n.ten_value)
+			b := n.ten_value
+			n.set_value (n.ten_value * n.ten_value + n.one_value)
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + b.out + ")"
+			io.put_string (str)
+			n.set_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "1,0,1")
+			assert (str + " base", n.base = b)
+				-- (1,1,2 base 10).set_base (9)
+			create n.make_with_value_and_base (n.sixteen_value * n.seven_value, n.ten_value)
+			b := n.nine_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + b.out + ")"
+			io.put_string (str)
+			n.set_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str + " base", n.base.out ~ "9")
+			assert (str, n.out_as_stored ~ "1,3,4")
+				-- (1,3,4 base 9).set_base (10)
+			create n.make_with_base (n.nine_value)
+			n.set_with_array (<<1,3,4>>)
+			b := n.ten_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + b.out + ")"
+			io.put_string (str)
+			n.set_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str + " base", n.base.out ~ "10")
+			assert (str, n.out_as_stored ~ "1,1,2")
+				-- (3,2 base 10).set_base (100)
+			create n.make_with_value_and_base (n.sixteen_value + n.sixteen_value, n.ten_value)
+			b := n.ten_value * n.ten_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + b.out + ")"
+			io.put_string (str)
+			n.set_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str + " base", n.base.out ~ "100")
+			assert (str, n.out ~ "32")
+				-- (1,1,2 base 10).set_base (100)
+			create n.make_with_value_and_base (n.sixteen_value * n.seven_value, n.ten_value)
+			b := n.ten_value * n.ten_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + b.out + ")"
+			io.put_string (str)
+			n.set_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str + " base", n.base.out ~ "100")
+			assert (str, n.out_as_stored ~ "1,12")
+		end
+
+	set_base_failing
+			-- Some values that need fixing
+		local
+			fn, str: STRING_8
+			n, on: like number_anchor
+			b, ob: like digit_anchor
+			v: like digit_anchor
+			right, wrong: INTEGER
+		do
+			fn := ".set_base_failing "
+			io.put_string (fn + "%N")
+			create n
+--			from ob := n.two_value
+--			until ob > n.max_base
+--			loop
+--				from b := n.two_value
+--				until b > n.max_base
+--				loop
+--					from v := n.zero_value
+--					until v > n.max_digit_value
+--					loop
+--						create n.make_with_value_and_base (v, ob)
+--						create on.make_with_value_and_base (v, b)
+--						str := "v = " + v.out + "  (" + n.out_as_stored + " base " + n.base.out + ")" + fn
+--						str := str + "(" + b.out + ")"
+--						n.set_base (b)
+--						if n.out ~ on.out then
+--							right := right + 1
+--						else
+--							wrong := wrong + 1
+--							io.put_string (str)
+--							io.put_string (":%T '" + n.out_as_stored + "'")-- + " base " + n.base.out)-- + " %N")
+--							io.put_string ("%T%T expected:  '" + on.out_as_stored + "'%N")--" base " + on.base.out + "%N")
+--						end
+--						v := v + n.one_value
+--					end
+--					b := b + n.one_value
+--				end
+--				ob := ob + n.one_value
+--			end
+--			io.put_string ("  correct count = " + right.out + "  wrong count = " + wrong.out + "%N")
+--			io.new_line
+--			io.new_line
 		end
 
 	set_value_and_base
@@ -654,22 +754,177 @@ feature -- Basic operations (conversion tests)
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
-			n: like number
+			fn: STRING_8
+			n: like number_anchor
+			b: like digit_anchor
 		do
+			fn := ".to_base"
 			str := ".to_base:  "
-			io.put_string ("test not yet implemented %N")
-			assert (str + "not implemented", false)
+				-- As in document
+			create n
+			create n.make_with_array_and_base (<<5,2,5,0>>, n.nine_value)
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").to_base (" + n.ten_value.out + ")"
+			n.to_base (n.ten_value)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "3,8,5,2")
+				-- to_base (15)
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").to_base ("
+			s := s + (n.ten_value + n.five_value).out + ")"
+			n.to_base (n.ten_value + n.five_value)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "1,2,1,12")
+				-- back to base ten
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").to_base ("
+			s := s + (n.ten_value).out + ")"
+			n.to_base (n.ten_value)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "3,8,5,2")
+				-- back to base nine
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").to_base ("
+			s := s + (n.nine_value).out + ")"
+			n.to_base (n.nine_value)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "5,2,5,0")
+				-- Zero
+			create n
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").to_base (" + n.nine_value.out + ")"
+			n.to_base (n.nine_value)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "0")
+				-- (128).to_base (100)
+			create n
+			create n.make_with_value_and_base (n.max_digit_value, n.ten_value * n.ten_value)
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").to_base (" + n.eight_value.out + ")"
+			n.to_base (n.eight_value)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "1,7,7")
+				-- to base 10
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").to_base (" + n.ten_value.out + ")"
+			n.to_base (n.ten_value)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "1,2,7")
+				-- to binary
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").to_base (" + n.two_value.out + ")"
+			n.to_base (n.two_value)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "1,1,1,1,1,1,1")
+				-- (<<1,1,1,1,1,1,1>> base 2).to_base (100)
+			create n.make_with_base (n.two_value)
+			n.set_with_array (<<1,1,1,1,1,1,1>>)
+			b := n.ten_value * n.ten_value
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").to_base (" + (n.ten_value * n.ten_value).out + ")"
+			n.to_base (b)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s + " value", n.out_as_stored ~ "1,27")
+			assert (s + " base", n.base.out ~ "100")
+				-- (<<1,2,3>> base 30).to_base (10)
+			create n.make_with_base (n.ten_value * n.three_value)
+			n.set_with_array (<<1,2,3>>)
+			b := n.ten_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + ".as_base" --fn
+			str := str + "(" + b.out + ")"
+			io.put_string (str)
+			n.to_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "9,6,3")
+			assert (str + " base", n.base ~ n.ten_value)
+				-- (<<1,2,3,4>> base 30).to_base (10)
+			create n.make_with_base (n.ten_value * n.three_value)
+			n.set_with_array (<<1,2,3,4>>)
+			b := n.ten_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")"
+			str := str + fn + " (" + b.out + ")"
+			io.put_string (str)
+			n.to_base (b)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "1,2,7,13,2,10")
+			assert (str + " base", n.base ~ n.sixteen_value)
 		end
 
 	as_base
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
-			n: like number
+			n, a: like number_anchor
+			b: like digit_anchor
 		do
 			str := ".as_base:  "
-			io.put_string ("test not yet implemented %N")
-			assert (str + "not implemented", false)
+			create n
+				-- (1,2,3,4,5).as_base (10)
+			create n.make_with_array_and_base (<<1,2,3,4,5>>, n.ten_value)
+			b := n.ten_value
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").as_base (" + b.out + ")"
+			io.put_string (s)
+			a := n.as_base (b)
+			io.put_string (" = " + a.out_as_stored + " base " + a.base.out + "%N")
+			assert (s + " value", a.out_as_stored ~ "1,2,3,4,5")
+			assert (s + " unchanged", n.out_as_stored ~ "1,2,3,4,5")
+			assert (s + " base unchanged", n.base.out ~ b.out)
+				-- (1,2).as_base (9)
+			create n.make_with_array_and_base (<<1,2>>, n.ten_value)
+			b := n.nine_value
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").as_base (" + b.out + ")"
+			io.put_string (s)
+			a := n.as_base (b)
+			io.put_string (" = " + a.out_as_stored + " base " + a.base.out + "%N")
+			assert (s + " value", a.out_as_stored ~ "1,3")
+			assert (s + " unchanged", n.out_as_stored ~ "1,2")
+			assert (s + " base unchanged", n.base.out ~ "10")
+				-- (1,2,3).as_base (9)
+			create n.make_with_array_and_base (<<1,2,3>>, n.ten_value)
+			b := n.nine_value
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").as_base (" + b.out + ")"
+			io.put_string (s)
+			a := n.as_base (b)
+			io.put_string (" = " + a.out_as_stored + " base " + a.base.out + "%N")
+			assert (s + " value", a.out_as_stored ~ "1,4,6")
+			assert (s + " unchanged", n.out_as_stored ~ "1,2,3")
+			assert (s + " base unchanged", n.base.out ~ "10")
+				-- (1,2,3,4).as_base (9)
+			create n.make_with_array_and_base (<<1,2,3,4>>, n.ten_value)
+			b := n.nine_value
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").as_base (" + b.out + ")"
+			io.put_string (s)
+			a := n.as_base (b)
+			io.put_string (" = " + a.out_as_stored + " base " + a.base.out + "%N")
+			assert (s + " value", a.out_as_stored ~ "1,6,2,1")
+			assert (s + " unchanged", n.out_as_stored ~ "1,2,3,4")
+			assert (s + " base unchanged", n.base.out ~"10")
+				-- Convert back to base 10
+			b := n.ten_value
+			s := str + "(" + a.out_as_stored + " base " + a.base.out
+			s := s + ").as_base (" + b.out + ")"
+			io.put_string (s)
+			a := a.as_base (b)
+			io.put_string (" = " + a.out_as_stored + " base " + a.base.out + "%N")
+			assert (s + " value", a.out_as_stored ~ "1,2,3,4")
+		end
+
+	as_base_failing
+			-- Seperate run of a failing case for `as_base'
+				-- (1,2,3,4,5).as_base (9)
+		local
+			str, s: STRING_8
+			n, a: like number_anchor
+			b: like digit_anchor
+		do
+			str := ".as_base:  "
+			create n
+			create n.make_with_array_and_base (<<1,2,3,4,5>>, n.ten_value)
+			b := n.nine_value
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").as_base (" + b.out + ")"
+			io.put_string (s)
+			a := n.as_base (b)
+			io.put_string (" = " + a.out_as_stored + " base " + a.base.out + "%N")
+			assert (s + " value", a.out_as_stored ~ "1,7,8,3,6")
+			assert (s + " unchanged", n.out_as_stored ~ "5,6,2,3,2,1")
+			assert (s + " base unchanged", n.base.out ~ b.out)
 		end
 
 feature -- Basic operations (Status setting tests)
@@ -846,132 +1101,297 @@ feature -- Basic operations (status report tests)
 
 feature -- Basic operations (basic operations tests)
 
-
-start here
-	scalar_add
-			-- Test/demo the `scalar_add' and `scalar_sum' functions
-			-- from {JJ_BIG_NATURAL}.
+	negate
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
-			n, p: like number_anchor
+			n: like number_anchor
 		do
-			str := ".scalar_add:  "
+			str := ".negate:  "
 			create n
-				-- add seven
-			s := str + "scalar_add (7)"
-			n.scalar_add (number.seven_value)
+				-- (81).negate
+			n.set_value (n.nine_value * n.nine_value)
+			s := str + "(" + n.out + ").negate"
+			n.negate
 			io.put_string (s + " = " + n.out + "%N")
-			assert (s, n.out ~ "7")
-				-- add max_digit
-			s := str + "scalar_add (" + number.max_digit_value.out + ")"
-			n.scalar_add (n.max_digit_value)
+			assert (s, n.out ~ "-81")
+				-- (-81).negate
+			s := str + "(" + n.out + ").negate"
+			n.negate
 			io.put_string (s + " = " + n.out + "%N")
-			assert (s, n.out ~ "134")
+			assert (s, n.out ~ "81")
+		end
+
+	identity
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			str, s: STRING_8
+			n, a: like number_anchor
+		do
+			str := ".identity:  "
+			create n
+			n.set_value (n.nine_value)
+			s := str + "(" + n.out + ").identity"
+			a := n.identity
+			io.put_string (s + " = " + a.out + "%N")
+			assert (s + " values", n.out ~ a.out)
+			assert (s + " bases", n.base = a.base)
+			assert (s + " unchanged", n.out ~ "9")
+				-- (-9).identity
+			n.negate
+			s := str + "(" + n.out + ").identity"
+			a := n.identity
+			io.put_string (s + " = " + a.out + "%N")
+			assert (s + " values", n.out ~ a.out)
+			assert (s + " bases", n.base = a.base)
+			assert (s + " unchanged", n.out ~ "-9")
+		end
+
+	opposite
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			str, s: STRING_8
+			n, a: like number_anchor
+		do
+			str := ".opposite:  "
+			create n
+				-- (7).opposite
+			n.set_value (n.seven_value)
+			s := str + "(" + n.out + ").opposite"
+			a := n.opposite
+			io.put_string (s + " = " + a.out + "%N")
+			assert (s + " values", a.out ~ "-7")
+			assert (s + " bases", n.base = a.base)
+			assert (s + " unchanged", n.out ~ "7")
+				-- (-7).opposite
+			n.copy (a)
+			s := str + "(" + n.out + ").opposite"
+			a := n.opposite
+			io.put_string (s + " = " + a.out + "%N")
+			assert (s + " values", a.out ~ "7")
+			assert (s + " bases", n.base = a.base)
+			assert (s + " unchanged", n.out ~ "-7")
+		end
+
+	scalar_add
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			fn: STRING_8
+			str: STRING_8
+			n: like number_anchor
+			v: like digit_anchor
+		do
+			fn := ".scalar_add"
+				-- (0).scalar_add (7)
+			create n
+			v := n.seven_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")"
+			str := str + fn + " (" + v.out + ")"
+			io.put_string (str)
+			n.scalar_add (v)
+			io.put_string (" = " + n.out + "%N")
+			assert (str, n.out_as_stored ~ "7")
+				-- (9).scalar_add (max_digit_value)
+			create n.make_with_value (n.nine_value)
+			v := n.max_digit_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")"
+			str := str + fn + " (" + v.out + ")"
+			io.put_string (str)
+			n.scalar_add (v)
+			io.put_string (" = " + n.out_as_stored + "%N")
+			assert (str, n.out_as_stored ~ "1,8")
+				-- (max_digit_value).scalar_add (1)
+			create n.make_with_value (n.max_digit_value)
+			v := n.one_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")"
+			str := str + fn + " (" + v.out + ")"
+			io.put_string (str)
+			n.scalar_add (v)
+			io.put_string (" = " + n.out_as_stored + "%N")
+			assert (str, n.out_as_stored ~ "1,0")
+				-- (max_representable_digit).scalar_add (1)
+			create n.make_with_value (n.max_representable_value)
+			v := n.one_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")"
+			str := str + fn + " (" + v.out + ")"
+			io.put_string (str)
+			n.scalar_add (v)
+			io.put_string (" = " + n.out_as_stored + "%N")
+			assert (str, n.out_as_stored ~ "2,0")
+				-- (max_representable_value).scalar_add (max_representable_value)
+			create n.make_with_value (n.max_representable_value)
+			v := n.max_representable_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")"
+			str := str + fn + " (" + v.out + ")"
+			io.put_string (str)
+			n.scalar_add (v)
+			io.put_string (" = " + n.out_as_stored + "%N")
+			assert (str, n.out_as_stored ~ "3,126")
+			io.new_line
+		end
+
+	scalar_sum
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			str, s: STRING_8
+			n, a: like number_anchor
+		do
+			str := ".scalar_sum:  "
+			create n
+				-- add max
+			s := str + "(" + n.out + ").scalar_sum (" + n.max_representable_value.out + ")"
+			a := n.scalar_sum (n.max_representable_value)
+			io.put_string (s + " = " + a.out + "%N")
+			assert (s, a.out ~ "255")
+			assert (s + "n unchanged", n.out ~ "0")
+				-- add max_digit_value
+			s := str + "(" + n.out + ").scalar_sum (" + n.max_digit_value.out + ")"
+			a := n.scalar_sum (n.max_digit_value)
+			io.put_string (s + " = " + a.out + "%N")
+			assert (s, a.out ~ "127")
+			assert (s + "n unchanged", n.out ~ "0")
 				-- add 111
-			s := str + "scalar_add (" + (n.base_minus_one_value - n.sixteen_value).out + ")"
-			n.scalar_add (n.base_minus_one_value - n.sixteen_value)
-			io.put_string (s + " = " + n.out + "%N")
-			assert (s, n.out ~ "245")
-				-- Change the base to 8 and add 119
-			n.set_base (n.eight_value)
-			s := str + "scalar_add (119)"
-			n.scalar_add (n.sixteen_value * n.seven_value)
-			io.put_string (s + " = " + n.out + "%N")
-			assert (s, n.out ~ "357")
-			assert (s + " base", n.base.out ~ "8")
+			create n.make_with_array_and_base (<<9,3,1>>, n.ten_value)
+			s := str + "(" + n.out + ").scalar_sum ("
+			s := s + (n.base_minus_one_value - n.sixteen_value).out + ") base " + n.base.out
+			a := n.scalar_sum (n.base_minus_one_value - n.sixteen_value)
+			io.put_string (s + " = " + a.out + "  base = " + a.base.out + "%N")
+			assert (s, a.out ~ "1180")
+			assert (s + "n unchanged", n.out ~ "931")
+				-- Change the base to 13 and add 112
+			n.set_base (n.ten_value + n.three_value)
+			s := str + "(" + n.out + ").scalar_sum (" + (n.sixteen_value * n.seven_value).out
+			s := s + ")" + "  base " + n.base.out
+			a := n.scalar_sum (n.sixteen_value * n.seven_value)
+			io.put_string (s + " = " + a.out + "  a.base = " + a.base.out + "%N")
+			assert (s, a.out ~ "1043")
+			assert (s + " base", a.base.out ~ "13")
+			assert (s + "n unchanged", n.out ~ "931")
 				-- Negate and add 50
 			s := str + "(-357).scalar_add (50)"
 			n.negate
-			p := n.scalar_sum (n.ten_value * n.five_value)
-			io.put_string (s + " = " + p.out + "%N")
-			assert (s, n.is_negative)
-			assert (s + "  n unchanged", n.out ~ "-357")
-			assert (s + "  p ", p.out ~ "-307")
-			io.new_line
-		end
-
-	scalar_multiply
-			-- Test/demo the `scalar_multiply' and `scalar_product' functions
-			-- from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n, p: like number_anchor
-		do
-			str := ".scalar_multiply:  "
-			create n
-				-- Multiply zero by anything
-			s := str + "(0).scalar_multiply (16)"
-			n.scalar_multiply (n.sixteen_value)
-			report (s, n)
-			assert (s, n.out ~ "0")
-				-- Multiply by zero
-			s := str + "(7935).scalar_multiply (0)"
-			create n.from_string ("7935")
-			n.scalar_multiply (n.zero_value)
-			report (s, n)
-			assert (s, n.out ~ "0")
-				-- Multiply 7935 by 96
-			s := str + "(7935).scalar_multiply (96)"
-			create n.from_string ("7935")
-			n.scalar_multiply (n.sixteen_value * n.six_value)
-			report (s, n)
-			assert (s, n.out_formatted ~ "761,760")
-				-- Negate and multiply by 112
-			n.negate
-			p := n.scalar_product (n.sixteen_value * n.seven_value)
-			s := str + "p := (-761,760).scalar_product (112)"
-			report (s, p)
-			assert (s, p.out_formatted ~ "-85,317,120")
-			s := str + "n unchanged"
-			assert (s, n.out_formatted ~ "-761,760")
-			io.new_line
+			s := str + "(" + n.out + ").scalar_sum (" + (n.ten_value * n.five_value).out
+			s := s + ")" + "  base " + n.base.out
+			a := n.scalar_sum (n.ten_value * n.five_value)
+			io.put_string (s + " = " + a.out + "  a.base = " + n.base.out +"%N")
+			assert (s, a.out ~ "-881")
+			assert (s + "n unchanged", n.out ~ "-931")
 		end
 
 	add
-			-- Test and demonstrate features `add', `plus', and `+' from
-			-- {JJ_BIG_NATURAL}.  I checked the calculations at
-			-- "https://defuse.ca/big-number-calculator.htm".
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+			-- Checked against "https://defuse.ca/big-number-calculator.htm".
 		local
-			str, s: STRING_8
-			a, b: like number_anchor
-			n: like number_anchor
+			fn, str: STRING_8
+			n, x: like number_anchor
 		do
-			str := ".add:  "
-			create n.from_string ("99")
-			create a.from_string ("101")
-			n.add (a)
-			s := str + "(99).add (101)"
-			report (s, n)
-			assert (s, n.out ~ "200")
-				--  check "+" alias
-			create a.from_string ("83492018876")
-			create b.from_string ("99584738599403878")
-			n := a + b
-			s := str + a.out + " + " + b.out
-			report (s, n)
-			assert (s, n.out_formatted ~ "99,584,822,091,422,754")
-			assert (s + "  a unchaged", a.out ~ "83492018876")
-				-- negate a and call plus
-			a.negate
-			create b.from_string ("83492018856")
-			s := str + a.out + " + " + b.out
-			n := a.plus (b)
-			report (s, n)
-			assert (s, n.out_formatted ~ "-20")
-			assert (s + "  a unchaged", a.out ~ "-83492018876")
-			io.new_line
+			fn := ".add "
+				-- (0).add (0)
+			create n
+			create x
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + x.out_as_stored + " base " + x.base.out + ")"
+			io.put_string (str)
+			n.add (x)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "0")
+				-- (1).add (0)
+			create n.make_with_value (n.one_value)
+			create x
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + x.out_as_stored + " base " + x.base.out + ")"
+			io.put_string (str)
+			n.add (x)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "1")
+				-- (0).add (1)
+			create n
+			create x.make_with_value (n.one_value)
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + x.out_as_stored + " base " + x.base.out + ")"
+			io.put_string (str)
+			n.add (x)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "1")
+				-- (99).add (101), default_base
+			n.set_value ((n.ten_value + n.one_value) * n.nine_value)
+			x.set_value (n.ten_value * n.ten_value + n.one_value)
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + x.out_as_stored + " base " + x.base.out + ")"
+			io.put_string (str)
+			n.add (x)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "1,72")
+				-- big numbers, base 10
+			create n.make_with_base (n.ten_value)
+			create x.make_with_base (n.ten_value)
+			n.set_with_array (<<8,3,4,9,2,0,1,8,8,7,6>>)
+			x.set_with_array (<<9,9,5,8,4,7,3,8,5,9,9,4,0,3,8,7,8>>)
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + x.out_as_stored + " base " + x.base.out + ")"
+			io.put_string (str)
+			n.add (x)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "9,9,5,8,4,8,2,2,0,9,1,4,2,2,7,5,4")
+				-- (<<5,4,3,2,1>> base 16).add (<<1,2,3,4,5>> base 30) = <<1,2,7,13,2,10>> base 16
+				-- (344,865).add (866,825) = 1,211,690
+			create n.make_with_base (n.sixteen_value)
+			create x.make_with_base (n.ten_value * n.three_value)
+			n.set_with_array (<<5,4,3,2,1>>)
+			x.set_with_array (<<1,2,3,4,5>>)
+			str := "(" + n.out + " base " + n.base.out + ")" + fn
+			str := str + "(" + x.out + " base " + x.base.out + ")"
+			io.put_string (str)
+			n.add (x)
+			io.put_string (":  " + n.out + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "1,2,7,13,2,10")
+			assert (str + " base", n.base ~ n.sixteen_value)
 		end
 
+	plus
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			fn, str: STRING_8
+			n: like number_anchor
+			x, y: like number_anchor
+		do
+				-- n := x.plus (y)
+			fn := ".plus "
+				-- n := (8).plus (9)
+			create n
+			create x.make_with_value (n.eight_value)
+			create y.make_with_value (n.nine_value)
+			str := "(" + x.out_as_stored + " base " + x.base.out + ")" + fn
+			str := str + "(" + y.out_as_stored + " base " + y.base.out + ")"
+			io.put_string (str)
+			n := x.plus (y)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "17")
+			assert (str + " x unchanged", x.out_as_stored ~ "8")
+			assert (str + " y unchanged", y.out_as_stored ~ "9")
+		end
 
-	minus
-			-- Test and demonstrate features `subtract', `minus', and `-'
-			-- from {JJ_BIG_NATURAL}.  I checked the calculations at
-			-- "https://defuse.ca/big-number-calculator.htm".
+	subtract
 		local
 			str, s: STRING_8
 			a, b: like number_anchor
 			n: like number_anchor
 		do
+			str := ".subtract:  "
+			s := str + "Fix me!"
+			io.put_string (s + "%N")
+			assert (s, false)
+		end
+
+	minus
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+			-- Checked against "https://defuse.ca/big-number-calculator.htm".
+		local
+			str, s: STRING_8
+			a, b: like number_anchor
+			n: like number_anchor
+		do
+-- Fix me
 			str := ".minus:  "
 				-- minus test number one
 			create n.from_string ("1000")
@@ -997,55 +1417,301 @@ start here
 			io.new_line
 		end
 
+	simple_add
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			str, s: STRING_8
+			a: like testable_number_anchor
+			n: like testable_number_anchor
+		do
+			str := ".simple_add:  "
+				-- (0).add (0)
+			create n
+			create a
+			s := str + "(" + n.out_as_stored + " base " + n.base.out + ").add "
+			s := s + "(" + a.out_as_stored + " base " + a.base.out + ")"
+			n.simple_add (a)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, n.out_as_stored ~ "0")
+				-- Same sign, same bases
+			create n.from_array (<<1,2,3,4>>)
+			create a.from_array (<<4,3,2,1>>)
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").simple_add (" + a.out_as_stored + " base " + a.base.out + ")"
+			n.simple_add (a)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s + " as_stored", n.out_as_stored ~ "5,5,5,5")
+			assert (s + " base", n.base.out ~ "128")
+		end
+
+	simple_subtract
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			str, s: STRING_8
+			a: like testable_number_anchor
+			n: like testable_number_anchor
+		do
+			str := ".simple_subtract:  "
+				-- Same sign, same bases
+			create n.from_array (<<1,2,3,4>>)
+			create a.from_array (<<1,2,3,4>>)
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").simple_subtract (" + a.out_as_stored + " base " + a.base.out + ")"
+			n.simple_subtract (a)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s + " as_stored", n.out_as_stored ~ "0")
+			assert (s + " base", n.base.out ~ "128")
+				-- Same sign, same bases
+			create n.make_with_base (n.sixteen_value)
+			create a.make_with_base (n.sixteen_value)
+			n.set_with_array (<<1,2,3,4,5>>)
+			a.set_with_array (<<1,2,3,4>>)
+			s := str + "(" + n.out_as_stored + " base " + n.base.out
+			s := s + ").simple_subtract (" + a.out_as_stored + " base " + a.base.out + ")"
+			n.simple_subtract (a)
+			io.put_string (s + " = " + n.out_as_stored + " base " + n.base.out + "%N")
+			assert (s + " as_stored", n.out_as_stored ~ "1,1,1,1,1")
+			assert (s + " base", n.base.out ~ "16")
+		end
+
+	scalar_multiply
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			fn, str: STRING_8
+			n: like number_anchor
+			x: like digit_anchor
+		do
+				-- n.scalar_multiply (x)
+			fn := ".scalar_multiply "
+				-- (0).scalar_mulitply (0)
+			create n
+--			x := n.zero_value
+--			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+--			str := str + "(" + x.out + ")"
+--			io.put_string (str)
+--			n.scalar_multiply (x)
+--			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+--			assert (str, n.out_as_stored ~ "0")
+--				-- by zero
+--			n.set_with_array (<<7,9,3,5>>)
+--			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+--			str := str + "(" + x.out + ")"
+--			io.put_string (str)
+--			n.scalar_multiply (x)
+--			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+--			assert (str, n.out_as_stored ~ "0")
+--				-- (7,9,3,5).scalar_multiply (6), default base
+--				-- (14,827,909).scalar_multiply (6) = 88,967,454
+--			n.set_with_array (<<7,9,3,5>>)
+--			x := n.six_value
+--			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+--			str := str + "(" + x.out + ")"
+--			io.put_string (str)
+--			n.scalar_multiply (x)
+--			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+--			assert (str, n.out_as_stored ~ "42,54,18,30")
+--				-- (-1,2,3,4,5,6,7,8,9 base 15).scalar_multiply (3)
+--				-- (2,942,093,829).scalar_multiply (3) = 8,826,281,487
+--			create n.make_with_base (n.sixteen_value - n.one_value)
+--			n.set_with_array (<<1,2,3,4,5,6,7,8,9>>)
+--			n.set_is_negative (true)
+--			x := n.three_value
+--			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+--			str := str + "(" + x.out + ")"
+--			io.put_string (str)
+--			n.scalar_multiply (x)
+--			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+--			assert (str, n.out_as_stored ~ "-3,6,9,13,1,4,7,10,12")
+				-- (963 base 10).scalar_multiply (30)
+				-- (963).scalar_multiply (30) = 28,990
+			create n.make_with_base (n.ten_value)
+			n.set_with_array (<<9,6,3>>)
+			x := n.ten_value * n.three_value
+			str := "(" + n.out_as_stored + " base " + n.base.out + ")" + fn
+			str := str + "(" + x.out + ")"
+			io.put_string (str)
+			n.scalar_multiply (x)
+			io.put_string (":  " + n.out_as_stored + " base " + n.base.out + " %N")
+			assert (str, n.out_as_stored ~ "2,8,9,9,0")
+		end
+
+	scalar_product
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		local
+			str, s: STRING_8
+			n, p: like number_anchor
+			fac: like digit_anchor
+		do
+			str := ".scalar_product "
+			create n
+				-- Multiply zero by anything
+			fac := n.seven_value
+			s := "(" + n.out_as_stored + " base " + n.base.out + ")" + str
+			s := s + "(" + fac.out + ")"
+			io.put_string (s)
+			p := n.scalar_product (fac)
+			io.put_string (" = " + p.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, p.out_as_stored ~ "0")
+				-- Multiply by zero
+			fac := n.zero_value
+			s := "(" + n.out_as_stored + " base " + n.base.out + ")" + str
+			s := s + "(" + fac.out + ")"
+			io.put_string (s)
+			p := n.scalar_product (fac)
+			io.put_string (" = " + p.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, p.out_as_stored ~ "0")
+				-- (1,2,3) max_base).scalar_product (81) = 16,643 * 81 = 1,348,083
+			n.set_with_array (<<1,2,3>>)
+			fac := n.nine_value * n.nine_value
+			s := "(" + n.out_as_stored + " base " + n.base.out + ")" + str
+			s := s + "(" + fac.out + ")"
+			io.put_string (s)
+			p := n.scalar_product (fac)
+			io.put_string (" = " + p.out_as_stored + " base " + n.base.out + "%N")
+			assert (s, p.out_as_stored ~ "82,35,115")
+		end
+
 	multiply
-			-- Test and demonstrate the `multiply', `product', and `*' features
-			-- from {JJ_BIG_NATURAL}.  I checked the calculations at
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 			-- "https://defuse.ca/big-number-calculator.htm".
 		local
 			str, s: STRING_8
-			a, b, n: like number_anchor
+			n: like number_anchor
+			fac: like number_anchor
 		do
-			str := ".multiply:  "
-				-- test multiply
-			create n.from_string ("5")
-			create b.from_string ("9")
-			s := str + "(" + n.out + ").multiply (" + b.out + ")"
-			n.multiply (b)
-			report (s, n)
-			assert (s, n.out ~ "45")
-			assert (s + "  b unchanged", b.out ~ "9")
-				-- test product
-			create a.from_string ("38374651928376")
-			create b.from_string ("99573650866570")
-			s := str + "(" + a.out + ").product (" + b.out + ")"
-			n := a.product (b)
-			report (s, n)
-			assert (s, n.out ~ "3821104193242259013972790320")
-			assert (s + "  a unchanged", a.out ~ "38374651928376")
-			assert (s + "  b unchanged", b.out ~ "99573650866570")
-				-- star test with big values
-			create a.from_string ("-84736487483757564869490010293")
-			create b.from_string ("57849399340004949681221")
-			s := str + a.out + " * " + b.out
-			n := a * b
-			report (s, n)
-			assert (s, n.out ~ "-4901954903117222552481914443941818610639794358807753")
-			assert (s + "  a unchanged", a.out ~ "-84736487483757564869490010293")
-			assert (s + "  b unchanged", b.out ~ "57849399340004949681221")
-				-- test multiply by one
-			s := str + a.out + " * " + a.one.out
-			n := a * a.one
-			report (s, n)
-			assert (s, n.out ~ "-84736487483757564869490010293")
-			assert (s + "  a unchanged", a.out ~ "-84736487483757564869490010293")
-				-- test multiply by zero
-			s := str + b.zero.out + " * " + b.out
-			n := b.zero * b
-			report (s, n)
-			assert (s, n.out ~ "0")
-			assert (s + "  b unchanged", b.out ~ "57849399340004949681221")
-				-- Add some whitespace to screen
-			io.new_line
+			str := ".multiply "
+				-- (0).multiply (99)
+			create n
+			create fac.from_array (<<99>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "0")
+			assert (s + "  fac unchanged", fac.out_as_stored ~ "99")
+				-- (99).multiply (0)
+			create n.from_array (<<99>>)
+			create fac
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "0")
+			assert (s + "  fac unchanged", fac.out_as_stored ~ "0")
+				-- (5).multiply (9)
+			create n.from_array (<<5>>)
+			create fac.from_array (<<9>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "45")
+			assert (s + "  fac unchanged", fac.out_as_stored ~ "9")
+				-- (<<1,2,3>>).multiply (<<1,2>>), base 16
+				-- (291).multiply (18) = 5,238
+			create n.make_with_base (n.sixteen_value)
+			create fac.make_with_base (n.sixteen_value)
+			n.set_with_array (<<1,2,3>>)
+			fac.set_with_array (<<1,2>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "1,4,7,6")
+			assert (s + "  fac unchanged", fac.out_as_stored ~ "1,2")
+				-- (38374651928376).multiply (99573650866570) = 3821104193242259013972790320
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<3,8,3,7,4,6,5,1,9,2,8,3,7,6>>)
+			fac.set_with_array (<<9,9,5,7,3,6,5,0,8,6,6,5,7,0>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "3,8,2,1,1,0,4,1,9,3,2,4,2,2,5,9,0,1,3,9,7,2,7,9,0,3,2,0")
+				-- (333) * (22) = 7326, length differs by one digit.
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<3,3,3>>)
+			fac.set_with_array (<<2,2>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "7,3,2,6")
+				-- (7777777) * (4444) = 7326, length differs by one digit.
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<7,7,7,7,7,7,7>>)
+			fac.set_with_array (<<4,4,4,4>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "3,4,5,6,4,4,4,0,9,8,8")
+				-- (4444) * (333) = 7326, length differs by one digit.
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<4,4,4,4>>)
+			fac.set_with_array (<<3,3,3>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "1,4,7,9,8,5,2")
+				-- (55555) * (333) = 7326, length differs by one digit.
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<5,5,5,5,5>>)
+			fac.set_with_array (<<3,3,3>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "1,8,4,9,9,8,1,5")
+				-- (1111) * (11) = 12,221, length differs by one digit.
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<1,1,1,1>>)
+			fac.set_with_array (<<1,1>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "1,2,2,2,1")
+				-- (4444) * (22) = 7326, length differs by two digits.
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<4,4,4,4>>)
+			fac.set_with_array (<<2,2>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "9,7,7,6,8")
+				-- (666666) * (4444) = 7326, length differs by two digits.
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<6,6,6,6,6,6>>)
+			fac.set_with_array (<<4,4,4,4>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "2,9,6,2,6,6,3,7,0,4")
+				-- (-84736487483757564869490010293).multiply (57849399340004949681221)
+				--      = -4901954903117222552481914443941818610639794358807753
+			create n.make_with_base (n.ten_value)
+			create fac.make_with_base (n.ten_value)
+			n.set_with_array (<<8,4,7,3,6,4,8,7,4,8,3,7,5,7,5,6,4,8,6,9,4,9,0,0,1,0,2,9,3>>)
+			n.set_is_negative (true)
+			fac.set_with_array (<<5,7,8,4,9,3,9,9,3,4,0,0,0,4,9,4,9,6,8,1,2,2,1>>)
+			s := "(" + n.out_as_stored + ")" + str + " (" + fac.out_as_stored + ")"
+			io.put_string (s)
+			n.multiply (fac)
+			io.put_string (":  " + n.out_as_stored + "%N")
+			assert (s, n.out_as_stored ~ "-4,9,0,1,9,5,4,9,0,3,1,1,7,2,2,2,5,5,2,4,8,1,9,1,%
+								%4,4,4,3,9,4,1,8,1,8,6,1,0,6,3,9,7,9,4,3,5,8,8,0,7,7,5,3")
 		end
 
 feature -- Basic operations (selectively exported)
@@ -1055,96 +1721,76 @@ feature -- Basic operations (selectively exported)
 			-- {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
-			n: like number_anchor
-			sft: INTEGER_32
+			n: like testable_number_anchor
 		do
-			set_verbose
 			str := ".bit_shift_left:  "
-				-- First test
---			n := new_number_from_string ("5")
---			n.set_unstable
---			sft := 2
---			s := str + "(" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
---			n.bit_shift_left (sft)
---			report (s, n)
---			assert (s, n.out ~ "20")
-				-- Now with smaller base
---			create n
---			n.set_base (n.eight_value)
---			n.set_value (n.five_value)
---			sft := 2
---			s := str + "(" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
---			report (s, n)
---			n.set_unstable
---			n.bit_shift_left (sft)
---			report (s, n)
---			assert (s, n.out_as_bits ~ "00010100")
-				-- Now with base_minus_one_value
+				-- (x0000000).bit_shift_left (7)
 			create n
-			n.set_base (n.eight_value)
-			n.set_value (n.base_minus_one_value)
-			sft := 2
-			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
-			n.set_unstable
-			n.bit_shift_left (sft)
-			report (s, n)
-			assert (s, n.out_as_bits ~ "00011100")
-				-- Now with max_digit_value, base 16
-			create n
-			n.set_base (n.sixteen_value)
-			n.set_value (n.max_digit_value)
-			sft := 2
-			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
-			n.set_unstable
-			n.bit_shift_left (sft)
-			report (s, n)
-			assert (s, n.out_as_bits ~ "00011100,00111100")
-				-- Now with max_digit_value, max base
-			create n
-			n.set_base (n.max_base)
-			n.set_value (n.max_digit_value)
-			sft := 1
-			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
-			n.set_unstable
-			n.bit_shift_left (sft)
-			report (s, n)
-			assert (s, n.out_as_bits ~ "11111110")
-				-- Now with max_digit_value, max base
-			create n
-			n.set_base (n.max_base)
-			n.set_value (n.max_digit_value)
-			sft := 2
-			s := str + n.out + "  (" + n.out_as_bits + ").bit_shift_left (" + sft.out + ")"
-			n.set_unstable
-			n.bit_shift_left (sft)
-			report (s, n)
-			assert (s, n.out_as_bits ~ "00000001,11111100")
+			s := str + "(" + n.out_as_bits + ").bit_shift_left (7) = "
+			n.bit_shift_left (7)
+			io.put_string (s + n.out_as_bits + "%N")
+			assert (s, n.out_as_bits ~ "x0000000")
+				-- (x0000111).bit_shift_left (2)
+			create n.make_with_value (n.seven_value)
+			s := str + "(" + n.out_as_bits + ").bit_shift_left (2) = "
+			n.bit_shift_left (2)
+			io.put_string (s + n.out_as_bits + "%N")
+			assert (s, n.out_as_bits ~ "x0011100")
+				-- (x0001111).bit_shift_left (4)
+			create n.make_with_value (n.sixteen_value - n.one_value)
+			s := str + "(" + n.out_as_bits + ").bit_shift_left (4) = "
+			n.bit_shift_left (4)
+			io.put_string (s + n.out_as_bits + "%N")
+			assert (s, n.out_as_bits ~ "x0000001,x1110000")
+				-- (x0000001,x1110000).bit_shift_left (4)
+			s := str + "(" + n.out_as_bits + ").bit_shift_left (4) = "
+			n.bit_shift_left (4)
+			io.put_string (s + n.out_as_bits + "%N")
+			assert (s, n.out_as_bits ~ "x0011110,x0000000")
+				-- (xxxx1111).bit_shift_left (1)
+			create n.make_with_base (n.sixteen_value)
+			n.set_value (n.sixteen_value - n.one_value)
+			s := str + "(" + n.out_as_bits + ").bit_shift_left (1) = "
+			n.bit_shift_left (1)
+			io.put_string (s + n.out_as_bits + "%N")
+			assert (s, n.out_as_bits ~ "xxxx0001,xxxx1110")
+				-- (xxxx0001,xxxx1110).bit_shift_left (4)
+			s := str + "(" + n.out_as_bits + ").bit_shift_left (4) = "
+			n.bit_shift_left (4)
+			io.put_string (s + n.out_as_bits + "%N")
+			assert (s, n.out_as_bits ~ "xxxx0001,xxxx1110,xxxx0000")
 		end
 
 	normalize
 			-- Test and demonstrate feature `normalize' from {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
-			n: like number_anchor
+			n: like testable_number_anchor
 			i: INTEGER_32
 		do
 			str := generating_type + ".normalize:  "
 			create n
-			n.set_unstable
-				-- Normalize 5 base 16
-			n.set_value_and_base (n.five_value, n.sixteen_value)
-			s := str + n.out + ", base " + n.base.out + "  (" + n.out_as_bits + ").normalize"
+				-- i := (x0000001).normalize
+			create n.make_with_value (n.one_value)
+			s := str + "(" + n.out_as_bits + ").normaize = "
 			i := n.normalize
-			io.put_string (s +  " = " + n.out_as_bits + "%N")
-			assert (s, n.out_as_bits ~ "00001010")
-				-- Normalize `max_digit_value + 5, max_base
-			create n
-			n.set_unstable
-			n.set_value_and_base (n.max_digit_value + n.five_value, n.base)
-			s := str + n.out + ", base " + n.base.out + "  (" + n.out_as_bits + ").normalize"
+			io.put_string (s + n.out_as_bits + "  i = " + i.out + "%N")
+			assert (s + " as_bits", n.out_as_bits ~ "x1000000")
+			assert (s + " i", i = 6)
+				-- i := (x0000111).normalize
+			create n.make_with_value (n.seven_value)
+			s := str + "(" + n.out_as_bits + ").normaize = "
 			i := n.normalize
-			io.put_string (s +  " = " + n.out_as_bits + "%N")
-			assert (s, n.out_as_bits ~ "01000001,00000000")
+			io.put_string (s + n.out_as_bits + "  i = " + i.out + "%N")
+			assert (s + " as_bits", n.out_as_bits ~ "x1110000")
+			assert (s + " i", i = 4)
+				-- i := (xxxx0101).normalize
+			create n.make_with_value_and_base (n.five_value, n.sixteen_value)
+			s := str + "(" + n.out_as_bits + ").normaize = "
+			i := n.normalize
+			io.put_string (s + n.out_as_bits + "  i = " + i.out + "%N")
+			assert (s + " as_bits", n.out_as_bits ~ "xxxx1010")
+			assert (s + " i", i = 1)
 		end
 
 	divide_two_digits_by_one
@@ -1152,8 +1798,8 @@ feature -- Basic operations (selectively exported)
 			-- {JJ_BIG_NATURAL}.
 		local
 			str, s: STRING_8
-			n: like number_anchor
-			denom: like number_anchor
+			n: like testable_number_anchor
+			denom: like testable_number_anchor
 			i: INTEGER_32
 			tup: like digit_tuple_anchor
 		do
