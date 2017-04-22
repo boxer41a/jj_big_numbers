@@ -32,6 +32,10 @@ feature {NONE} -- Initialization
 				-- Test implementation features.
 			io.put_string ("------------- Implementation ----------------- %N")
 --			tester.from_array
+
+--			tester.from_string
+
+--			tester.set_with_array
 --			tester.set_with_string
 --			tester.new_sub_number
 --			tester.power_of_ten_table
@@ -40,19 +44,30 @@ feature {NONE} -- Initialization
 
 --			tester.is_zero
 
-			tester.base
+--			tester.as_full_digit
+--			tester.divide_two_digits_by_one
+--
+--			tester.simple_subtract
 
+--			tester.scalar_multiply
+--			tester.digits_multiplied
+--			tester.multiply
 
-			tester.scalar_multiply
+--			tester.quotient
 
-			tester.to_base
-			tester.scalar_add
+--			tester.digits_added
+--			tester.base
+--			tester.scalar_add
+--			tester.scalar_sum
 
-			tester.set_base
-			tester.set_base_failing
+--			tester.to_base
+--			tester.scalar_add
 
-			tester.bit_shift_left
-			tester.simple_add
+--			tester.set_base
+--			tester.set_base_failing
+
+--			tester.bit_shift_left
+--			tester.simple_add
 			tester.add
 
 				-- Test initialization features.
@@ -74,12 +89,19 @@ feature {NONE} -- Initialization
 
 --			tester.add
 --			tester.minus
---			tester.multiply
 
-			tester.bit_shift_left
-			tester.normalize
+--			tester.divide_two_digits_by_one
 
-			tester.divide_two_digits_by_one
+--			tester.from_array
+			tester.quotient_failing
+
+--			tester.simple_product
+			tester.multiply_helper
+			tester.multiply
+
+--			tester.bit_shift_left
+--			tester.normalize
+
 
 --			tester.scalar_divide
 

@@ -51,22 +51,22 @@ feature -- Basic operations (initialization tests)
 		deferred
 		end
 
-	make_with_base
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	make_with_base
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	make_with_value_and_base
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	make_with_value_and_base
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 	from_string
 			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		deferred
 		end
 
-	from_array
+	make_with_array
 			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		deferred
 		end
@@ -78,292 +78,429 @@ feature -- Basic operations (initialization tests)
 
 feature -- Basic operations (constants tests)
 
-	zero_value
+	zero_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".zero_digit:  "
+			n := new_number
+			v := n.zero_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "0")
 		end
 
-	one_value
+	one_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".one_digit:  "
+			n := new_number
+			v := n.one_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "1")
 		end
 
-	two_value
+	two_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".two_digit:  "
+			n := new_number
+			v := n.two_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "2")
 		end
 
-	three_value
+	three_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type +".three_digit:  "
+			n := new_number
+			v := n.three_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "3")
 		end
 
-	four_value
+	four_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".four_digit:  "
+			n := new_number
+			v := n.four_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "4")
 		end
 
-	five_value
+	five_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".five_digit:  "
+			n := new_number
+			v := n.five_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "5")
 		end
 
-	six_value
+	six_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".six_digit:  "
+			n := new_number
+			v := n.six_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "6")
 		end
 
-	seven_value
+	seven_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".seven_digit:  "
+			n := new_number
+			v := n.seven_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "7")
 		end
 
-	eight_value
+	eight_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".eight_digit:  "
+			n := new_number
+			v := n.eight_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "8")
 		end
 
-	nine_value
+	nine_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".nine_digit:  "
+			n := new_number
+			v := n.nine_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "9")
 		end
 
-	ten_value
+	ten_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".ten_digit:  "
+			n := new_number
+			v := n.ten_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "10")
 		end
 
-	sixteen_value
+	sixteen_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".sixteen_digit:  "
+			n := new_number
+			v := n.sixteen_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ "16")
 		end
 
-	max_digit_value
+	max_digit
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
-		end
-
-	max_representable_value
-			-- Tests and demonstrates the corresponding feature
-			-- from {JJ_BIG_NATURAL}.
-		deferred
-		end
-
-	max_base
-			-- Tests and demonstrates the corresponding feature
-			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			v: like digit_anchor
+		do
+			str := generating_type + ".max_digit:  "
+			n := new_number
+			v := n.max_digit
+			io.put_string (str + v.out + "%N")
+			assert (str, v.out ~ (n.zero_digit - n.one_digit).out)
 		end
 
 	default_karatsuba_threshold
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			str: STRING_8
+			n: like new_number
+			i: INTEGER
+		do
+			str := generating_type + ".default_karatsuba_threshold:  "
+			n := new_number
+			i := n.default_karatsuba_threshold
+			io.put_string (str + i.out + "%N")
+			assert (str, i.out ~ "4")
 		end
 
 feature -- Basic operations (Access)
 
-	base
-			-- Tests and demonstrates the corresponding feature
-			-- from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	base
+--			-- Tests and demonstrates the corresponding feature
+--			-- from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	base_minus_one_value
-			-- Tests and demonstrates the corresponding feature
-			-- from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	min_base
+--			-- Tests and demonstrates the corresponding feature
+--			-- from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	min_base
-			-- Tests and demonstrates the corresponding feature
-			-- from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	zero
+--			-- Tests and demonstrates the corresponding feature
+--			-- from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	zero
-			-- Tests and demonstrates the corresponding feature
-			-- from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	one
+--			-- Tests and demonstrates the corresponding feature
+--			-- from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	one
-			-- Tests and demonstrates the corresponding feature
-			-- from {JJ_BIG_NATURAL}.
-		deferred
-		end
-
-	karatsuba_threshold
-			-- Tests and demonstrates the corresponding feature
-			-- from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	karatsuba_threshold
+--			-- Tests and demonstrates the corresponding feature
+--			-- from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 feature -- Basic operations (element change tests)
 
-	set_karatsuba_threshold
-			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	set_karatsuba_threshold
+--			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	set_value
-			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	set_value
+--			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	set_with_string
-			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	set_with_string
+--			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	set_base
-			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	set_base
+--			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	set_value_and_base
-			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	set_value_and_base
+--			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	set_with_array
-			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	set_with_array
+--			-- Test the corresponging feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 feature -- Basic operations (conversion tests)
 
-	to_base
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	to_base
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	as_base
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	as_base
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 feature -- Basic operations (status setting tests)
 
-	set_is_negative
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	set_is_negative
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 feature -- Basic operations (status report tests)
 
-	is_zero
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	is_zero
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	is_one
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	is_one
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	is_base
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	is_base
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	is_negative
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	is_negative
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	is_same_sign
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	is_same_sign
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	divisible
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	divisible
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 feature -- Basic operations (basic operations tests)
 
-	negate
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	negate
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	identity
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	identity
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	opposite
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	opposite
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	scalar_add
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	scalar_add
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 
-	scalar_sum
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	scalar_sum
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	add
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	add
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	plus
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	plus
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	subtract
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	subtract
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	minus
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	minus
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	simple_add
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	simple_add
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	simple_subtract
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	simple_subtract
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 feature -- Basic operations (multiply)
 
-	scalar_multiply
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
+	multiply_helper
+			-- Run some smaller tests discovered during a multiply test
+			-- in order to debug the failing of a larger number test.
+		local
+			str, s: STRING_8
+			a, b, n: like new_number
+			fac: like new_number
+		do
+			str := ".multiply_helper "
+				-- Is subtraction in karatsuba multiply getting wrong results.
+				-- Seems to be fixed now.
+			a := new_number_from_string ("2,140,209,225")
+			b := new_number_from_string ("74,852,190")
+			s := "(" + a.out + ")" + " - " + " (" + b.out + ")"
+			io.put_string (s)
+			n := a - b
+			io.put_string (" =  " + n.out + "%N")
+			assert (s, n.out ~ "2065357035")
+				-- (133,078,485).multiply (2,416,522,490)
+			n := new_number_from_string ("133078485")
+			fac := new_number_from_string ("2416522490")
+			s := "(" + n.out + ")" + str + " (" + fac.out + ")"
+			io.put_string (s + "%N")
+			n.multiply (fac)
+			io.put_string (":  " + n.out + "%N")
+			assert (s, n.out ~ "321587151937627650")
 		end
 
-	scalar_product
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
-		end
+
+--	scalar_multiply
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
+
+--	scalar_product
+--			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 	multiply
 			-- Test and demonstrate the `multiply', `product', and `*' features
@@ -374,22 +511,22 @@ feature -- Basic operations (multiply)
 
 feature -- Basic operations (selectively exported)
 
-	bit_shift_left
-			-- Test and demonstrate feature `bit_shift_left' from
-			-- {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	bit_shift_left
+--			-- Test and demonstrate feature `bit_shift_left' from
+--			-- {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	normalize
-			-- Test and demonstrate feature `normalize' from {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	normalize
+--			-- Test and demonstrate feature `normalize' from {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
-	divide_two_digits_by_one
-			-- Test and demonstrate feature `divide_two_digits_by_one' from
-			-- {JJ_BIG_NATURAL}.
-		deferred
-		end
+--	divide_two_digits_by_one
+--			-- Test and demonstrate feature `divide_two_digits_by_one' from
+--			-- {JJ_BIG_NATURAL}.
+--		deferred
+--		end
 
 --	scalar_divide
 --			-- Test and demonstrate feature `scalar_divide' from {JJ_BIG_NATURAL}.
@@ -428,7 +565,7 @@ feature -- Basic operations (selectively exported)
 --			assert (s, tup.rem.out ~ "4")
 --		end
 
-	knuth_divide
+	quotient
 		deferred
 		end
 
@@ -595,43 +732,42 @@ feature -- Test conversion
 
 feature -- Basic operations (tests implementation features)
 
-	power_of_ten_table
-			-- Tests the existence of the `power_of_ten_table'.
-			-- This test feature must be called before any math operations
-			-- that access the `power_of_ten_table'.
-		deferred
-		end
+--	power_of_ten_table
+--			-- Tests the existence of the `power_of_ten_table'.
+--			-- This test feature must be called before any math operations
+--			-- that access the `power_of_ten_table'.
+--		deferred
+--		end
 
-	ten_to_the_power
-			-- Tests the intended once-ness of the `power_of_ten_table'
-			-- somewhat tests its memoization usage.
-			-- This test feature must be called before any math operations
-			-- that access the `power_of_ten_table'.
-		deferred
-		end
+--	ten_to_the_power
+--			-- Tests the intended once-ness of the `power_of_ten_table'
+--			-- somewhat tests its memoization usage.
+--			-- This test feature must be called before any math operations
+--			-- that access the `power_of_ten_table'.
+--		deferred
+--		end
 
-	new_value_from_character
-			-- Tests the `new_value_from_character' feature.
-		deferred
-		end
+--	new_value_from_character
+--			-- Tests the `new_value_from_character' feature.
+--		deferred
+--		end
 
-	bits_utilized
-			-- Tests the `bits_utilized' feature, which gives the
-			-- number of bits used for representing numbers given
-			-- a specific `base'.
-		deferred
-		end
+--	bits_utilized
+--			-- Tests the `bits_utilized' feature, which gives the
+--			-- number of bits used for representing numbers given
+--			-- a specific `base'.
+--		deferred
+--		end
 
-	new_big_number
-			-- Tests the `new_big_number' feature.
-		deferred
-		end
+--	new_big_number
+--			-- Tests the `new_big_number' feature.
+--		deferred
+--		end
 
-	new_sub_number
-			-- Test the `new_sub_number' feature.
-		deferred
-		end
-
+--	new_sub_number
+--			-- Test the `new_sub_number' feature.
+--		deferred
+--		end
 
 feature {NONE} -- Implementation
 
@@ -641,11 +777,11 @@ feature {NONE} -- Implementation
 			print (a_number.generating_type + a_comment + "%N")
 			print ("           base = " + a_number.base.out + "%N")
 			print ("          count = " + a_number.count.out + "%N")
-			print ("    digit_count = " + a_number.as_base (a_number.ten_value).count.out + "%N")
+--			print ("    digit_count = " + a_number.as_base (a_number.ten_value).count.out + "%N")
 			if is_verbose then
 				print ("      as_stored = " + a_number.out_as_stored + "%N")
 				print ("        as_bits = " + a_number.out_as_bits + "%N")
-				print ("            out = " + a_number.out + "%N")
+--				print ("            out = " + a_number.out + "%N")
 			end
 			print ("  out_formatted = " + a_number.out_formatted + "%N")
 		end
@@ -655,55 +791,67 @@ feature {NONE} -- Implementation
 		do
 			print (a_number.generating_type + a_comment + "  report_properties %N")
 			print ("                 base: " + a_number.base.generating_type + " = " + a_number.base.out + "%N")
-			print ("             min_base: " + a_number.min_base.generating_type + " = " + a_number.min_base.out + "%N")
-			print ("             max_base: " + a_number.max_base.generating_type + " = " + a_number.max_base.out + "%N")
-			print (" base_minus_one_value: " + a_number.base_minus_one_value.generating_type + " = " + a_number.base_minus_one_value.out + "%N")
-			print ("         max_dig_value: " + a_number.max_digit_value.generating_type + " = " + a_number.max_digit_value.out + "%N")
+--			print ("             min_base: " + a_number.min_base.generating_type + " = " + a_number.min_base.out + "%N")
+--			print (" base_minus_one_value: " + a_number.base_minus_one_value.generating_type + " = " + a_number.base_minus_one_value.out + "%N")
+			print ("         max_dig_value: " + a_number.max_digit.generating_type + " = " + a_number.max_digit.out + "%N")
 --				print ("            max_value: " + a_number.max_value.generating_type + " = " + a_number.max_value.out + "%N")
 			print ("                 zero: " + a_number.zero.generating_type + " = " + a_number.zero.out + "%N")
 			print ("                  one: " + a_number.one.generating_type + " = " + a_number.one.out + "%N")
 			print ("  karatsuba_threshold: " + a_number.karatsuba_threshold.generating_type + " = " + a_number.karatsuba_threshold.out + "%N")
-			print ("           zero_value: " + a_number.zero_value.generating_type + " = " + a_number.zero_value.out + "%N")
-			print ("            one_value: " + a_number.one_value.generating_type + " = " + a_number.one_value.out + "%N")
-			print ("            two_value: " + a_number.two_value.generating_type + " = " + a_number.two_value.out + "%N")
-			print ("          three_value: " + a_number.three_value.generating_type + " = " + a_number.three_value.out + "%N")
-			print ("           four_value: " + a_number.four_value.generating_type + " = " + a_number.four_value.out + "%N")
-			print ("           five_value: " + a_number.five_value.generating_type + " = " + a_number.five_value.out + "%N")
-			print ("            six_value: " + a_number.six_value.generating_type + " = " + a_number.six_value.out + "%N")
-			print ("          seven_value: " + a_number.seven_value.generating_type + " = " + a_number.seven_value.out + "%N")
-			print ("          eight_value: " + a_number.eight_value.generating_type + " = " + a_number.eight_value.out + "%N")
-			print ("           nine_value: " + a_number.nine_value.generating_type + " = " + a_number.nine_value.out + "%N")
-			print ("            ten_value: " + a_number.ten_value.generating_type + " = " + a_number.ten_value.out + "%N")
-			print ("        sixteen_value: " + a_number.sixteen_value.generating_type + " = " + a_number.sixteen_value.out + "%N")
+			print ("           zero_value: " + a_number.zero_digit.generating_type + " = " + a_number.zero_digit.out + "%N")
+			print ("            one_value: " + a_number.one_digit.generating_type + " = " + a_number.one_digit.out + "%N")
+			print ("            two_value: " + a_number.two_digit.generating_type + " = " + a_number.two_digit.out + "%N")
+			print ("          three_value: " + a_number.three_digit.generating_type + " = " + a_number.three_digit.out + "%N")
+			print ("           four_value: " + a_number.four_digit.generating_type + " = " + a_number.four_digit.out + "%N")
+			print ("           five_value: " + a_number.five_digit.generating_type + " = " + a_number.five_digit.out + "%N")
+			print ("            six_value: " + a_number.six_digit.generating_type + " = " + a_number.six_digit.out + "%N")
+			print ("          seven_value: " + a_number.seven_digit.generating_type + " = " + a_number.seven_digit.out + "%N")
+			print ("          eight_value: " + a_number.eight_digit.generating_type + " = " + a_number.eight_digit.out + "%N")
+			print ("           nine_value: " + a_number.nine_digit.generating_type + " = " + a_number.nine_digit.out + "%N")
+			print ("            ten_value: " + a_number.ten_digit.generating_type + " = " + a_number.ten_digit.out + "%N")
+			print ("        sixteen_value: " + a_number.sixteen_digit.generating_type + " = " + a_number.sixteen_digit.out + "%N")
 			print ("                  out: " + a_number.out + "%N")
 			print ("        out_formatted: " + a_number.out_formatted + "%N")
 			print ("        out_as_stored: " + a_number.out_as_stored + "%N")
 			print ("          out_as_bits: " + a_number.out_as_bits + "%N")
 		end
 
-	report_tuple (a_comment: STRING_8; a_tuple: like tuple_anchor)
-			-- Display information about `a_tuple' which contains a quotient
-			-- and a remainder, likely resulting from some division operation.
-		do
-			print (a_tuple.generating_type + a_comment + "%N")
-			print ("  tuple:  [" + a_tuple.quot.out + ", " + a_tuple.rem.out + "] %N")
+--	report_tuple (a_comment: STRING_8; a_tuple: like tuple_anchor)
+--			-- Display information about `a_tuple' which contains a quotient
+--			-- and a remainder, likely resulting from some division operation.
+--		do
+--			print (a_tuple.generating_type + a_comment + "%N")
+--			print ("  tuple:  [" + a_tuple.quot.out + ", " + a_tuple.rem.out + "] %N")
+--		end
+
+--	report_digit_tuple (a_comment: STRING_8; a_tuple: like digit_tuple_anchor)
+--			-- Display information about `a_tuple' which contains a quotient
+--			-- and a remainder, likely resulting from some division operation.
+--		do
+--			print (a_tuple.generating_type + a_comment + "%N")
+--			print ("  tuple:  [" + a_tuple.quot.out + ", " + a_tuple.rem.out + "] %N")
+--		end
+
+
+feature -- Factory access
+
+	new_number: JJ_BIG_NATURAL [like digit_anchor]
+			-- Factory and anchor for new big numbers.
+		deferred
 		end
 
-	report_digit_tuple (a_comment: STRING_8; a_tuple: like digit_tuple_anchor)
-			-- Display information about `a_tuple' which contains a quotient
-			-- and a remainder, likely resulting from some division operation.
-		do
-			print (a_tuple.generating_type + a_comment + "%N")
-			print ("  tuple:  [" + a_tuple.quot.out + ", " + a_tuple.rem.out + "] %N")
+	new_number_from_string (a_string: STRING_8): like new_number
+			-- Create a new big number from the contents of `a_string'.
+		deferred
 		end
 
 feature {NONE} -- Anchors
 
-	number: like number_anchor
-			-- Used as handle to obtain values, etc.
-			-- Redefine as once.
-		deferred
-		end
+--	number: like number_anchor
+--			-- Used as handle to obtain values, etc.
+--			-- Redefine as once.
+--		deferred
+--		end
 
 	digit_anchor: JJ_NATURAL
 			-- Anchor for declaring an entity to representi a digit.
@@ -758,7 +906,7 @@ feature {NONE} -- Anchors
 			end
 		end
 
-	digit_tuple_anchor: like number_anchor.divide_two_digits_by_one
+	digit_tuple_anchor: like number_anchor.as_half_digits
 			-- Anchor for typs involved in division.
 			-- Not to be called; just used to anchor types.
 			-- Declared as a feature to avoid adding an attribute.

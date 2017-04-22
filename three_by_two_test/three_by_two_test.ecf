@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-15-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-15-0 http://www.eiffel.com/developers/xml/configuration-1-15-0.xsd" name="jj_big_natural_demo" uuid="AEFA3995-080D-422D-A563-2BDE7BDA1B10">
-	<target name="jj_big_natural_demo">
-		<root class="BIG_NATURAL_DEMO" feature="make"/>
+<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-15-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-15-0 http://www.eiffel.com/developers/xml/configuration-1-15-0.xsd" name="three_by_two_test" uuid="2A6001A8-7752-474F-893D-92CDB85DA5EA">
+	<target name="three_by_two_test">
+		<root class="THREE_BY_TWO_TEST" feature="make"/>
 		<option full_class_checking="true" cat_call_detection="none" is_attached_by_default="true" is_obsolete_routine_type="true" void_safety="all" syntax="standard">
 			<assertions precondition="true" postcondition="true" check="true" invariant="true" loop="true" supplier_precondition="true"/>
 		</option>
@@ -10,16 +10,6 @@
 				<assertions precondition="true"/>
 			</option>
 		</library>
-		<library name="testing" location="$ISE_LIBRARY\library\testing\testing-safe.ecf"/>
-		<cluster name="demo" location=".\" recursive="true">
-			<file_rule>
-				<exclude>/.svn$</exclude>
-				<exclude>/CVS$</exclude>
-				<exclude>/EIFGENs$</exclude>
-				<exclude>/demo$</exclude>
-				<exclude>/docs$</exclude>
-			</file_rule>
-		</cluster>
 		<cluster name="jj_big_numbers" location="..\" recursive="true">
 			<option>
 				<assertions precondition="true" postcondition="true" check="true" invariant="true" loop="true"/>
@@ -30,7 +20,18 @@
 				<exclude>/CVS$</exclude>
 				<exclude>/EIFGENs$</exclude>
 				<exclude>/demo$</exclude>
+				<exclude>/three_by_two_test$</exclude>
 				<exclude>/docs$</exclude>
+			</file_rule>
+		</cluster>
+		<cluster name="three_by_two_test" location=".\" recursive="true">
+			<file_rule>
+				<exclude>/.svn$</exclude>
+				<exclude>/CVS$</exclude>
+				<exclude>/EIFGENs$</exclude>
+				<exclude>/demo$</exclude>
+				<exclude>/docs$</exclude>
+				<exclude>/three_by_two_test$</exclude>
 			</file_rule>
 		</cluster>
 		<override name="jj_override" location="$GITHUB\jj_naturals\jj_override\"/>
