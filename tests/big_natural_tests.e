@@ -63,7 +63,38 @@ feature -- Basic operations (initialization tests)
 
 	from_string
 			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		deferred
+		local
+			fn, str, s: STRING_8
+			n: like number_anchor
+		do
+			n := new_number
+			str := n.generating_type + ":  "
+			fn := ".from_string "
+				-- Base 10 number
+			n := new_number_from_string ("3852")
+			s := str + fn + "(%"" + n.out + "%") = "
+			io.put_string (s + n.out + "%N")
+			assert (s + " out_as_stored ", n.out_as_stored ~ "<15,12>")
+				-- Number
+			n := new_number_from_string ("10,987,654,321")
+			s := str + fn + "(%"" + n.out + "%") = "
+			io.put_string (s + n.out + "%N")
+			assert (s + " out_as_stored ", n.out_as_stored ~ "<2,142,234,76,177>")
+				-- Negative number
+			n := new_number_from_string ("-00012,34")
+			s := str + fn + "(%"" + n.out + "%") = "
+			io.put_string (s + n.out + "%N")
+			assert (s + " out_as_stored ", n.out_as_stored ~ "-<4,210>")
+				-- Failing ? number
+			n := new_number_from_string ("33333")
+			s := str + fn + "(%"" + n.out + "%") = "
+			io.put_string (s + n.out + "%N")
+			assert (s + " out_as_stored ", n.out_as_stored ~ "<130,53>")
+				-- Number arrived at during failing simple_multiply?
+			n := new_number_from_string ("26,558,760")
+			s := str + fn + "(%"" + n.out + "%") = "
+			io.put_string (s + n.out + "%N")
+			assert (s + " out_as_stored ", n.out_as_stored ~ "<1,149,65,40>")
 		end
 
 	make_with_array
@@ -352,18 +383,6 @@ feature -- Basic operations (element change tests)
 --		deferred
 --		end
 
-feature -- Basic operations (conversion tests)
-
---	to_base
---			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
---		deferred
---		end
-
---	as_base
---			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
---		deferred
---		end
-
 feature -- Basic operations (status setting tests)
 
 --	set_is_negative
@@ -372,6 +391,7 @@ feature -- Basic operations (status setting tests)
 --		end
 
 feature -- Basic operations (status report tests)
+
 
 --	is_zero
 --			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
@@ -461,36 +481,159 @@ feature -- Basic operations (basic operations tests)
 --		deferred
 --		end
 
-feature -- Basic operations (multiply)
+feature -- Basic operations (addition and subtraction)
 
-	multiply_helper
-			-- Run some smaller tests discovered during a multiply test
-			-- in order to debug the failing of a larger number test.
+	minus
+			-- Tests the corresponding feature.
 		local
-			str, s: STRING_8
+			fn, str, s: STRING_8
 			a, b, n: like new_number
 			fac: like new_number
 		do
-			str := ".multiply_helper "
-				-- Is subtraction in karatsuba multiply getting wrong results.
-				-- Seems to be fixed now.
-			a := new_number_from_string ("2,140,209,225")
-			b := new_number_from_string ("74,852,190")
-			s := "(" + a.out + ")" + " - " + " (" + b.out + ")"
+			n := new_number_from_string ("0")
+			str := n.generating_type + ":  "
+			fn := ".minus"
+				-- (578372618996743892774658921536).minus
+				-- (578372618990119377281937921536)
+				--           = 6624515492721000000
+			a := new_number_from_string ("578372618996743892774658921536")
+			b := new_number_from_string ("578372618990119377281937921536")
+			s := str + "(" + a.out + ")" + fn
+			s := s + "(" + b.out + ") = "
 			io.put_string (s)
-			n := a - b
-			io.put_string (" =  " + n.out + "%N")
-			assert (s, n.out ~ "2065357035")
-				-- (133,078,485).multiply (2,416,522,490)
-			n := new_number_from_string ("133078485")
-			fac := new_number_from_string ("2416522490")
-			s := "(" + n.out + ")" + str + " (" + fac.out + ")"
-			io.put_string (s + "%N")
-			n.multiply (fac)
-			io.put_string (":  " + n.out + "%N")
-			assert (s, n.out ~ "321587151937627650")
+			n := a.minus (b)
+			io.put_string (n.out + "%N")
+			assert (s, n.out ~ "6624515492721000000")
 		end
 
+feature -- Basic operations (multiply)
+
+	multiply
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+			-- "https://defuse.ca/big-number-calculator.htm".
+		local
+			fn, str, s: STRING_8
+			n: like number_anchor
+			fac: like number_anchor
+		do
+			n := new_number
+			str := n.generating_type + ":  "
+			fn := ".multiply"
+				-- (0).multiply (99)
+			n := new_number_from_string ("0")
+			fac := new_number_from_string ("99")
+			s := n.out + fn + " (" + fac.out + ") = "
+			io.put_string (str + s)
+			n.multiply (fac)
+			io.put_string (n.out + "%N")
+			assert (s, n.out ~ "0")
+			assert (s + "  fac unchanged", fac.out ~ "99")
+				-- (7777777) * (4444) = 7326
+			n := new_number_from_string ("7,777,777")
+			fac := new_number_from_string ("4,444")
+			s := n.out + fn + " (" + fac.out + ") = "
+			io.put_string (str + s)
+			n.multiply (fac)
+			io.put_string (n.out + "%N")
+			assert (s, n.out ~ "34564440988")
+				-- (4444) * (333) = 1,479,852
+			n := new_number_from_string ("4,444")
+			fac := new_number_from_string ("333")
+			s := n.out + fn + " (" + fac.out + ") = "
+			io.put_string (str + s)
+			n.multiply (fac)
+			io.put_string (n.out + "%N")
+			assert (s, n.out ~ "1479852")
+
+				-- (55555) * (333) = 18,499,815.
+			n := new_number_from_string ("55,555")
+			fac := new_number_from_string ("333")
+			s := n.out + fn + " (" + fac.out + ") = "
+			io.put_string (str + s)
+			n.multiply (fac)
+			io.put_string (n.out + "%N")
+			assert (s, n.out ~ "18499815")
+				-- (-84736487483757564869490010293).multiply (57849399340004949681221)
+				--      = -4901954903117222552481914443941818610639794358807753
+			n := new_number_from_string ("84,736,487,483,757,564,869,490,010,293")
+			n.set_is_negative (true)
+			fac := new_number_from_string ("57,849,399,340,004,949,681,221")
+			s := n.out + fn + " (" + fac.out + ") = "
+			io.put_string (str + s)
+			n.multiply (fac)
+			io.put_string (n.out + "%N")
+			assert (s, n.out ~ "-4901954903117222552481914443941818610639794358807753")
+--				-- (76830098273758661872848373648940382626284094938726398738889685720002828459).multiply
+--				-- (958373849585736872304958798457775894021348798874729875798378793871119847467)
+--				--      =
+--			create n.from_string ("76830098273758661872848373648940382626284094938726398738889685720002828459")
+--			create fac.from_string ("958373849585736872304958798457775894021348798874729875798378793871119847467")
+--			s := "(" + n.out + ")" + str + " (" + fac.out + ")"
+--			io.put_string (s)
+--			n.multiply (fac)
+--			io.put_string (":  " + n.out + "%N")
+--			io.put_string ("   count = " + n.count.out + "    digit count = " + n.out.count.out)
+--			io.put_string ("   bit_count = " + n.bit_count.out + "%N")
+--			assert (s, n.out ~ "73631957046672565937925257190591320772352409826806244996676386%
+--								%046169314383746193055493848375509280946999333549270158045540%
+--								%510952030901985012646663353")
+
+
+--			create n.from_string ("2113437065")
+--			create fac.from_string ("5821885")
+--			s := "(" + n.out + ")" + str + " (" + fac.out + ")"
+--			io.put_string (s)
+--			n.multiply (fac)
+--			io.put_string (":  " + n.out + "%N")
+--			assert (s, n.out ~ "12304187547167525")
+
+
+--					-- 250 digits * 300 digits
+--				-- (83538405938488853094850398200983583094850394859389
+--				--  84983453847598347598370284538474019766117463655588
+--				--  36346464647850001918847326255742816363288173654627
+--				--  88573746549509289374578585858399020002882618937378
+--				--  75867266647389001839253647618277365008917283945943).multiply
+--				-- (57758698746572221826111119200011102485746373948473
+--				--  39485729874528347587283475498234759238745982734598
+--				--  39487539847587276340976823049839485729939283576239
+--				--  74827364263562535555428736427784923864863874964687
+--				--  63487268762834687573549273049273747277759283748273
+--				--  25345726354827368765032648284592774083464597984375)
+--				--      =
+--			create n.from_string ("83538405938488853094850398200983583094850394859389%
+--									%84983453847598347598370284538474019766117463655588%
+--									%36346464647850001918847326255742816363288173654627%
+--									%88573746549509289374578585858399020002882618937378%
+--									%75867266647389001839253647618277365008917283945943")
+--			create fac.from_string ("57758698746572221826111119200011102485746373948473%
+--										%39485729874528347587283475498234759238745982734598%
+--										%39487539847587276340976823049839485729939283576239%
+--										%74827364263562535555428736427784923864863874964687%
+--										%63487268762834687573549273049273747277759283748273%
+--										%25345726354827368765032648284592774083464597984375")
+--			s := "(" + n.out + ")" + str + " (" + fac.out + ")"
+--			io.put_string (s)
+--			n.multiply (fac)
+--				-- Avoid multiple calls to n.out.
+--			str := n.out
+--			io.put_string (":  " + str.out + "%N")
+--			io.put_string ("   count = " + n.count.out + "    digit count = " + str.count.out)
+--			io.put_string ("   bit_count = " + n.bit_count.out + "%N")
+--			assert (s, n.out ~ "4825069622370037571581047969665419797448540415%
+--								%208614127393061696951534481046543312526107740%
+--								%616881520201220721059058189474027364333280490%
+--								%731711579833565141687110565609766141768385838%
+--								%181800093879499351395375019465741496786437615%
+--								%905097167960518223578143659640699463848834083%
+--								%895169532864836580469168509063847997004568761%
+--								%222855410335418261681974960860689195201798823%
+--								%225258887886846265059106530177085061334147253%
+--								%968350106247237989343625852064639555650237796%
+--								%312026892273677206316139551013377145009476245%
+--								%658014645173303892209806200718548107417653664%
+--								%258640625")
+		end
 
 --	scalar_multiply
 --			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
@@ -501,13 +644,6 @@ feature -- Basic operations (multiply)
 --			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 --		deferred
 --		end
-
-	multiply
-			-- Test and demonstrate the `multiply', `product', and `*' features
-			-- from {JJ_BIG_NATURAL}.  I checked the calculations at
-			-- "https://defuse.ca/big-number-calculator.htm".
-		deferred
-		end
 
 feature -- Basic operations (selectively exported)
 

@@ -53,12 +53,12 @@ feature {NONE} -- Initialization
 --			tester.digits_multiplied
 --			tester.multiply
 
---			tester.quotient
+			tester.quotient
 
 --			tester.digits_added
 --			tester.base
 --			tester.scalar_add
---			tester.scalar_sum
+			tester.scalar_sum
 
 --			tester.to_base
 --			tester.scalar_add
@@ -93,10 +93,8 @@ feature {NONE} -- Initialization
 --			tester.divide_two_digits_by_one
 
 --			tester.from_array
-			tester.quotient_failing
 
 --			tester.simple_product
-			tester.multiply_helper
 			tester.multiply
 
 --			tester.bit_shift_left

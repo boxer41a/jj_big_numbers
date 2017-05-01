@@ -18,8 +18,8 @@ inherit
 
 create
 	default_create,
-	make_with_value,
-	make_with_array,
+	from_value,
+	from_array,
 	from_string
 
 create {ARRAYED_LIST}
@@ -100,9 +100,9 @@ feature {NONE} -- Implementation
 
 	new_big_number (a_value: like digit): like Current
 			-- Create an instance equivalent to `a_value'.
-			-- Wraps the creation feature `make_with_value'.
+			-- Wraps the creation feature `from_value'.
 		do
-			create Result.make_with_value (a_value)
+			create Result.from_value (a_value)
 		end
 
 	power_of_ten_table: HASH_TABLE [JJ_BIG_NATURAL_8, JJ_BIG_NATURAL_8]

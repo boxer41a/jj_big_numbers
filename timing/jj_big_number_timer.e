@@ -110,8 +110,8 @@ feature -- Basic operations
 	time_division
 			-- Collect statistics to compare division functions
 		local
-			a, b, c: JJ_BIG_NATURAL_8
-			x, y, z: GMP_INTEGER
+			a, b, c, r: JJ_BIG_NATURAL_8
+			x, y, z, w: GMP_INTEGER
 			i, j, n: INTEGER
 			tup: like make_one_number
 			jj_avg, gmp_avg: REAL_64
@@ -124,6 +124,20 @@ feature -- Basic operations
 				gmp_timer.reset
 				n := distribution [i]
 					-- test special, failing case.
+					-- Here is a sub-part of what's to follow:
+--				create a.from_string ("65,429,126,293")
+--				create b.from_string ("4,088,493,124")
+--				c := a // b
+					-- The above seems okay.
+				create a.make_with_array (<<15,59,225,60,149,85,149,158,57,15,244,99,28>>)
+				create b.make_with_array (<<243,177,116,68,249,106,136,11>>)
+				c := a // b
+
+
+				create a.from_string ("84931861727389562656562054708455983463160418")
+				create b.from_string ("1235671225524577530706270851992208")
+				c := a // b
+
 --				create a.make_with_array (<<56,198,138,87,234,87,97,219,151,41,4,201,237>>)
 --				create b.make_with_array (<<40,105,231,138,105>>)
 --				c := a // b
@@ -156,17 +170,23 @@ feature -- Basic operations
 					b := tup.jj_n
 					y := tup.gmp_n
 --					io.put_string ("Error:  " + a.out + " // " + b.out + "%N")
-						-- Time the multiplicaton operation.
-					jj_timer.run
-					c := a // b
-					jj_timer.stop
+						-- Time gmp division operations.
 					gmp_timer.run
 					z := x // y;
---					(create {EXECUTION_ENVIRONMENT}).sleep (200_000_000)
+					w := x \\ y;
 					gmp_timer.stop
-						-- Show results that differ.
-					io.put_string (n.out + " decimal digits, j = : "+ j.out + ":  " + a.count.out + " digits / ")
-					io.put_string (b.count.out + " = " + c.count.out + " digits %N")
+						-- Show results.
+					io.put_string (n.out + " decimal digits, j = : "+ j.out + ":  ")
+					io.put_string (a.count.out + " digits / " + b.count.out + " digits  ")
+					io.put_string ("gmp:  " + x.out + " // " + y.out + " = ")
+					io.put_string ("[" + z.out + ", " + w.out + "]  ")
+						-- Time JJ_BIG_NUMBER division operations.
+					jj_timer.run
+					c := a // b
+					r := a \\ b
+					jj_timer.stop
+					io.put_string ("  jjj = [" + c.out + ", " + r.out + "]  %N")
+						-- Check for error
 					if not (c.out ~ z.out) then
 						io.put_string ("%N   ERROR on:  " + x.out + " / " + y.out + " = " + z.out + " %N")
 						io.put_string ("a // b:  " + a.out_formatted + " // " + b.out_formatted + " = " + c.out_formatted + "   ")
@@ -256,4 +276,5 @@ feature {NONE} -- Implementation
 		once
 			create Result.make (10, 6)
 		end
+
 end

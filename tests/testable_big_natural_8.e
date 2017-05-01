@@ -30,10 +30,10 @@ inherit
 
 create
 	default_create,
-	make_with_value,
+	from_value,
 --	make_with_base,
 --	make_with_value_and_base,
-	make_with_array,
+	from_array,
 	from_string
 
 feature
