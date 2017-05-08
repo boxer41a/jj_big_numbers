@@ -12,10 +12,6 @@ class
 inherit
 
 	TESTABLE_BIG_NATURAL [NATURAL_8]
-		rename
---			base as unused_base
-			digit_anchor as unused_digit_anchor
-		end
 
 	JJ_BIG_NATURAL_8
 		export
@@ -23,9 +19,6 @@ inherit
 				all
 		redefine
 			power_of_ten_table
-		select
---			base
-			digit_anchor
 		end
 
 create

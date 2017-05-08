@@ -1,29 +1,64 @@
 note
 	description: "[
-		Base class for all the JJ_BIG_NUMBER_xxx classes, which represent a
-		number that is much larger than what is represented in 64 bits.
+		This is the base class for all the {JJ_BIG_NUMBER}_xxx classes, which
+		can represent a numbers that is much larger than what is representable
+		in 32 or 64 bits.
+	
+		It depends on an override cluster containing {JJ_NATURAL} and new
+		NATURAL_xx_REF classes found at https://github.com/boxer41a/jj_naturals.
+		{JJ_NATURAL} serves as a common ancestor to the NATUAL_xx_REF classes,
+		setting between the NATURAL_xx_REF classes and class {NUMERIC}.
 
-		This class implements a big number as a list of digits, where each
-		`digit' is stored as an 8, 16, 32, or 64-bit natural number, depending
-		on the type of the actual generic parameter used by the descendent
-		class (e.g. {JJ_NATURAL_8}, {JJ_NATURAL_16}, {JJ_NATURAL_32}, and
-		{JJ_NATURAL_64}).
+		This class implements a big number as a list of words, where each `word'
+		(called a "limb" in some other big-number implementaions) represents one
+		"digit" of the number.  For example, a {JJ_BIG_NUMBER} that uses 8-bit 
+		words stores the base-10 number "67,305,985" as a list of words <<4,3,2,1>>
+		equal to 4*256^3 + 3*256^2 + 2*256^1 + 1*256^0.
+
+		The descendant classes, {JJ_NATURAL_8}, {JJ_NATURAL_16}, {JJ_NATURAL_32},
+		and {JJ_NATURAL_64}, set the actual generic parameter to the corresponding
+		{JJ_NATURAL}.  The "base" of the {JJ_BIG_NUMBER} depends on the actual
+		generic parameter:  256 for eight bits, 65,536 for 16 bits, 4,294,967,296
+		for 32 bits, and 18,446,744,073,709,551,616 for 64 bits.
 
 		Create a {JJ_BIG_NUMBER} with `from_string' or one of the creation
-		routines that take a value of the same type as `digit'.  Features such
-		as `zero_digit', `one_digit', ... `sixteen_digit', and `max_digit'
-		provide convinent ways to get values of the correct type.
+		routines that take a value of the same type as `word'.  Features such
+		as `zero_word', `one_word', ... `sixteen_word', and `max_word' provide
+		convinent ways to get values of the correct type.
 
-		Feature `digit' is `item' renamed, and it is not exported; use `i_th'
-		to obtain a particular digit.
+		Feature `word' is `item' renamed, and it is not exported; use `i_th'
+		to obtain a particular word.
 
-		Digits are stored low-order to high-order.
+		Words are stored low-order to high-order.
 
-		Each digit in a {JJ_BIG_NUMBER} represents a value in the maximum
-		base.  For example, an eight-bit representation has base 256.  The
-		largest digit in an eight-bit representation is therefore 255.  The
-		`base' feature is only used by creation and output features, where the
-		number is converted on the fly.
+		Manu said [SIC] in a newsgroup message at
+			https://groups.google.com/forum/#!topic/eiffel-users/gdas7fprg7Q
+-- Is this right?
+		that the `count' of all Eiffel containers has a theoretical maximum of
+		{INTEGER_32}.max_value which is 2^(32-1) or 2,147,483,647.  The practicle
+		maximum, though is limited by a maximum object size, which is about 2^27 - 1
+		or 134,217,727 bytes.  Dividing this limitting number by, 8 bytes (for a
+		64-bit representation) implies that a {JJ_BIG_NUMBER} can contain over
+		16.5 million words, which could represent a number over:
+		     (18.4*10^12)^(16.5*10^6) > 10^(10^38).
+
+		In theory, implementing Current as a list of arrays (instead of just one
+		array) and changing the `count' and related attributes to like Current could
+		make the number of words and therefore the magnitude of the number limited
+		only by the amount of memory.
+
+		bit_count
+		    integer_32.max_value = 2_147_483_647
+		    134_217_727 bytes * 1 word / 8 bytes * 64 bits/word = 1_073_741_760 bits
+		        or
+		    max_word_count * bits_per_word
+		    16,500,000 * 64 = ???
+
+		So, I think it is okay for `count' and `digit_count' to return INTEGER.
+		I need to add preconditions to the math functions (and any feature that
+		extends words) to prevent adding more words than Current can handle.
+
+-- end is this right?
 	]"
 	author: "Jimmy J.Johnson"
 
@@ -70,7 +105,7 @@ inherit
 
 	ARRAYED_LIST [G]
 		rename
-			item as digit
+			item as word
 		export
 			{NONE}
 				all
@@ -106,13 +141,20 @@ feature {NONE} -- Initialization
 			-- Initialize current
 		do
 			make (10)
-			extend (zero_digit)
+			extend (zero_word)
 		end
 
-	from_value (a_value: like digit)
+	from_integer (a_integer: INTEGER)
+			-- Initialize Current with `a_integer'.
+		do
+			default_create
+			set_with_integer (a_integer)
+		end
+
+	from_value (a_value: like word)
 			-- Initialize Current with `a_value'
 		local
-			r, c: like digit
+			r, c: like word
 		do
 			default_create
 			set_value (a_value)
@@ -128,13 +170,13 @@ feature {NONE} -- Initialization
 			set_with_string (a_string)
 		end
 
-	from_array (a_array: ARRAY [like digit])
+	from_array (a_array: ARRAY [like word])
 			-- Create an instance from `a_array', where the array holds the
-			-- intended digits with high-order digits first.
+			-- intended words with high-order words first.
 		require
 			array_exists: a_array /= Void
 			array_not_empty: not a_array.is_empty
-			has_valid_digits: across a_array as it all it.item <= max_digit end
+			has_valid_words: across a_array as it all it.item <= max_word end
 		local
 			i: INTEGER
 		do
@@ -143,270 +185,45 @@ feature {NONE} -- Initialization
 		end
 
 	make_random (a_count: INTEGER)
-			-- Create a random number containing `a_count' digits.
+			-- Create a random number containing `a_count' words.
 		require
 			count_big_enough: a_count >= 1
-		local
-			i: INTEGER
-			r: INTEGER
-			rng: INTEGER    -- range
-			rem: INTEGER    -- remainder
-			bkt: INTEGER    -- bucket
-			low: INTEGER
-			high: INTEGER
-			random: RANDOM
 		do
 			default_create
-			wipe_out
---			set_base (a_base)
-				-- This generates random numbers in the semi-open
-				-- interval [`low', `high').  It was adapted from
-				-- http://stackoverflow.com/questions/2509679.
-				-- "The recursion gives a perfectly uniform distribution."
---			create random.make
---			low := 0
---			high := (a_base - one_value)
---			r := random.next_random (random.default_seed)
---			rng := high - low
---			rem := random.modulus \\ rng
---			bkt := random.modulus // rng
---			from i := 1
---			until i > a_count
---			loop
---					-- There are range buckets, plus one smaller interval
---					-- within remainder of Modulus.
---				from
---				until r < random.Modulus - rem
---				loop
---					r := random.next_random (r)
---				end
---				r := low + (r // bkt)
---				extend (r)
---				i := i + 1
---			end
--- The code above can not work because RANDOM generates INTEGER values
--- but this class needs {JJ_NATURAL} values to match the type of `digit'.
+			set_random (a_count)
 		ensure
 			correct_count: count = a_count
 		end
 
-feature -- Constants
-
-	bits_utilized: INTEGER_32
-			-- Number of bits in each digit for this implementation.
-		local
-			temp: like digit
+	make_random_with_digit_count (a_count: INTEGER)
+			-- Create a random number ccontaining `a_count' decimal digits.
 		do
-			Result := digit_anchor.bit_count
+			default_create
+			set_random_with_digit_count (a_count)
 		ensure
-			result_big_enough: Result >= 2
-			result_small_enough: Result <= bits_utilized
+			correct_count: out.count = a_count
 		end
 
-	bit_count_digit: like digit
-			-- The number of bits in each digit of Current in same type as `digit'.
-		deferred
-		end
+feature -- Initialization
 
-	zero_digit: like digit
-			-- The number zero in the same type as `base'.
-		deferred
-		end
-
-	one_digit: like digit
-			-- The number one in the same type as `base'.
-		deferred
-		end
-
-	two_digit: like digit
-			-- The number two in the same type as `digit'.
-		deferred
-		end
-
-	three_digit: like digit
-			-- The number two in the same type as `digit'.
-		deferred
-		end
-
-	four_digit: like digit
-			-- The number two in the same type as `digit'.
-		deferred
-		end
-
-	five_digit: like digit
-			-- The number two in the same type as `digit'.
-		deferred
-		end
-
-	six_digit: like digit
-			-- The number two in the same type as `digit'.
-		deferred
-		end
-
-	seven_digit: like digit
-			-- The number two in the same type as `digit'.
-		deferred
-		end
-
-	eight_digit: like digit
-			-- The number two in the same type as `digit'.
-		deferred
-		end
-
-	nine_digit: like digit
-			-- The number ten in the same type as `digit'.
-		deferred
-		end
-
-	ten_digit: like digit
-			-- The number two in the same type as `digit'.
-		deferred
-		end
-
-	sixteen_digit: like digit
-			-- The number 16 in the same type as `digit'.
-		deferred
-		end
-
-	max_ten_power: like digit
-			-- Largest multiple of 10 representable in a digit of Current.
+	set_with_integer (a_integer: INTEGER)
+			-- Make Current equivalent to `a_integer'.
 		deferred
 		ensure
-			power_of_ten: Result \\ ten_digit = zero_digit
+			correct_initialization: Current.out ~ a_integer.out
+			correct_negative: a_integer < 0 implies Current.is_negative
 		end
 
-	max_half_digit: like digit
-			-- The largest value representable in half the number of
-			-- bits in Current's representation of a `digit'.
-		deferred
-		end
-
-	max_digit: like digit
-			-- The largest value allowed for a `digit' of Current (i.e. all ones).
-		deferred
-		ensure
-			definition: Result = zero_digit - one_digit
-		end
-
-	base: like Current
-			-- The radix of Current.
-		do
-			Result := new_big_number (max_digit)
-			Result.scalar_add (one_digit)
-		end
-
-	ones (a_count: INTEGER): like Current
-			-- A big number containing `a_count' digits where each digit
-			-- is all ones (i.e. each digit contains the `max_digit').
-		require
-			count_big_enough: a_count >= 1
-		local
-			i: INTEGER
-		do
-			Result := new_big_number (max_digit)
-			from i := 2
-			until i > a_count
-			loop
-				Result.extend (max_digit)
-				i := i + 1
-			end
-		end
-
-	zeros (a_count: INTEGER): like Current
-			-- A big number containing `a_count' digits where each digit
-			-- is all ones (i.e. each digit contains the `max_digit').
-		require
-			count_big_enough: a_count >= 1
-		local
-			i: INTEGER
-		do
-			Result := new_big_number (zero_digit)
-			from i := 2
-			until i > a_count
-			loop
-				Result.extend (zero_digit)
-			end
-		end
-
-	Default_karatsuba_threshold: INTEGER = 4
-			-- Default value for `karatsuba_threshold'.
-
-	Default_div_limit: INTEGER = 4
-			-- Default value for `div_limit'.
-
-feature -- Access
-
-	zero: like Current
-			-- Neutral element for "+" and "-".
-		deferred
-		end
-
-	one: like Current
-			-- Neutral element for "*" and "/".
-		deferred
-		end
-
-	frozen karatsuba_threshold: INTEGER
-			-- The value above which multiplications use `karatsuba_product'.
-			-- Change with `set_karatsuba_threshold'.
-		do
-			Result := karatsuba_threshold_imp.item
-		ensure
-			result_big_enough: Result >= 2
-		end
-
-	frozen div_limit: INTEGER
-			-- Used by Burnikel and Zeigler division algorithm `two_by_one_divide'.
-			-- The number of digits in a divisor above which the B&Z algorithms
-			-- recurse; below this number, division reverts to `school_division'.
-		do
-			Result := div_limit_imp.item
-		ensure
-			result_big_enough: Result >= 4
-		end
-
-	frozen hash_code: INTEGER
-			-- Hash value computed from the string representation of Current.
-		do
-			Result := out_as_stored.hash_code
-		end
-
-	bit_count: like Current
-			-- The number of binary digits in Current.
-		local
-			i: INTEGER
-		do
-			Result := new_big_number (zero_digit)
-			from i := 1
-			until i > count
-			loop
-				Result.scalar_add (bit_count_digit)
-				i := i + 1
-			end
-		end
-
-feature -- Element change
-
-	set_karatsuba_threshold (a_value: INTEGER)
-			-- Change the `karatsub_threshold', the number of digits at which
-			-- *all* multiplications of a {BIG_NUMBER} use the Karatsuba
-			-- algorithm instead of a basic, grade-school method.
-		require
-			value_big_enough: a_value >= 1
-		do
-			karatsuba_threshold_imp.set_item (a_value)
-		end
-
-	set_value (a_value: like digit)
+	set_value (a_value: like word)
 			-- Make Current equivalent to `a_value'.
 		local
-			r, c: like digit
-			v: like digit
+			r, c: like word
+			v: like word
 		do
 			wipe_out
 			extend (a_value)
 		ensure
-			has_one_digit: count = 1
+			has_one_word: count = 1
 		end
 
 	is_valid_string (a_string: STRING_8): BOOLEAN
@@ -452,7 +269,7 @@ feature -- Element change
 			neg: BOOLEAN
 			i: INTEGER
 			place: like Current
-			d: like digit
+			d: like word
 
 			temp: like Current
 		do
@@ -470,15 +287,15 @@ feature -- Element change
 				else
 					do_nothing
 				end
-				place := new_big_number (one_digit)
+				place := new_big_number (one_word)
 				from i := s.count
 				until i < 1
 				loop
-						-- for each digit, multiply by place and add
+						-- for each word, multiply by place and add
 					d := new_value_from_character (s.item (i))
 					temp := place.scalar_product (d)
 					add (place.scalar_product (d))
-					place.scalar_multiply (ten_digit)
+					place.scalar_multiply (ten_word)
 					i := i - 1
 				end
 			end
@@ -487,16 +304,16 @@ feature -- Element change
 			end
 		end
 
-	set_with_array (a_array: ARRAY [like digit])
-			-- Set the digits from `a_array', where the array holds the
-			-- intended digits with high-order digits first.
+	set_with_array (a_array: ARRAY [like word])
+			-- Set the words from `a_array', where the array holds the
+			-- intended words with high-order words first.
 		require
 			array_exists: a_array /= Void
 			array_not_empty: not a_array.is_empty
-			has_valid_digits: across a_array as it all it.item <= max_digit end
+			has_valid_words: across a_array as it all it.item <= max_word end
 		local
 			i: INTEGER
-			d: like digit
+			d: like word
 			place: like Current
 		do
 			wipe_out
@@ -506,6 +323,349 @@ feature -- Element change
 				extend (a_array [i])
 				i := i - 1
 			end
+		end
+
+	set_random (a_count: INTEGER)
+			-- Set Current as a random number with `a_count' number
+			-- of words (i.e. limbs).
+		require
+			count_big_enough: a_count >= 1
+		local
+			i: INTEGER
+			d: like word
+			dn, up: like word
+		do
+			dn := random.lower
+			up := random.upper
+			wipe_out
+			from i := 1
+			until i > a_count - 1
+			loop
+				random.forth
+				d := random.item
+				extend (d)
+				i := i + 1
+			end
+				-- High order word must be greater than one
+			random.set_range (one_word, max_word)
+			extend (random.item)
+			random.set_range (dn, up)
+		ensure
+			correct_count: count = a_count
+		end
+
+	set_random_with_digit_count (a_count: INTEGER)
+			-- Set Current as a random number with `a_count' number
+			-- of decimal digits.
+		require
+			count_big_enough: a_count >= 1
+		local
+			s: STRING_8
+			a, b: like Current
+			lg: INTEGER
+			c_min, c_max, dif: INTEGER
+			w_first, w_second: like word
+			dn, up: like word
+
+			test: like Current
+		do
+				-- Initialize Current.
+			set_value (zero_word)
+				-- Determine the smallest possible number.
+			create s.make_filled ('0', a_count)
+			if a_count> 1 then
+				s.put ('1', 1)
+			end
+			a := new_big_number (zero_word)
+			a.set_with_string (s)
+				-- Determine the largest possible number.
+			create s.make_filled ('9', a_count)
+			b := new_big_number (zero_word)
+			b.set_with_string (s)
+
+
+-----------				-- Just a test of significant words/digits
+--			test := new_big_number (b.i_th (count))
+--			io.put_string ("digit count = " + a_count.out)
+--			io.put_string (" %T a = " + a.out_as_stored)
+--			io.new_line
+--			io.put_string ("  %T" + b.out_as_stored)
+--			if b.count > 2 then
+--				test.put_i_th (b.i_th (b.count - 1), 1)
+--				test.extend (b.i_th (b.count))
+--				test.shift_left (b.count - 2)
+--				io.put_string (" %T b = " + test.out_as_stored + " = " + test.out)
+--				check
+--					correct_count: test.out.count = a_count
+--					test_big_enough: test >= a
+--					test_small_enought: test <= b
+--				end
+--			end
+--			io.put_string ("%N")
+----------------
+
+
+				-- Using the two numbers, determine the maximum and minimum
+				-- possiblity for the number of words needed.
+			c_min := a.count
+			c_max := b.count
+--			lg := ((a_count - 1) * lg_10).ceiling
+--			c_min := lg // bits_per_word
+--			if lg \\ bits_per_word > 0 then
+--				c_min := c_min + 1
+--			end
+--			lg := (a_count * lg_10).ceiling
+--			c_max := lg // bits_per_word
+--			if lg \\ bits_per_word > 0 then
+--				c_max := c_max + 1
+--			end
+			dif := c_max - c_min
+			check
+				dif_one_or_less: dif <= 1
+					-- because ... ?
+			end
+					-- Save the range of the random number generator.
+			dn := random.lower
+			up := random.upper
+			if b.count = 1 then
+				random.set_range (a.i_th (1), b.i_th (1))
+				put_i_th (random.item, 1)
+			else
+					-- Need two or more words to represent the number.
+				w_first := b.i_th (b.count)
+				w_second := b.i_th (b.count - 1)
+					-- The relationship between words one and two is more
+					-- complicated, so start with a number with the maximum
+					-- possible number of words, modifying the two high-order
+					-- words until finding a good value.
+				from
+					random.set_range (zero_word, max_word)
+					set_random (c_max)
+						-- Can the conditional check only the first two words of
+						-- Current against the first two words of each number?
+						-- Fix me, if faster !
+				until a <= Current and Current <= b
+				loop
+--io.put_string ("       changing " + Current.out)
+--io.put_string ("<" + b.i_th (count).out + "," + b.i_th (count - 1).out + "> %N")
+					random.set_range (zero_word, w_first)
+io.put_string ("   changing words 1 & 2:  <" + i_th (count).out + "," + i_th (count - 1).out + ">")
+					put_i_th (random.item, count)
+					random.set_range (zero_word, w_second)
+					put_i_th (random.item, count - 1)
+io.put_string ("  to:  <" + i_th (count).out + "," + i_th (count - 1).out + "> %N")
+--io.put_string (" to " + Current.out + "%N")
+				end
+			end
+			random.set_range (dn, up)
+			check
+				current_big_enough: Current >= a
+				current_small_enough: Current <= b
+					-- because that is the implied condition of this feature.
+			end
+--io.put_string ("  random = " + Current.out + "%N")
+		ensure
+			correct_count: out.count = a_count or out.count = a_count + 1
+		end
+
+feature -- Constants
+
+	lg_10: REAL_32 = 3.3219280949
+			-- Log base 2 of ten.
+
+	bits_per_word: INTEGER
+			-- The number of bits in each word of Current in same type as `word'.
+		deferred
+		end
+
+	zero_word: like word
+			-- The number zero in the same type as `base'.
+		deferred
+		end
+
+	one_word: like word
+			-- The number one in the same type as `base'.
+		deferred
+		end
+
+	two_word: like word
+			-- The number two in the same type as `word'.
+		deferred
+		end
+
+	three_word: like word
+			-- The number two in the same type as `word'.
+		deferred
+		end
+
+	four_word: like word
+			-- The number two in the same type as `word'.
+		deferred
+		end
+
+	five_word: like word
+			-- The number two in the same type as `word'.
+		deferred
+		end
+
+	six_word: like word
+			-- The number two in the same type as `word'.
+		deferred
+		end
+
+	seven_word: like word
+			-- The number two in the same type as `word'.
+		deferred
+		end
+
+	eight_word: like word
+			-- The number two in the same type as `word'.
+		deferred
+		end
+
+	nine_word: like word
+			-- The number ten in the same type as `word'.
+		deferred
+		end
+
+	ten_word: like word
+			-- The number two in the same type as `word'.
+		deferred
+		end
+
+	sixteen_word: like word
+			-- The number 16 in the same type as `word'.
+		deferred
+		end
+
+	max_ten_power: like word
+			-- Largest multiple of 10 representable in a word of Current.
+		deferred
+		ensure
+			power_of_ten: Result \\ ten_word = zero_word
+		end
+
+	max_half_word: like word
+			-- The largest value representable in half the number of
+			-- bits in Current's representation of a `word'.
+		deferred
+		end
+
+	max_word: like word
+			-- The largest value allowed for a `word' of Current (i.e. all ones).
+		deferred
+		ensure
+			definition: Result = zero_word - one_word
+		end
+
+	ones (a_count: INTEGER): like Current
+			-- A big number containing `a_count' words where each word
+			-- is all ones (i.e. each word contains the `max_word').
+		require
+			count_big_enough: a_count >= 1
+		local
+			i: INTEGER
+		do
+			Result := new_big_number (max_word)
+			from i := 2
+			until i > a_count
+			loop
+				Result.extend (max_word)
+				i := i + 1
+			end
+		end
+
+	zeros (a_count: INTEGER): like Current
+			-- A big number containing `a_count' words where each word
+			-- is all zeros (i.e. each word contains the `zero_word').
+		require
+			count_big_enough: a_count >= 1
+		local
+			i: INTEGER
+		do
+			Result := new_big_number (zero_word)
+			from i := 2
+			until i > a_count
+			loop
+				Result.extend (zero_word)
+			end
+		end
+
+	Default_karatsuba_threshold: INTEGER = 4
+			-- Default value for `karatsuba_threshold'.
+
+	Default_div_limit: INTEGER = 4
+			-- Default value for `div_limit'.
+
+feature -- Access
+
+	zero: like Current
+			-- Neutral element for "+" and "-".
+		deferred
+		end
+
+	one: like Current
+			-- Neutral element for "*" and "/".
+		deferred
+		end
+
+	frozen karatsuba_threshold: INTEGER
+			-- The value above which multiplications use `karatsuba_product'.
+			-- Change with `set_karatsuba_threshold'.
+		do
+			Result := karatsuba_threshold_imp.item
+		ensure
+			result_big_enough: Result >= 2
+		end
+
+	frozen div_limit: INTEGER
+			-- Used by Burnikel and Zeigler division algorithm `two_by_one_divide'.
+			-- The number of words in a divisor above which the B&Z algorithms
+			-- recurse; below this number, division reverts to `school_division'.
+		do
+			Result := div_limit_imp.item
+		ensure
+			result_big_enough: Result >= 4
+		end
+
+	frozen hash_code: INTEGER
+			-- Hash value computed from the string representation of Current.
+		do
+			Result := out_as_stored.hash_code
+		end
+
+	bit_count: INTEGER
+			-- The number of binary digits (i.e. BITs) in Current.
+		local
+			i: INTEGER
+		do
+			Result := count * bits_per_word
+		end
+
+	decimal_count: INTEGER
+			-- The [maximum] number of decimal digits in Current.
+			-- May be too large by one.
+			-- http://www.exploringbinary.com/number-of-decimal-digits-in-a-binary-integer.
+			--     d_min = floor (log (2^(b-1) + 1) = floor ((b-1)*log(2) + 1)
+			--     d_max = floor (log (2^b + 1) = floor (b*log(2) + 1)
+		local
+			lg2: like Current
+			bc: like Current
+			tens: like Current
+		do
+			Result := (bit_count * log(2) + 1).truncated_to_integer
+		end
+
+feature -- Element change
+
+	set_karatsuba_threshold (a_value: INTEGER)
+			-- Change the `karatsub_threshold', the number of words at which
+			-- *all* multiplications of a {BIG_NUMBER} use the Karatsuba
+			-- algorithm instead of a basic, grade-school method.
+		require
+			value_big_enough: a_value >= 1
+		do
+			karatsuba_threshold_imp.set_item (a_value)
 		end
 
 feature -- Status setting
@@ -547,11 +707,11 @@ feature -- Status report
 		do
 				-- Must account for leading zeros
 			from i := count
-			until i = 1 or else i_th (i) /= zero_digit
+			until i = 1 or else i_th (i) /= zero_word
 			loop
 				i := i - 1
 			end
-			Result := i = 1 and then i_th (1) = one_digit
+			Result := i = 1 and then i_th (1) = one_word
 		end
 
 	is_base: BOOLEAN
@@ -563,11 +723,11 @@ feature -- Status report
 			if count >= 2 then
 					-- Must account for leading zeros
 				from i := count
-				until i = 2 or else i_th (i) /= zero_digit
+				until i = 2 or else i_th (i) /= zero_word
 				loop
 					i := i - 1
 				end
-				Result := i = 2 and then (i_th (1) = zero_digit and i_th (2) = one_digit)
+				Result := i = 2 and then (i_th (1) = zero_word and i_th (2) = one_word)
 			end
 		end
 
@@ -581,17 +741,17 @@ feature -- Status report
 				Result := true
 					-- Must account for leading zeros
 				from i := count
-				until i = 1 or else i_th (i) /= zero_digit
+				until i = 1 or else i_th (i) /= zero_word
 				loop
 					i := i - 1
 				end
-					-- Is first non-zero digit a one?
-				Result := i_th (i) = one_digit
-					-- Check the remaining digits for all zeros.
+					-- Is first non-zero word a one?
+				Result := i_th (i) = one_word
+					-- Check the remaining words for all zeros.
 				from i := i - 1
 				until not Result or else i < 1
 				loop
-					Result := i_th (i) = zero_digit
+					Result := i_th (i) = zero_word
 				end
 			end
 		end
@@ -648,16 +808,16 @@ feature -- Query
 			temp: like Current
 		do
 			if other /= Current then
-					-- Find the index of the first non-zero digit of Current.
+					-- Find the index of the first non-zero word of Current.
 				from i := count
-				until i < 1 or else i_th (i) > zero_digit
+				until i < 1 or else i_th (i) > zero_word
 				loop
 					i := i - 1
 				end
 				c := i
-					-- Find the index of the first non-zero digit of `other.
+					-- Find the index of the first non-zero word of `other.
 				from i := other.count
-				until i < 1 or else other.i_th (i) > zero_digit
+				until i < 1 or else other.i_th (i) > zero_word
 				loop
 					i := i - 1
 				end
@@ -667,7 +827,7 @@ feature -- Query
 				elseif c > oc then
 					Result := false
 				else
-						-- Both numbers have same non-zero digit count.
+						-- Both numbers have same non-zero word count.
 					if c = 0 and oc = zero then
 						Result := false
 					else
@@ -692,16 +852,16 @@ feature -- Query
 			if Current = other then
 				Result := true
 			else
-					-- Find the index of the first non-zero digit of Current.
+					-- Find the index of the first non-zero word of Current.
 				from i := count
-				until i < 1 or else i_th (i) > zero_digit
+				until i < 1 or else i_th (i) > zero_word
 				loop
 					i := i - 1
 				end
 				c := i
-					-- Find the index of the first non-zero digit of `other.
+					-- Find the index of the first non-zero word of `other.
 				from i := other.count
-				until i < 1 or else other.i_th (i) > zero_digit
+				until i < 1 or else other.i_th (i) > zero_word
 				loop
 					i := i - 1
 				end
@@ -709,10 +869,10 @@ feature -- Query
 				if c = oc then
 					Result := true
 					from i := c
-					until not Result or i > count
+					until not Result or i < 1
 					loop
 						Result := i_th (i) = other.i_th (i)
-						i := i + 1
+						i := i - 1
 					end
 				end
 			end
@@ -761,10 +921,10 @@ feature -- Basic operations (simple)
 
 feature -- Basic operations (addition & subtraction)
 
-	scalar_add (a_value: like digit)
+	scalar_add (a_value: like word)
 			-- Change Current by adding `a_value' to Current.
 			-- By definition `a_value' will be no larger than the value
-			-- representable by the type of a `digit'.
+			-- representable by the type of a `word'.
 		local
 			n: like Current
 		do
@@ -772,10 +932,10 @@ feature -- Basic operations (addition & subtraction)
 			add (n)
 		end
 
-	scalar_subtract (a_value: like digit)
+	scalar_subtract (a_value: like word)
 			-- Change Current by subtracting `a_value' from Current.
 			-- By definition `a_value' will be no larger than the value
-			-- representable by the type of a `digit'.
+			-- representable by the type of a `word'.
 		local
 			n: like Current
 		do
@@ -784,8 +944,8 @@ feature -- Basic operations (addition & subtraction)
 			add (n)
 		end
 
-	scalar_sum (a_value: like digit): like Current
-			-- The result of adding `a_digit' to Current.
+	scalar_sum (a_value: like word): like Current
+			-- The result of adding `a_word' to Current.
 			-- Do not change Current.
 		do
 			Result := deep_twin
@@ -897,50 +1057,50 @@ feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
 			same_sign: is_same_sign (other)
 		local
 			i: like count
-			tup: TUPLE [sum, carry: like digit]
+			tup: TUPLE [sum, carry: like word]
 		do
 --			if is_zero then
 --					-- This drops zeroes when Current starts with more than one.
 --				copy (other)
 --			elseif not other.is_zero then
-					-- Add each paired `digit'.
-				tup := [zero_digit, zero_digit]
+					-- Add each paired `word'.
+				tup := [zero_word, zero_word]
 				from i := 1
 				until i > count or i > other.count
 				loop
-					digits_added (i_th (i), other.i_th (i), tup.carry, tup)
+					words_added (i_th (i), other.i_th (i), tup.carry, tup)
 					put_i_th (tup.sum, i)
 					i := i + 1
 				end
-					-- Include the unpaired digits.
+					-- Include the unpaired words.
 				if i > count then
-						-- Bring the rest of the digits of other into Current.
+						-- Bring the rest of the words of other into Current.
 					check
-						finished_with_currents_digits: i = count + 1
+						finished_with_currents_words: i = count + 1
 					end
 					from
 					until i > other.count
 					loop
-						digits_added (zero_digit, other.i_th (i), tup.carry, tup)
+						words_added (zero_word, other.i_th (i), tup.carry, tup)
 						extend (tup.sum)
 						i := i + 1
 					end
 				elseif i > other.count then
-						-- Add carry into Current's digits.
+						-- Add carry into Current's words.
 					check
-						finished_with_others_digits: i = other.count + 1
+						finished_with_others_words: i = other.count + 1
 					end
 					from
 					until i > count
 					loop
-						digits_added (i_th (i), zero_digit, tup.carry, tup)
+						words_added (i_th (i), zero_word, tup.carry, tup)
 						put_i_th (tup.sum, i)
 						i := i + 1
 					end
 				end
-					-- If still have a carry (overflow), add a digit.
-				if tup.carry > zero_digit then
-					extend (one_digit)
+					-- If still have a carry (overflow), add a word.
+				if tup.carry > zero_word then
+					extend (one_word)
 				end
 --			end
 		end
@@ -971,47 +1131,47 @@ feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
 			end
 		end
 
-	digits_added (a, b, c_in: like digit; tup: TUPLE [sum, carry: like digit])
-			-- Add two digits and a carry digit, giving a sum with a
+	words_added (a, b, c_in: like word; tup: TUPLE [sum, carry: like word])
+			-- Add two words and a carry word, giving a sum with a
 			-- carry out, because simply adding the values might result
 			-- in overflow with data lose.  The result is passed out in
 			-- the `tup' in order avoid creating a new TUPLE on every
 			-- call to this feature.
 			-- This decomposition feature is used by `simple_add'.
 		require
-			carry_in_one_or_zero: c_in <= one_digit
+			carry_in_one_or_zero: c_in <= one_word
 		local
-			d: like digit
-			c: like digit
+			d: like word
+			c: like word
 		do
-			c := zero_digit
+			c := zero_word
 			d := a + b
 			if d < a or d < b then
-				c := one_digit
+				c := one_word
 			end
 			d := d + c_in
 			if d < c_in then
-				c := one_digit
+				c := one_word
 			end
 			tup.sum := d
 			tup.carry := c
 		end
 
 	can_borrow (a_index: INTEGER): BOOLEAN
-			-- Is it possible to borrow from `a_index'th digit?
+			-- Is it possible to borrow from `a_index'th word?
 			-- In other words, can we subtract one place-value amount from
 			-- Current at `a_index' and add that amount to the lower-order
-			-- digit without overflowing the representation of a digit?
+			-- word without overflowing the representation of a word?
 		do
 			Result := (a_index > 1 and a_index <= count)
 		end
 
 	borrow (a_index: INTEGER)
-			-- Modify current by borrowing from the `a_index'-th digit.
+			-- Modify current by borrowing from the `a_index'-th word.
 			-- The calling routine (i.e. the subtraction routine) must
-			-- account for the value of the receiving digit, because the
+			-- account for the value of the receiving word, because the
 			-- borrowed amount (i.e the max base), which not representable
-			-- cannot be added to that digit.
+			-- cannot be added to that word.
 		require
 			index_large_enough: a_index > 1
 			index_small_enough: a_index <= count
@@ -1020,38 +1180,38 @@ feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
 			i: INTEGER
 		do
 			from i := a_index
-			until i_th (i) > zero_digit
+			until i_th (i) > zero_word
 			loop
 				check
 					eventually_find_a_borrow: i <= count
 						-- because of precondition "can_borrow".
 				end
-				put_i_th (max_digit, i)
+				put_i_th (max_word, i)
 				i := i + 1
 			end
-			put_i_th (i_th (i) - zero_digit.one, i)
+			put_i_th (i_th (i) - zero_word.one, i)
 			if i = count and i_th (count) = 0 then
 				go_i_th (count)
 				remove
 			end
 		end
 
-	subtract_i_th (a_value: like digit; a_index: INTEGER)
-			-- Modify current by subtracting `a_value' from `a_index'th digit,
+	subtract_i_th (a_value: like word; a_index: INTEGER)
+			-- Modify current by subtracting `a_value' from `a_index'th word,
 			-- borrowing if necessary.
 		require
 			index_big_enough: a_index >= 1
 			index_small_enough: a_index <= count
 			subtraction_allowed: a_value <= i_th (a_index) or can_borrow (a_index + 1)
 		local
-			d: like digit
+			d: like word
 		do
 			if i_th (a_index) < a_value then
 				borrow (a_index + 1)
 					-- Subtract first, then add the borrow;
-				d := max_digit - a_value + i_th (a_index) + one_digit
+				d := max_word - a_value + i_th (a_index) + one_word
 				check
-					positive_d: d > zero_digit
+					positive_d: d > zero_word
 						-- because, otherwise, would not have borrowed.
 				end
 			else
@@ -1062,59 +1222,59 @@ feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
 
 feature -- Basic operations (multiplication)
 
-	scalar_multiply (a_value: like digit)
+	scalar_multiply (a_value: like word)
 			-- Multipy Current by `a_value'.
 		local
 			c: INTEGER
 			temp: like Current
 			i: INTEGER
-			prev_hi: like digit
-			tup: TUPLE [high, low: like digit]
-			t, t2: like digit
+			prev_hi: like word
+			tup: TUPLE [high, low: like word]
+			t, t2: like word
 		do
 			c := count.max (1)
 			if is_zero then
 				do_nothing
-			elseif a_value = zero_digit then
+			elseif a_value = zero_word then
 				wipe_out
-				extend (zero_digit)
+				extend (zero_word)
 				is_negative := false
 			else
 				temp := twin
 				wipe_out
-				tup := [zero_digit, zero_digit]
-				prev_hi := zero_digit
+				tup := [zero_word, zero_word]
+				prev_hi := zero_word
 				from i := 1
 				until i > temp.count
 				loop
-					digits_multiplied (temp.i_th (i), a_value, tup)
+					words_multiplied (temp.i_th (i), a_value, tup)
 					extend (tup.low + prev_hi)		-- throw out high-order bits
-					if tup.low > max_digit - prev_hi then
-						prev_hi := tup.high + one_digit	-- carry a one
+					if tup.low > max_word - prev_hi then
+						prev_hi := tup.high + one_word	-- carry a one
 					else
 						prev_hi := tup.high
 					end
 					i := i + 1
 				end
-				if prev_hi > zero_digit then
+				if prev_hi > zero_word then
 					extend (prev_hi)
 				end
-				if (is_negative and a_value >= zero_digit) or
-						(not is_negative and a_value < zero_digit) then
+				if (is_negative and a_value >= zero_word) or
+						(not is_negative and a_value < zero_word) then
 					set_is_negative (true)
 				else
 					set_is_negative (false)
 				end
 			end
 		ensure
---			correct_digit_count: count = old count or count = old count + 1
+--			correct_word_count: count = old count or count = old count + 1
 		end
 
-	scalar_product (a_value: like digit): like Current
+	scalar_product (a_value: like word): like Current
 			-- New object equivalent to Current multiplied by `a_value'.
 			-- Do not change Current.
 		require
-			value_small_enough: a_value <= max_digit
+			value_small_enough: a_value <= max_word
 		do
 			Result := twin
 			Result.scalar_multiply (a_value)
@@ -1134,7 +1294,7 @@ feature -- Basic operations (multiplication)
 				-- multiplication is done in `*' and `multiply' performs the
 				-- copy.  This results in fewer copy or twin operations.
 			if is_zero or other.is_zero then
-				Result := new_big_number (zero_digit)
+				Result := new_big_number (zero_word)
 			elseif is_one then
 				Result := other.deep_twin
 			elseif other.is_one then
@@ -1186,7 +1346,7 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			fac_1, fac_2: like Current
 			s: like Current
 			i: INTEGER
-			d: like digit
+			d: like word
 		do
 			if count < other.count then
 				fac_1 := other
@@ -1195,7 +1355,7 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 				fac_1 := Current
 				fac_2 := other
 			end
-			Result := new_big_number (zero_digit)
+			Result := new_big_number (zero_word)
 			from i := 1
 			until i > fac_2.count
 			loop
@@ -1217,7 +1377,7 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 
 	recursive_product (other: like Current): like Current
 			-- Divide-and-conquer multiplication used when there is a disparity
-			-- between the number of digits in Current and other.
+			-- between the number of words in Current and other.
 		require
 			other_exists: other /= Void
 			simple_inapplicable: count >= karatsuba_threshold or other.count >= karatsuba_threshold
@@ -1228,12 +1388,12 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			i: INTEGER
 			t: INTEGER		-- block length
 			n: INTEGER		-- number of blocks
-			e: INTEGER		-- number of left over digits at high end
+			e: INTEGER		-- number of left over words at high end
 			bn: like Current
 
 		do
-			Result := new_big_number (zero_digit)
-				-- Find which factor has the most digits, in order to
+			Result := new_big_number (zero_word)
+				-- Find which factor has the most words, in order to
 				-- multiply the longer number by the shorter number.
 			if count < other.count then
 				lit := Current
@@ -1250,9 +1410,9 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			from i := 1
 			until i > n
 			loop
-					-- Starting at the low-order digits, break the longer
+					-- Starting at the low-order words, break the longer
 					-- number into segments containing the same number of
-					-- digits as the shorter number.
+					-- words as the shorter number.
 				bn := big.partition (t * i, t * i - t + 1)
 					-- Recursive multiply.
 				p := bn * lit
@@ -1263,7 +1423,7 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 				i := i + 1
 			end
 			if e > 0 then
-					-- There's one or more digits remaining at high end that
+					-- There's one or more words remaining at high end that
 					-- do not fill an entire block of size `t'.
 				check
 					not_complete_block: e < t
@@ -1298,10 +1458,10 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 				-- Split both numbers into two smaller ones
 			n := count.min (other.count)
 			n := (n // 2) + (n \\ 2)
-				-- High & low order digits of Current
+				-- High & low order words of Current
 			a := partition (count, n + 1)
 			b := partition (n, 1)
-				-- High and low order digits of other
+				-- High and low order words of other
 			c := other.partition (other.count, n + 1)
 			d := other.partition (n, 1)
 				-- Create the terms for the multiplication
@@ -1323,30 +1483,30 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			end
 		end
 
-	digits_multiplied (a_digit, a_other: like digit; a_tuple: TUPLE [high, low: like digit])
-			-- Multiply `a_digit' and `a_other', resulting in a product and
+	words_multiplied (a_word, a_other: like word; a_tuple: TUPLE [high, low: like word])
+			-- Multiply `a_word' and `a_other', resulting in a product and
 			-- a carry, which is passed out in `a_tuple'.
 			-- The result is passed out in `a_tuple' instead of as Result, in
 			-- order avoid creating a new TUPLE on every call to this feature.
 			-- This decomposition feature is used by `scalar_multiply'.
 		local
 			h: INTEGER_32
-			a, b, c, d: like digit
-			ac, ad, bc, bd: like digit
-			high, low: like digit
-			car: like digit
+			a, b, c, d: like word
+			ac, ad, bc, bd: like word
+			high, low: like word
+			car: like word
 		do
 			-- Options:
-			--   1)  Cast each digit to the next higher representation (e.g.
+			--   1)  Cast each word to the next higher representation (e.g.
 			--       replace a {NATURAL_8} with a {NATURAL_16})  I rejected
 			--       this idea, because there is nothing to which to cast a
 			--       {NATURAL_64}.
-			--   2)  Split each digit into two digits of half the size of the
+			--   2)  Split each word into two words of half the size of the
 			--       current representation treating the resulting values as the
 			--       coefficients of a factored polynomial and multiply:
 			--
 			--                       a   b
-			--           a_digit =  0111 1111     ==>  Ax + B
+			--           a_word =  0111 1111     ==>  Ax + B
 			--           a_other =  0111 1111     ==>  Cx + D
 			--                       c   d
 			--
@@ -1363,7 +1523,7 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			--       handle the middle term in relation to both the first and
 			--       third term.
 			--
-			--   3)  Multiply the digits in place, keeping the result as the
+			--   3)  Multiply the words in place, keeping the result as the
 			--      `value' and temporarily accepting the lose of any overflow.
 			--      Then calculate the lost overflow using an algorithm from
 			--      http://stackoverflow.com/questions/28868367/getting-the-
@@ -1373,13 +1533,13 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			--
 					-- Calculate the low-order half of the Result.
 					-- Any overflow is discarded.
-			a_tuple.low := a_digit * a_other
+			a_tuple.low := a_word * a_other
 				-- Now calculate the high-order half of the Result.
 				-- Find the shift amount
-			h := bits_utilized // 2
-				-- High & low order bits of `a_digit'
-			a := a_digit.bit_shift_right (h)
-			b := a_digit.bit_shift_left (h).bit_shift_right (h)
+			h := bits_per_word // 2
+				-- High & low order bits of `a_word'
+			a := a_word.bit_shift_right (h)
+			b := a_word.bit_shift_left (h).bit_shift_right (h)
 				-- High and low order bits of `a_other'
 			c := a_other.bit_shift_right (h)
 			d := a_other.bit_shift_left (h).bit_shift_right (h)
@@ -1519,7 +1679,7 @@ feature  -- Division
 				n := 0
 				x.bit_shift_left (i)
 				if x.count = 2 and y.count = 1 then
-					Result := divide_two_digits_by_one (x.i_th (2), x.i_th (1), y.i_th (1))
+					Result := divide_two_words_by_one (x.i_th (2), x.i_th (1), y.i_th (1))
 					-- Count is even and twice the count of other.
 				elseif y.count <= div_limit then
 					Result := school_divide (x, y)
@@ -1538,76 +1698,31 @@ feature  -- Division
 			end
 		end
 
---	scalar_divide (a_digit: like digit): TUPLE [quot: like Current; rem: like digit]
---			-- Divide Current by `a_digit' giving a quotient and remainder.
---			-- Basic division of a number by one digit.
---			-- Complexity = O(n).
---		require
---			non_zero_divisor: a_digit /= zero_value
---		local
---			i: INTEGER
---			u: like Current
---			q: like Current
---			v: like digit
---			sf: like digit		-- scale factor for normalization
---			r, d: like digit
---			tup: like divide_two_digits_by_one
---		do
---			if a_digit ~ one then
---				Result := [deep_twin, zero_value]
---			else
---					-- Ensure `a_digit' is at least half the `base'
---					-- (i.e. "normalize" the numbers).
---				if a_digit < (base // two_value) then
---					sf := (base // (two_value * a_digit)) + one_value
---					u := scalar_product (sf)
---					v := a_digit * sf
---				else
---					sf := one_value
---					u := Current
---					v := a_digit
---				end
---					-- Create the Result
---				q := new_big_number (zero_value, base)
---					-- Loop through each digit of Current
---				q.set_unstable
---				from
---					r := zero_value
---					i := count
---				until i < 1
---				loop
---					d := u.i_th (i)
---					tup := divide_two_digits_by_one (r, d, v)
---					q.put_front (tup.quot)
---					r := tup.rem
---					i := i - 1
---				end
---					-- remove leading zeros
---				from
---				until q.count = 0 or q.i_th (q.count) /= zero_value
---				loop
---					q.go_i_th (q.count)
---					q.remove
---				end
---				q.normalize
---				q.set_stable
---				Result := [q, r // sf]
---			end
---			Result.quot.set_is_negative (is_negative and not (a_digit < zero_value))
---		ensure
---			same_signs_implication: (is_negative and a_digit < zero_value) or
---									(not is_negative and a_digit >= zero_value) implies
---										 not Result.quot.is_negative
---			different_signs_implication: (is_negative and a_digit < zero_value) or
---										(not is_negative and not (a_digit >= zero_value)) implies
---										 Result.quot.is_negative
-----			definition: Result.quot.scalar_product (a_digit).scalar_sum (Result.rem) ~ Current
---		end
+	scalar_quotient (a_word: like word): TUPLE [quot, rem: like Current]
+			-- Divide Current by `a_word' giving a quotient and remainder.
+			-- Basic division of a number by one word.
+			-- Complexity = O(n).
+		require
+			non_zero_divisor: a_word /= zero_word
+		local
+			denom: like Current
+		do
+			denom := new_big_number (a_word)
+			Result := quotient (denom)
+		ensure
+			same_signs_implication: (is_negative and a_word < zero_word) or
+									(not is_negative and a_word >= zero_word) implies
+										 not Result.quot.is_negative
+			different_signs_implication: (is_negative and a_word < zero_word) or
+										(not is_negative and not (a_word >= zero_word)) implies
+										 Result.quot.is_negative
+			definition: Result.quot.scalar_product (a_word) + Result.rem ~ Current
+		end
 
 feature {JJ_BIG_NATURAL} -- Implementation (division)
 
 	div_limit_imp: INTEGER_32_REF
-			-- Implementation of the `div_limit', the denominator digit count
+			-- Implementation of the `div_limit', the denominator word count
 			-- above which division uses Burnikel and Zieler recursive division.
 		once
 			create Result
@@ -1628,25 +1743,25 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			n, m: INTEGER
 			b: like Current
 			u: like Current
-			v1, v2, u1, u2: like digit
+			v1, v2, u1, u2: like word
 			u12: like Current
 			r: like Current				-- a remainder
 			q, q_hat, d: like Current
-			tup: like divide_two_digits_by_one
+			tup: like divide_two_words_by_one
 		do
 			if a.is_zero then
-				Result := [new_big_number (zero_digit), new_big_number (zero_digit)]
+				Result := [new_big_number (zero_word), new_big_number (zero_word)]
 			else
 				n := v.count
 				m := a.count
 				b := ones (n)
-				q := new_big_number (zero_digit)
-				u := new_big_number (zero_digit)
+				q := new_big_number (zero_word)
+				u := new_big_number (zero_word)
 				v1 := v.i_th (v.count)
 				if v.count > 1 then
 					v2 := v.i_th (v.count - 1)
 				else
-					v2 := zero_digit
+					v2 := zero_word
 				end
 					-- D1.  Normalize.  It already is normalized.
 				check
@@ -1654,30 +1769,30 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 						-- because of precondition.  Must assume `a' was adjusted.
 				end
 				if a.count = v.count then
-					a.extend (zero_digit)
+					a.extend (zero_word)
 				end
-					-- Start at high-order digit.
+					-- Start at high-order word.
 					-- Feature `new_sub_number' arguments:  (a_low, a_high).
 					-- One-based arrays make the indexing look odd, but...
-					-- Get `n' number of digits or at least two.
+					-- Get `n' number of words or at least two.
 				u := a.partition (a.count, a.count - n + 1)
 				from j := a.count - n	-- m - n
 				until j = 0
 				loop
-						-- Get one more digit.
+						-- Get one more word.
 					u.insert (a.i_th (j), 1)
 					from
 					until u.count > v.count
 					loop
-						u.extend (zero_digit)
+						u.extend (zero_word)
 					end
 					u1 := u.i_th (u.count)
 					u2 := u.i_th (u.count - 1)
 						-- D3.  Calulate `q_hat'.
 	--				if u1 = v1 then
-	--					q_hat := new_big_number (max_digit)
+	--					q_hat := new_big_number (max_word)
 	--				else
-						q_hat := divide_two_digits_by_one (u1, u2, v1).quot
+						q_hat := divide_two_words_by_one (u1, u2, v1).quot
 						if v.count > 1 then
 							u12 := new_big_number (u1)
 							u12.insert (u2, 1)
@@ -1722,8 +1837,8 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 
 	two_by_one_divide (a, a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The result of dividing a number that has twice the number of
-			-- digits as `a_other'.  The number is split into its high-order
-			-- and low-order digits, `a_high' and `a_low'.
+			-- words as `a_other'.  The number is split into its high-order
+			-- and low-order words, `a_high' and `a_low'.
 			-- See Burnikel & Zieler, "Fast Recursive Division", p 4,
 			-- Algorighm 1.
 		require
@@ -1741,18 +1856,18 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			test_q, test_r, test_x: like Current
 		do
 			if a.is_zero then
-				Result := [new_big_number (zero_digit), new_big_number (zero_digit)]
+				Result := [new_big_number (zero_word), new_big_number (zero_word)]
 			elseif a_other.count = 1 then
 				check
 					should_not_happen: false
 						-- because ?  remove if never reached.
 				end
-				Result := divide_two_digits_by_one (a.i_th ((2)), a.i_th (1), a_other.i_th (1))
+				Result := divide_two_words_by_one (a.i_th ((2)), a.i_th (1), a_other.i_th (1))
 			else
 				n := a_other.count
 				half_n := n // 2
 					-- 2)  Split A into four parts...
-					-- High order digits first
+					-- High order words first
 					-- Reminder:  `t_th_block' counts blocks from low to high.
 				a12 := a.t_th_block (2, a.count // 2)
 				t := a.count // 4
@@ -1768,23 +1883,23 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 				from
 				until tup.rem.count >= a_other.count
 				loop
-					tup.rem.extend (zero_digit)
+					tup.rem.extend (zero_word)
 				end
 				check
 					rem_has_correct_count: tup.rem.count = a_other.count
 				end
-				test_q := new_big_number (two_digit * ten_digit * ten_digit + ten_digit + two_digit)
+				test_q := new_big_number (two_word * ten_word * ten_word + ten_word + two_word)
 				if tup.quot ~ test_q then
 					do_nothing
 				end
 				tup := three_by_two_divide (tup.rem, a4, a_other)
 					-- Debugging ... remove me.
 					-- Just reusing `a3' and `r1' as variables.
-				if tup.quot ~ new_big_number (sixteen_digit) then
+				if tup.quot ~ new_big_number (sixteen_word) then
 					do_nothing
 				end
-				test_r := new_big_number (ten_digit * ten_digit + ten_digit * three_digit + seven_digit)
-				test_x := new_big_number (two_digit * ten_digit + nine_digit)
+				test_r := new_big_number (ten_word * ten_word + ten_word * three_word + seven_word)
+				test_x := new_big_number (two_word * ten_word + nine_word)
 				test_x.shift_left (1)
 					-- Call `add_imp' not `add' in order to preserve leading zeros.
 				test_x.add_imp (test_r)
@@ -1803,14 +1918,14 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 	three_by_two_divide (a, a3, b: like Current): TUPLE [quot, rem: like Current]
 			-- Called by `two_by_one_divide'.  It has similar structure as
 			-- `div_three_halves_by_two_halfs', but the arguments to this
-			-- function have type {JJ_BIG_NATURAL} instead of like `digit'.
+			-- function have type {JJ_BIG_NATURAL} instead of like `word'.
 			-- See Burnikel & Zieler, "Fast Recursive Division", pp 4-8,
 			-- Algorithm 2.
 		require
 			b_big_enough: b.count >= div_limit
 			n_not_odd: b.count \\ 2 = 0
-			b_has_2n_digits: b.count = a3.count * 2
-			a_has_2n_digits: a.count = a3.count * 2
+			b_has_2n_words: b.count = a3.count * 2
+			a_has_2n_words: a.count = a3.count * 2
 		local
 			n: INTEGER
 			is_a_too_small: BOOLEAN
@@ -1821,7 +1936,7 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			c, d: like Current
 		do
 			if a.is_zero and a3.is_zero then
-				Result := [new_big_number (zero_digit), new_big_number (zero_digit)]
+				Result := [new_big_number (zero_word), new_big_number (zero_word)]
 			else
 				n := b.count // 2
 					-- 1) Split `a'.
@@ -1832,7 +1947,7 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 				b2 := b.partition (n.max (1), 1)
 					-- 3) Distinguish cases.
 					-- 3b) We know that the quotient will contain a one
-					-- in the first digit.  Remember this and adjust `a'
+					-- in the first word.  Remember this and adjust `a'
 					-- to meet B&S's precondition by subracting `b' from `a'.
 				if a1 >= b1 then
 					is_a_too_small := true
@@ -1878,7 +1993,7 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 						-- because remainder must be less than divisor.
 				end
 				if is_a_too_small then
-					q.extend (one_digit)
+					q.extend (one_word)
 				end
 				Result := [q, r]
 				if q ~ zero then
@@ -1886,15 +2001,15 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 				end
 			end
 		ensure
---			n_digit_remainder: Result.rem.count = b.count // 2
+--			n_word_remainder: Result.rem.count = b.count // 2
 			quotient_has_correct_count: Result.quot.count <= b.count
 			valid_result: Result.quot * b + Result.rem ~ new_combined_number (a, a3)
 		end
 
 	x_by_one_divide (a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The result of dividing Current by `a_other' when Current
-			-- has x number of blocks of digits, where each block has the
-			-- number of digits in `a_other'.
+			-- has x number of blocks of words, where each block has the
+			-- number of words in `a_other'.
 			-- See Burnikel & Zieler, "Fast Recursive Division", pp 9-10.
 		require
 			not_needless_call: not is_zero
@@ -1926,11 +2041,11 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 					-- remainder `a' (high-order).
 				z.combine (a)
 				q_sub_i := two_by_one_divide (z, a_other)
-					-- Ensure the remainder has enough digits for `two_by_one_divide'.
+					-- Ensure the remainder has enough words for `two_by_one_divide'.
 				from
 				until q_sub_i.rem.count >= a_other.count
 				loop
-					q_sub_i.rem.extend (zero_digit)
+					q_sub_i.rem.extend (zero_word)
 				end
 				if q.is_zero then
 					q.add (q_sub_i.quot)
@@ -1954,8 +2069,8 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 		end
 
 	t_th_block (t: INTEGER; a_size: INTEGER): like Current
-			-- Get a new number consisting of the t-th block of digits
-			-- where `a_size' is the number of digits in each block.
+			-- Get a new number consisting of the t-th block of words
+			-- where `a_size' is the number of words in each block.
 			-- Index `t' begins with block one at the low-order end
 			-- and increases toward the high-order end.
 			-- Decomposition feature used by `x_by_one_divide'.
@@ -1980,11 +2095,11 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			-- left-to-right division using `two_by_one_divide' is possible,
 			-- returning the amount of left shifting required.
 			-- This feature ensures `a_other' has a power-of-two number of
-			-- digits shifting `a_other' to the left (i.e. adding low-order
+			-- words shifting `a_other' to the left (i.e. adding low-order
 			-- zeroes).  Current is shifted the same amount.  Finally,
 			-- Current is padded with zeroes on the high-order end so that
-			-- it has a number of digits that is a multiple of the number of
-			-- digits now in `a_other'.
+			-- it has a number of words that is a multiple of the number of
+			-- words now in `a_other'.
 			-- See Burnikel & Zieler, "Fast Recursive Division", pp 9-10.
 			-- The Result is the number of left shifts, which we later use to
 			-- fix the remainder given by `x_by_one_divide', because the remainder
@@ -1998,12 +2113,12 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			n: INTEGER		-- number of left shifts after normalization
 		do
 				-- Extend the divisor (i.e. `a_other') so that it has 2^k (i.e. a
-				-- power of two) digits by adding zeros on the low-order end
+				-- power of two) words by adding zeros on the low-order end
 				-- and adjust Current accordingly.
 			from n := 0
 			until a_other.count.bit_and (a_other.count - 1) = 0
 			loop
-				a_other.put_front (zero_digit)
+				a_other.put_front (zero_word)
 				n := n + 1
 			end
 				-- Now shift Current so it has the same number of "new" zeroes.
@@ -2012,15 +2127,15 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 				-- Normalize `a_other' and adjust Current accordingly.
 			n := a_other.normalize
 			bit_shift_left (n)
-				-- Pad Current with leading zeroes to make its digit `count'
+				-- Pad Current with leading zeroes to make its word `count'
 				-- a multiple of `a_other'.
 			if count = a_other.count then
-				extend (zero_digit)		-- special case
+				extend (zero_word)		-- special case
 			end
 			from
 			until count \\ a_other.count = 0
 			loop
-				extend (zero_digit)
+				extend (zero_word)
 			end
 		ensure
 			divisor_count_power_of_two: a_other.count.bit_and (a_other.count - 1) = 0
@@ -2028,38 +2143,38 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			other_is_normalized: a_other.is_normalized
 		end
 
-	divide_two_digits_by_one (a_high, a_low, a_divisor: like digit):
+	divide_two_words_by_one (a_high, a_low, a_divisor: like word):
 							TUPLE [quot: like Current; rem: like Current]
-			-- Divide a two-digit number containing `a_high' and `a_low' digit
-			-- by a single-digit number `a_divisor', returning a quotient and remainder.
+			-- Divide a two-word number containing `a_high' and `a_low' word
+			-- by a single-word number `a_divisor', returning a quotient and remainder.
 			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3.
 		require
-			divisor_non_zero: a_divisor /= zero_digit
-			divisor_is_normalized: is_digit_normalized (a_divisor)
+			divisor_non_zero: a_divisor /= zero_word
+			divisor_is_normalized: is_word_normalized (a_divisor)
 		local
 			i: INTEGER
-			tup: TUPLE [a3, a4: like digit]
+			tup: TUPLE [a3, a4: like word]
 			qr: like div_three_halves_by_two
 			qs: like div_three_halves_by_two
-			r: TUPLE [r1, r2: like digit]
-			f: like digit
+			r: TUPLE [r1, r2: like word]
+			f: like word
 			quot, rem: like Current
 		do
 				-- "Let [a3, a4] = AL"
-			tup := as_half_digits (a_low)
+			tup := as_half_words (a_low)
 				-- "[q1,R] = DivThreeHalvesByTwo (a1,a2,a3,b1,b2)"
 			qr := div_three_halves_by_two (a_high, tup.a3, a_divisor)
 				-- "Let [r1,r2] = R"
-			r := as_half_digits (qr.rem)
+			r := as_half_words (qr.rem)
 				-- "[q2,S] = DivThreeHalvesByTwo (r1,r2,a4,b1,b2)"
 			qs := div_three_halves_by_two (qr.rem, tup.a4, a_divisor)
 				-- "Return the quotient Q = [q1,q2] and the remainder S."
-			if qr.quot > max_half_digit then
+			if qr.quot > max_half_word then
 				quot := new_big_number (qr.quot)
-				quot.bit_shift_left (bits_utilized // 2)
+				quot.bit_shift_left (bits_per_word // 2)
 				quot.scalar_add (qs.quot)
 			else
-				f := as_full_digit (qr.quot, qs.quot)
+				f := as_full_word (qr.quot, qs.quot)
 				quot := new_big_number (f)
 			end
 			rem := new_big_number (qs.rem)
@@ -2070,26 +2185,26 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 							new_big_number (a_high).shifted_left (1).scalar_sum (a_low)
 		end
 
-	div_three_halves_by_two (A, a3, B: like digit): TUPLE [quot, rem: like digit]
-			-- Divide three half-digits, "a1" and "a2" (contained in `A') and
-			-- `a3' by two half-digits, "b1" and "b2" (contained in `B'), in
+	div_three_halves_by_two (A, a3, B: like word): TUPLE [quot, rem: like word]
+			-- Divide three half-words, "a1" and "a2" (contained in `A') and
+			-- `a3' by two half-words, "b1" and "b2" (contained in `B'), in
 			-- such a way that the computations fit into the representation
-			-- (i.e. the number of bits) of a digit.
+			-- (i.e. the number of bits) of a word.
 			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3 to top p 4.
 		local
-			tup: TUPLE [b1, b2: like digit]
-			q, c, ca: like digit
+			tup: TUPLE [b1, b2: like word]
+			q, c, ca: like word
 			D, R: like Current
-			t: like digit
+			t: like word
 		do
-			tup := as_half_digits (B)
+			tup := as_half_words (B)
 			q := a // tup.b1		-- Line 6
 			c := a \\ tup.b1		-- Same as "c := A - Q * b1" (i.e. remainder).
-				-- Use a big number to account for values larger than one digit.
+				-- Use a big number to account for values larger than one word.
 			D := new_big_number (q)
 			D.scalar_multiply (tup.b2)	-- Same as "d := q * b2"
 				-- Add half-word of numerator to remainder.
-			ca := as_full_digit (c, a3)	-- Same as [c,a3]
+			ca := as_full_word (c, a3)	-- Same as [c,a3]
 				-- Perform "R := [c,a3] - D", line 9
 			D.negate
 			R := D.scalar_sum (ca)
@@ -2108,42 +2223,42 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			from
 			until not R.is_negative
 			loop
-				q := q - one_digit
+				q := q - one_word
 				R.scalar_add (B)
 			end
 			if r.count = 0 then
 					-- Add a zero to make Result easier to obtain.
-				r.extend (zero_digit)
+				r.extend (zero_word)
 			end
 			check
-				only_one_digit: R.count <= 1
+				only_one_word: R.count <= 1
 			end
 			Result := [q, R.i_th (1)]
 		end
 
-	as_half_digits (a_digit: like digit): TUPLE [high, low: like digit]
-			-- Split `a_digit' into two half-digits.
+	as_half_words (a_word: like word): TUPLE [high, low: like word]
+			-- Split `a_word' into two half-words.
 			-- See "Fast Recursive Division" by Burnikel and Ziegler, p 3.
 		local
 			h: INTEGER
 		do
-			h := bits_utilized // 2
-			Result := [a_digit.bit_shift_right (h),
-						a_digit.bit_shift_left (h).bit_shift_right (h)]
+			h := bits_per_word // 2
+			Result := [a_word.bit_shift_right (h),
+						a_word.bit_shift_left (h).bit_shift_right (h)]
 		end
 
-	as_full_digit (a_high, a_low: like digit): like digit
-			-- Combine `a_high' half and `a_low' half into a single digit
+	as_full_word (a_high, a_low: like word): like word
+			-- Combine `a_high' half and `a_low' half into a single word.
 		require
-			high_small_enough: a_high <= max_half_digit
-			low_small_enough: a_low <= max_half_digit
+			high_small_enough: a_high <= max_half_word
+			low_small_enough: a_low <= max_half_word
 		do
-			Result := a_high.bit_shift_left (bits_utilized // 2) + a_low
+			Result := a_high.bit_shift_left (bits_per_word // 2) + a_low
 		end
 
 	normalize: INTEGER
 			-- Ensure Current `is_normalized', possibly shifting the bits of
-			-- each digit in Current until the most high-order digit is greater
+			-- each word in Current until the most high-order word is greater
 			-- or equal to the `base' // 2, returning the number of shifts
 			-- required to do so.
 			-- Knuth: The Art of Computer Programming, Volumn 2", pp 257-258.
@@ -2151,11 +2266,11 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			not_zero: magnitude > zero
 		local
 			n: INTEGER
-			c, c_out: like digit
-			d: like digit
+			c, c_out: like word
+			d: like word
 			i: INTEGER
 		do
-			Result := bits_utilized - i_th (count).most_significant_bit
+			Result := bits_per_word - i_th (count).most_significant_bit
 			bit_shift_left (Result)
 		ensure
 			is_normalized: is_normalized
@@ -2163,48 +2278,48 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 		end
 
 	is_normalized: BOOLEAN
-			-- Is the most high-order digit greater than or equal to `base' // 2?
+			-- Is the most high-order word greater than or equal to `base' // 2?
 			-- (See Knuth: The Art of Computer Programming, Volumn 2".)
 		do
-			Result := i_th (count) >= max_digit // two_digit + one_digit
+			Result := i_th (count) >= max_word // two_word + one_word
 		ensure
-			definition: Result implies i_th (count) >= max_digit // two_digit + one_digit
+			definition: Result implies i_th (count) >= max_word // two_word + one_word
 		end
 
-	is_digit_normalized (a_digit: like digit): BOOLEAN
-			-- Is `a_digit' greater than or equal to `base' // 2?
+	is_word_normalized (a_word: like word): BOOLEAN
+			-- Is `a_word' greater than or equal to `base' // 2?
 			-- (See Knuth: The Art of Computer Programming, Volumn 2".)
 		do
-			Result := a_digit >= max_digit // two_digit + one_digit
+			Result := a_word >= max_word // two_word + one_word
 		end
 
 	bit_shift_left (a_shift: INTEGER_32)
 			-- Change Current by shifting the bits left by `a_number', carrying
-			-- into the next digit if required.
+			-- into the next word if required.
 		require
 			shift_big_enough: a_shift >= 0
-			shift_small_enough: a_shift <= bits_utilized
+			shift_small_enough: a_shift <= bits_per_word
 		local
-			c, c_out: like digit
-			d: like digit
+			c, c_out: like word
+			d: like word
 			i: INTEGER
 		do
-			c := zero_digit
+			c := zero_word
 			from i := 1
 			until i > count
 			loop
 					-- Determine the carry out
-				c_out := i_th (i).bit_shift_right (bits_utilized - a_shift)
+				c_out := i_th (i).bit_shift_right (bits_per_word - a_shift)
 					-- Shift to far to zero out unutilized bits.
 				d := i_th (i).bit_shift_left (a_shift)
 					-- Shift back to prepare for modulo add
-				d := d.bit_shift_right (bits_utilized - bits_utilized)
+				d := d.bit_shift_right (bits_per_word - bits_per_word)
 					-- Modulo add the carry
 				put_i_th (d + c, i)
 				c := c_out
 				i := i + 1
 			end
-			if c > zero_digit then
+			if c > zero_word then
 				extend (c)
 			end
 		ensure
@@ -2213,32 +2328,32 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 
 	bit_shift_right (a_shift: INTEGER_32)
 			-- Change Current by shifting the bits right by `a_number', carrying
-			-- into the lower-order digit if required.
+			-- into the lower-order word if required.
 			-- Bits could be lost as they are shifted of the end.
 		require
 			shift_big_enough: a_shift >= 0
 		local
-			c, c_down: like digit
-			d: like digit
+			c, c_down: like word
+			d: like word
 			i: INTEGER
 			n: INTEGER
 		do
-			c := zero_digit
-			n := bits_utilized - a_shift
+			c := zero_word
+			n := bits_per_word - a_shift
 			from i := count
 			until i < 1
 			loop
 					-- Determine the carry down.
 				c_down := i_th (i).bit_shift_left (n).bit_shift_right (n)
 				c_down := c_down.bit_shift_left (n)
-					-- Shift the i-th digit.
+					-- Shift the i-th word.
 				d := i_th (i).bit_shift_right (a_shift)
 					-- Add any carry down bits.
 				put_i_th (d + c, i)
 				c := c_down
 				i := i - 1
 			end
-			if count > 1 and then i_th (count) ~ zero_digit then
+			if count > 1 and then i_th (count) ~ zero_word then
 				go_i_th (count)
 				remove
 			end
@@ -2308,7 +2423,7 @@ feature -- Output
 				q := quot.quot
 				r := quot.rem
 				check
---					only_one_digit_in_remainder: r.count = 1
+--					only_one_word_in_remainder: r.count = 1
 				end
 				s := r.i_th (1).out
 				from
@@ -2355,7 +2470,7 @@ feature -- Output
 		end
 
 	out_as_stored: STRING_8
-			-- Output as sequence of digits seperated by comas.
+			-- Output as sequence of words seperated by comas.
 			-- Example output of an 8-bit (i.e. base-256) representation
 			-- of the number 196,353 is "<2,3,255,1>", which is the same
 			-- as (2*256^3) + (3*256^2) + (255*256^1) + (1*256^0).
@@ -2365,8 +2480,8 @@ feature -- Output
 			n: INTEGER
 		do
 				-- Determine the length of string needed to represent
-				-- the `largest_digit'.
-			s := max_digit.out
+				-- the `largest_word'.
+			s := max_word.out
 			n := s.count
 			create Result.make (count * n)
 			if is_negative then
@@ -2390,8 +2505,8 @@ feature -- Output
 			-- Output as groups of bits.
 		local
 			i: INTEGER
-			j: like bits_utilized
-			dig: like digit
+			j: like bits_per_word
+			dig: like word
 			bc: INTEGER_32
 			n: INTEGER
 		do
@@ -2399,7 +2514,7 @@ feature -- Output
 			if is_negative then
 				Result := "-"
 			end
-			bc := bits_utilized
+			bc := bits_per_word
 			from i := count
 			until i < 1
 			loop
@@ -2425,8 +2540,8 @@ feature -- Output
 feature {JJ_BIG_NATURAL} -- Implementation
 
 	shift_left (a_shift: INTEGER)
-			-- Shift the digits to the left by putting zeros into the
-			-- low-order digits.
+			-- Shift the words to the left by putting zeros into the
+			-- low-order words.
 		require
 			shift_big_enough: a_shift >= 0
 		local
@@ -2435,14 +2550,14 @@ feature {JJ_BIG_NATURAL} -- Implementation
 			from i := 1
 			until i > a_shift
 			loop
-				insert (zero_digit, 1)
+				insert (zero_word, 1)
 				i := i + 1
 			end
 		end
 
 	shift_right (a_shift: INTEGER)
-			-- Shift the digits to the right by dropping the
-			-- low-order digits.
+			-- Shift the words to the right by dropping the
+			-- low-order words.
 		require
 			shift_big_enough: a_shift >= 0
 		local
@@ -2471,7 +2586,7 @@ feature {JJ_BIG_NATURAL} -- Implementation
 			-- Is Current NOT in the correct format?
 			-- Yes, if there is a leading zero when `count' > 1.
 		do
-			Result :=  count > 1 and then i_th (count) = zero_digit
+			Result :=  count > 1 and then i_th (count) = zero_word
 		end
 
 	is_unstable: BOOLEAN
@@ -2496,7 +2611,7 @@ feature {JJ_BIG_NATURAL} -- Implementation
 			-- Remove any leading zeros.
 		do
 			from
-			until count = 1 or else i_th (count) > zero_digit
+			until count = 1 or else i_th (count) > zero_word
 			loop
 				go_i_th (count)
 				remove
@@ -2504,8 +2619,8 @@ feature {JJ_BIG_NATURAL} -- Implementation
 		end
 
 	combine (a_high: like Current)
-			-- Extend the digits of `a_high' into Current as
-			-- Current's new high-order digits.
+			-- Extend the words of `a_high' into Current as
+			-- Current's new high-order words.
 		local
 			i: INTEGER
 		do
@@ -2518,8 +2633,8 @@ feature {JJ_BIG_NATURAL} -- Implementation
 		end
 
 	prepend_other (a_other: like Current)
-			-- Put the digits of `a_other' into Current as
-			-- Current's new low-order digits.
+			-- Put the words of `a_other' into Current as
+			-- Current's new low-order words.
 			-- Same code as used for `merge_right' except this feature
 			-- first moves the cursor before (to add at the beginning of
 			-- the list) and does not `wipe_out' `a_other'.
@@ -2528,7 +2643,7 @@ feature {JJ_BIG_NATURAL} -- Implementation
 		do
 			check
 				a_other.count >= 1
-					-- because of invariant requiring at least one digit.
+					-- because of invariant requiring at least one word.
 			end
 			l_old_count := count
 			l_new_count := l_old_count + a_other.count
@@ -2539,7 +2654,7 @@ feature {JJ_BIG_NATURAL} -- Implementation
 		end
 
 	partition (a_high, a_low: INTEGER): like Current
-			-- Copy of the digits indexed from `a_low' up to `a_high' inclusive.
+			-- Copy of the words indexed from `a_low' up to `a_high' inclusive.
 		require
 			low_big_enough: a_low >= 1
 			high_small_enough: a_high <= count
@@ -2547,9 +2662,9 @@ feature {JJ_BIG_NATURAL} -- Implementation
 		local
 			i: INTEGER
 		do
-			Result := new_big_number (zero_digit)
+			Result := new_big_number (zero_word)
 			Result.put_i_th (i_th (a_low), 1)
-				-- Loop through the rest of the digits.
+				-- Loop through the rest of the words.
 			from i := a_low + 1
 			until i > a_high
 			loop
@@ -2564,7 +2679,7 @@ feature {JJ_BIG_NATURAL} -- Implementation
 
 feature {NONE} -- Implementation
 
-	new_big_number (a_value: like digit): like Current
+	new_big_number (a_value: like word): like Current
 			-- Create an instance equivalent to `a_value'.
 			-- Used throughout to obtain a {JJ_BIG_NUMBER} of the correct type.
 		deferred
@@ -2572,7 +2687,7 @@ feature {NONE} -- Implementation
 
 	new_combined_number (a_high, a_low: like Current): like Current
 			-- A new number made from two others where `a_high' contains the
-			-- high-order digits and `a_low' contains the low-order digits.
+			-- high-order words and `a_low' contains the low-order words.
 		local
 			i: INTEGER
 		do
@@ -2583,46 +2698,46 @@ feature {NONE} -- Implementation
 	new_filled_list (n: INTEGER): like Current
 			-- New list with `n' elements.
 		do
-			Result := new_big_number (zero_digit)
+			Result := new_big_number (zero_word)
 		end
 
-	new_value_from_character (a_character: CHARACTER_8): like digit
+	new_value_from_character (a_character: CHARACTER_8): like word
 			-- Get the number given by `a_character'
 		do
-			Result := zero_digit
+			Result := zero_word
 			inspect a_character
 			when '0' then
-				Result := zero_digit
+				Result := zero_word
 			when '1' then
-				Result := one_digit
+				Result := one_word
 			when '2' then
-				Result := two_digit
+				Result := two_word
 			when '3' then
-				Result := three_digit
+				Result := three_word
 			when '4' then
-				Result := four_digit
+				Result := four_word
 			when '5' then
-				Result := five_digit
+				Result := five_word
 			when '6' then
-				Result := six_digit
+				Result := six_word
 			when '7' then
-				Result := seven_digit
+				Result := seven_word
 			when '8' then
-				Result := eight_digit
+				Result := eight_word
 			when '9' then
-				Result := nine_digit
+				Result := nine_word
 			when 'a', 'A' then
-				Result := ten_digit
+				Result := ten_word
 			when 'b', 'B' then
-				Result := ten_digit + one_digit
+				Result := ten_word + one_word
 			when 'c', 'C' then
-				Result := ten_digit + two_digit
+				Result := ten_word + two_word
 			when 'd', 'D' then
-				Result := ten_digit + three_digit
+				Result := ten_word + three_word
 			when 'e', 'E' then
-				Result := ten_digit + four_digit
+				Result := ten_word + four_word
 			when 'f', 'F' then
-				Result := ten_digit + five_digit
+				Result := ten_word + five_word
 			else
 				check
 					should_not_happen: false
@@ -2644,16 +2759,16 @@ feature {NONE} -- Implementation
 			num := power_of_ten_table.item (a_power)
 			if not attached num then
 				if a_power ~ zero then
-					num := new_big_number (one_digit)
+					num := new_big_number (one_word)
 					power_of_ten_table.extend (num, zero)
 				elseif a_power ~ one then
 					if not power_of_ten_table.has (zero) then
 						num := ten_to_the_power (zero)
 					end
-					num := new_big_number (ten_digit)
+					num := new_big_number (ten_word)
 					power_of_ten_table.extend (num, one)
 				else
-					ten := new_big_number (ten_digit)
+					ten := new_big_number (ten_word)
 					num := ten_to_the_power (a_power - one) * ten
 					power_of_ten_table.extend (num, a_power)
 				end
@@ -2673,15 +2788,60 @@ feature {NONE} -- Implementation
 		deferred
 		end
 
+	limbs_needed_for_x_digits (a_count: INTEGER): INTEGER
+			-- The number (i.e. `count') of words required to represent a
+			-- base-10 number that hase `a_count' number of digits.
+			-- http://stackoverflow.com/questions/12269096/how-many-bits-do-you-need-to-store-a-number
+		local
+			s: STRING_8
+			i: INTEGER
+			test: REAL
+		do
+			create s.make_filled ('9', a_count)
+			i := s.to_integer
+--			Result := log_base_2 (i) * bits_per_word
+			test := log_2 (i)
+			Result := (log_2 (i) / bits_per_word).truncated_to_integer + 1
+		end
+
+	log_base_2 (a_number: like Current): INTEGER
+			-- The integral (i.e. floor) of the base-2 log of the `magnitude'
+			-- of Current.  (Log of negative numbers gives a complex number.)
+			-- http://stackoverflow.com/questions/12003719/log-of-a-very-large-number
+		local
+			i: INTEGER
+			acc: INTEGER
+			w: like word
+		do
+				-- Find the most significant word, ignoring leading zeros.
+			from i := a_number.count
+			until i = 1 or else i_th (i) > zero_word
+			loop
+				i := i - 1
+			end
+				-- Get the high-order, non-zero word.
+			w := a_number.i_th (i)
+			from acc := 0
+			until w <= zero_word
+			loop
+				acc := acc + 1
+				w := w.bit_shift_right (acc)
+			end
+			Result := acc + a_number.count * bits_per_word - (bits_per_word + 1)
+		end
+
 	Default_table_size: INTEGER = 10
 			-- The initial capacity assigned to the `power_of_ten_table'.
 
-	digit_anchor: like digit
-			-- Anchor for covariant redefinitions.
+	random: JJ_RANDOM [like word]
+			-- Used to generate random numbers for placement into Current.
+			-- Deferred, because need to produce the correct type.
+		deferred
+		end
 
 invariant
 
-	has_at_least_one_digit: count >= 1
+	has_at_least_one_word: count >= 1
 
 	is_zero_implies_non_negative: is_zero implies not is_negative
 	is_negative_implies_non_zero: is_negative implies not is_zero

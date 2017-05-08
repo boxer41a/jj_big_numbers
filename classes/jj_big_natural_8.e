@@ -3,8 +3,6 @@ note
 		Big numbers implemented on eight bits.
 		]"
 	author: "Jimmy J. Johnson"
-	date: "$Date$"
-	revision: "$Revision$"
 
 class
 	JJ_BIG_NATURAL_8
@@ -12,15 +10,14 @@ class
 inherit
 
 	JJ_BIG_NATURAL [NATURAL_8]
-		redefine
-			digit_anchor
-		end
 
 create
 	default_create,
 	from_value,
 	from_array,
-	from_string
+	from_string,
+	make_random,
+	make_random_with_digit_count
 
 create {ARRAYED_LIST}
 	make
@@ -28,56 +25,79 @@ create {ARRAYED_LIST}
 convert
 	from_string ({STRING_8})
 
+feature -- Initialization
+
+	set_with_integer (a_integer: INTEGER)
+			-- Make Current equivalent to `a_integer'.
+		local
+			b: like word
+			x, r: INTEGER
+		do
+			if a_integer < max_word then
+				set_value (a_integer.to_natural_8)
+			else
+				wipe_out
+				b := max_word + 1
+				from x := a_integer
+				until x = 0
+				loop
+					r := x \\ b
+					extend (x.to_natural_8)
+					x := x // b
+				end
+			end
+		end
+
 feature -- Constants
 
-	zero_digit: NATURAL_8 = 0
-			-- The number zero in the same type as `digit'
+	bits_per_word: INTEGER_32 = 8
+			-- The number of bits in each word of Current in same type as `word'.
 
-	one_digit: NATURAL_8 = 1
-			-- The number one in the same type as `digit'
+	zero_word: NATURAL_8 = 0
+			-- The number zero in the same type as `word'
 
-	two_digit: NATURAL_8 = 2
-			-- The number two in the same type as `digit'
+	one_word: NATURAL_8 = 1
+			-- The number one in the same type as `word'
 
-	three_digit: NATURAL_8 = 3
-			-- The number two in the same type as `digit'
+	two_word: NATURAL_8 = 2
+			-- The number two in the same type as `word'
 
-	four_digit: NATURAL_8 = 4
-			-- The number two in the same type as `digit'
+	three_word: NATURAL_8 = 3
+			-- The number two in the same type as `word'
 
-	five_digit: NATURAL_8 = 5
-			-- The number two in the same type as `digit'
+	four_word: NATURAL_8 = 4
+			-- The number two in the same type as `word'
 
-	six_digit: NATURAL_8 = 6
-			-- The number two in the same type as `digit'
+	five_word: NATURAL_8 = 5
+			-- The number two in the same type as `word'
 
-	seven_digit: NATURAL_8 = 7
-			-- The number two in the same type as `digit'
+	six_word: NATURAL_8 = 6
+			-- The number two in the same type as `word'
 
-	eight_digit: NATURAL_8 = 8
-			-- The number two in the same type as `digit'
+	seven_word: NATURAL_8 = 7
+			-- The number two in the same type as `word'
 
-	nine_digit: NATURAL_8 = 9
-			-- The number ten in the same type as `digit'
+	eight_word: NATURAL_8 = 8
+			-- The number two in the same type as `word'
 
-	ten_digit: NATURAL_8 = 10
-			-- The number two in the same type as `digit'
+	nine_word: NATURAL_8 = 9
+			-- The number ten in the same type as `word'
 
-	sixteen_digit: NATURAL_8 = 16
-			-- The number 16 in the same type as `digit'.
+	ten_word: NATURAL_8 = 10
+			-- The number two in the same type as `word'
 
-	bit_count_digit: NATURAL_8 = 8
-			-- The number of bits in each digit of Current in same type as `digit'.
+	sixteen_word: NATURAL_8 = 16
+			-- The number 16 in the same type as `word'.
 
 	max_ten_power: NATURAL_8 = 100
-			-- Largest multiple of 10 representable in a digit of Current.
+			-- Largest multiple of 10 representable in a word of Current.
 
-	max_half_digit: NATURAL_8 = 0x0F
+	max_half_word: NATURAL_8 = 0x0F
 			-- The largest value representable in half the number of
-			-- bits in Current's representation of a `digit'.
+			-- bits in Current's representation of a `word'.
 
-	max_digit: NATURAL_8 = 0xFF
-			-- The largest value allowed for a `digit' of Current (i.e. all ones).
+	max_word: NATURAL_8 = 0xFF
+			-- The largest value allowed for a `word' of Current (i.e. all ones).
 
 feature -- Access
 
@@ -93,13 +113,13 @@ feature -- Access
 			-- Use caution as this object can be modified.
 		do
 			create Result
-			Result.put_i_th (one_digit, 1)
+			Result.put_i_th (one_word, 1)
 		end
 
 feature {NONE} -- Implementation
 
-	new_big_number (a_value: like digit): like Current
-			-- Create an instance equivalent to `a_value'.
+	new_big_number (a_value: like word): like Current
+			-- Factory method to create an instance equivalent to `a_value'.
 			-- Wraps the creation feature `from_value'.
 		do
 			create Result.from_value (a_value)
@@ -122,7 +142,11 @@ feature {NONE} -- Implementation
 			-- Largest power-of-ten number representable by the type of `base'.
 			-- Used in the output functions.
 
-	digit_anchor: NATURAL_8
-			-- Used in covariant redefinitions.
+	random: JJ_RANDOM_8
+			-- Used to generate random numbers for placement into Current.
+			-- Deferred, because need to produce the correct type.
+		once
+			create Result
+		end
 
 end

@@ -32,11 +32,12 @@ feature {NONE} -- Initialization
 				-- Test implementation features.
 			io.put_string ("------------- Implementation ----------------- %N")
 --			tester.from_array
-
 --			tester.from_string
 
 --			tester.set_with_array
 --			tester.set_with_string
+			tester.set_random_with_digit_count
+
 --			tester.new_sub_number
 --			tester.power_of_ten_table
 --			tester.ten_to_the_power

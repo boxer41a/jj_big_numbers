@@ -51,16 +51,6 @@ feature -- Basic operations (initialization tests)
 		deferred
 		end
 
---	make_with_base
---			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
---		deferred
---		end
-
---	make_with_value_and_base
---			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
---		deferred
---		end
-
 	from_string
 			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		local
@@ -102,14 +92,19 @@ feature -- Basic operations (initialization tests)
 		deferred
 		end
 
-	make_random
+	set_random
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		deferred
+		end
+
+	set_random_with_digit_count
 			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		deferred
 		end
 
 feature -- Basic operations (constants tests)
 
-	zero_digit
+	zero_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -117,14 +112,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".zero_digit:  "
+			str := generating_type + ".zero_word:  "
 			n := new_number
-			v := n.zero_digit
+			v := n.zero_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "0")
 		end
 
-	one_digit
+	one_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -132,14 +127,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".one_digit:  "
+			str := generating_type + ".one_word:  "
 			n := new_number
-			v := n.one_digit
+			v := n.one_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "1")
 		end
 
-	two_digit
+	two_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -147,14 +142,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".two_digit:  "
+			str := generating_type + ".two_word:  "
 			n := new_number
-			v := n.two_digit
+			v := n.two_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "2")
 		end
 
-	three_digit
+	three_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -162,14 +157,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type +".three_digit:  "
+			str := generating_type +".three_word:  "
 			n := new_number
-			v := n.three_digit
+			v := n.three_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "3")
 		end
 
-	four_digit
+	four_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -177,14 +172,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".four_digit:  "
+			str := generating_type + ".four_word:  "
 			n := new_number
-			v := n.four_digit
+			v := n.four_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "4")
 		end
 
-	five_digit
+	five_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -192,14 +187,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".five_digit:  "
+			str := generating_type + ".five_word:  "
 			n := new_number
-			v := n.five_digit
+			v := n.five_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "5")
 		end
 
-	six_digit
+	six_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -207,14 +202,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".six_digit:  "
+			str := generating_type + ".six_word:  "
 			n := new_number
-			v := n.six_digit
+			v := n.six_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "6")
 		end
 
-	seven_digit
+	seven_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -222,14 +217,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".seven_digit:  "
+			str := generating_type + ".seven_word:  "
 			n := new_number
-			v := n.seven_digit
+			v := n.seven_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "7")
 		end
 
-	eight_digit
+	eight_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -237,14 +232,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".eight_digit:  "
+			str := generating_type + ".eight_word:  "
 			n := new_number
-			v := n.eight_digit
+			v := n.eight_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "8")
 		end
 
-	nine_digit
+	nine_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -252,14 +247,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".nine_digit:  "
+			str := generating_type + ".nine_word:  "
 			n := new_number
-			v := n.nine_digit
+			v := n.nine_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "9")
 		end
 
-	ten_digit
+	ten_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -267,14 +262,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".ten_digit:  "
+			str := generating_type + ".ten_word:  "
 			n := new_number
-			v := n.ten_digit
+			v := n.ten_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "10")
 		end
 
-	sixteen_digit
+	sixteen_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -282,14 +277,14 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".sixteen_digit:  "
+			str := generating_type + ".sixteen_word:  "
 			n := new_number
-			v := n.sixteen_digit
+			v := n.sixteen_word
 			io.put_string (str + v.out + "%N")
 			assert (str, v.out ~ "16")
 		end
 
-	max_digit
+	max_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		local
@@ -297,11 +292,11 @@ feature -- Basic operations (constants tests)
 			n: like new_number
 			v: like digit_anchor
 		do
-			str := generating_type + ".max_digit:  "
+			str := generating_type + ".max_word:  "
 			n := new_number
-			v := n.max_digit
+			v := n.max_word
 			io.put_string (str + v.out + "%N")
-			assert (str, v.out ~ (n.zero_digit - n.one_digit).out)
+			assert (str, v.out ~ (n.zero_word - n.one_word).out)
 		end
 
 	default_karatsuba_threshold
@@ -658,8 +653,8 @@ feature -- Basic operations (selectively exported)
 --		deferred
 --		end
 
---	divide_two_digits_by_one
---			-- Test and demonstrate feature `divide_two_digits_by_one' from
+--	divide_two_words_by_one
+--			-- Test and demonstrate feature `divide_two_words_by_one' from
 --			-- {JJ_BIG_NATURAL}.
 --		deferred
 --		end
@@ -859,8 +854,8 @@ feature -- Test conversion
 --			b := b - n.three_value
 --			tup := n.digits_multiplied (a, b)
 --				-- 127 * 127
---			a := n.max_digit
---			b := n.max_digit
+--			a := n.max_word
+--			b := n.max_word
 --			tup := n.digits_multiplied (a, b)
 
 --			io.new_line
@@ -911,7 +906,6 @@ feature {NONE} -- Implementation
 			-- Display some information (for demo) about `a_number'.
 		do
 			print (a_number.generating_type + a_comment + "%N")
-			print ("           base = " + a_number.base.out + "%N")
 			print ("          count = " + a_number.count.out + "%N")
 --			print ("    digit_count = " + a_number.as_base (a_number.ten_value).count.out + "%N")
 			if is_verbose then
@@ -926,26 +920,23 @@ feature {NONE} -- Implementation
 			-- Display verbose information (for demo) about `a_number'.
 		do
 			print (a_number.generating_type + a_comment + "  report_properties %N")
-			print ("                 base: " + a_number.base.generating_type + " = " + a_number.base.out + "%N")
---			print ("             min_base: " + a_number.min_base.generating_type + " = " + a_number.min_base.out + "%N")
---			print (" base_minus_one_value: " + a_number.base_minus_one_value.generating_type + " = " + a_number.base_minus_one_value.out + "%N")
-			print ("         max_dig_value: " + a_number.max_digit.generating_type + " = " + a_number.max_digit.out + "%N")
+			print ("         max_dig_value: " + a_number.max_word.generating_type + " = " + a_number.max_word.out + "%N")
 --				print ("            max_value: " + a_number.max_value.generating_type + " = " + a_number.max_value.out + "%N")
 			print ("                 zero: " + a_number.zero.generating_type + " = " + a_number.zero.out + "%N")
 			print ("                  one: " + a_number.one.generating_type + " = " + a_number.one.out + "%N")
 			print ("  karatsuba_threshold: " + a_number.karatsuba_threshold.generating_type + " = " + a_number.karatsuba_threshold.out + "%N")
-			print ("           zero_value: " + a_number.zero_digit.generating_type + " = " + a_number.zero_digit.out + "%N")
-			print ("            one_value: " + a_number.one_digit.generating_type + " = " + a_number.one_digit.out + "%N")
-			print ("            two_value: " + a_number.two_digit.generating_type + " = " + a_number.two_digit.out + "%N")
-			print ("          three_value: " + a_number.three_digit.generating_type + " = " + a_number.three_digit.out + "%N")
-			print ("           four_value: " + a_number.four_digit.generating_type + " = " + a_number.four_digit.out + "%N")
-			print ("           five_value: " + a_number.five_digit.generating_type + " = " + a_number.five_digit.out + "%N")
-			print ("            six_value: " + a_number.six_digit.generating_type + " = " + a_number.six_digit.out + "%N")
-			print ("          seven_value: " + a_number.seven_digit.generating_type + " = " + a_number.seven_digit.out + "%N")
-			print ("          eight_value: " + a_number.eight_digit.generating_type + " = " + a_number.eight_digit.out + "%N")
-			print ("           nine_value: " + a_number.nine_digit.generating_type + " = " + a_number.nine_digit.out + "%N")
-			print ("            ten_value: " + a_number.ten_digit.generating_type + " = " + a_number.ten_digit.out + "%N")
-			print ("        sixteen_value: " + a_number.sixteen_digit.generating_type + " = " + a_number.sixteen_digit.out + "%N")
+			print ("           zero_value: " + a_number.zero_word.generating_type + " = " + a_number.zero_word.out + "%N")
+			print ("            one_value: " + a_number.one_word.generating_type + " = " + a_number.one_word.out + "%N")
+			print ("            two_value: " + a_number.two_word.generating_type + " = " + a_number.two_word.out + "%N")
+			print ("          three_value: " + a_number.three_word.generating_type + " = " + a_number.three_word.out + "%N")
+			print ("           four_value: " + a_number.four_word.generating_type + " = " + a_number.four_word.out + "%N")
+			print ("           five_value: " + a_number.five_word.generating_type + " = " + a_number.five_word.out + "%N")
+			print ("            six_value: " + a_number.six_word.generating_type + " = " + a_number.six_word.out + "%N")
+			print ("          seven_value: " + a_number.seven_word.generating_type + " = " + a_number.seven_word.out + "%N")
+			print ("          eight_value: " + a_number.eight_word.generating_type + " = " + a_number.eight_word.out + "%N")
+			print ("           nine_value: " + a_number.nine_word.generating_type + " = " + a_number.nine_word.out + "%N")
+			print ("            ten_value: " + a_number.ten_word.generating_type + " = " + a_number.ten_word.out + "%N")
+			print ("        sixteen_value: " + a_number.sixteen_word.generating_type + " = " + a_number.sixteen_word.out + "%N")
 			print ("                  out: " + a_number.out + "%N")
 			print ("        out_formatted: " + a_number.out_formatted + "%N")
 			print ("        out_as_stored: " + a_number.out_as_stored + "%N")
@@ -960,7 +951,7 @@ feature {NONE} -- Implementation
 --			print ("  tuple:  [" + a_tuple.quot.out + ", " + a_tuple.rem.out + "] %N")
 --		end
 
---	report_digit_tuple (a_comment: STRING_8; a_tuple: like digit_tuple_anchor)
+--	report_word_tuple (a_comment: STRING_8; a_tuple: like digit_tuple_anchor)
 --			-- Display information about `a_tuple' which contains a quotient
 --			-- and a remainder, likely resulting from some division operation.
 --		do
@@ -1042,18 +1033,18 @@ feature {NONE} -- Anchors
 			end
 		end
 
-	digit_tuple_anchor: like number_anchor.as_half_digits
-			-- Anchor for typs involved in division.
-			-- Not to be called; just used to anchor types.
-			-- Declared as a feature to avoid adding an attribute.
-		require
-			never_called: false
-		do
-			check
-				do_not_call: false then
-					-- Because gives no info; simply used as anchor.
-			end
-		end
+--	digit_tuple_anchor: like number_anchor.as_half_words
+--			-- Anchor for typs involved in division.
+--			-- Not to be called; just used to anchor types.
+--			-- Declared as a feature to avoid adding an attribute.
+--		require
+--			never_called: false
+--		do
+--			check
+--				do_not_call: false then
+--					-- Because gives no info; simply used as anchor.
+--			end
+--		end
 
 end
 
