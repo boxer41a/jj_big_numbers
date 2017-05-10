@@ -3,7 +3,7 @@ note
 		This is the base class for all the {JJ_BIG_NUMBER}_xxx classes, which
 		can represent a numbers that is much larger than what is representable
 		in 32 or 64 bits.
-	
+
 		It depends on an override cluster containing {JJ_NATURAL} and new
 		NATURAL_xx_REF classes found at https://github.com/boxer41a/jj_naturals.
 		{JJ_NATURAL} serves as a common ancestor to the NATUAL_xx_REF classes,
@@ -11,7 +11,7 @@ note
 
 		This class implements a big number as a list of words, where each `word'
 		(called a "limb" in some other big-number implementaions) represents one
-		"digit" of the number.  For example, a {JJ_BIG_NUMBER} that uses 8-bit 
+		"digit" of the number.  For example, a {JJ_BIG_NUMBER} that uses 8-bit
 		words stores the base-10 number "67,305,985" as a list of words <<4,3,2,1>>
 		equal to 4*256^3 + 3*256^2 + 2*256^1 + 1*256^0.
 
@@ -57,7 +57,6 @@ note
 		So, I think it is okay for `count' and `digit_count' to return INTEGER.
 		I need to add preconditions to the math functions (and any feature that
 		extends words) to prevent adding more words than Current can handle.
-
 -- end is this right?
 	]"
 	author: "Jimmy J.Johnson"
@@ -357,6 +356,7 @@ feature -- Initialization
 	set_random_with_digit_count (a_count: INTEGER)
 			-- Set Current as a random number with `a_count' number
 			-- of decimal digits.
+			-- Warning:  this feature is very slow.
 		require
 			count_big_enough: a_count >= 1
 		local
@@ -366,14 +366,14 @@ feature -- Initialization
 			c_min, c_max, dif: INTEGER
 			w_first, w_second: like word
 			dn, up: like word
-
+			r1, r2: like word
 			test: like Current
 		do
 				-- Initialize Current.
 			set_value (zero_word)
 				-- Determine the smallest possible number.
 			create s.make_filled ('0', a_count)
-			if a_count> 1 then
+			if a_count > 1 then
 				s.put ('1', 1)
 			end
 			a := new_big_number (zero_word)
@@ -382,33 +382,13 @@ feature -- Initialization
 			create s.make_filled ('9', a_count)
 			b := new_big_number (zero_word)
 			b.set_with_string (s)
-
-
------------				-- Just a test of significant words/digits
---			test := new_big_number (b.i_th (count))
---			io.put_string ("digit count = " + a_count.out)
---			io.put_string (" %T a = " + a.out_as_stored)
---			io.new_line
---			io.put_string ("  %T" + b.out_as_stored)
---			if b.count > 2 then
---				test.put_i_th (b.i_th (b.count - 1), 1)
---				test.extend (b.i_th (b.count))
---				test.shift_left (b.count - 2)
---				io.put_string (" %T b = " + test.out_as_stored + " = " + test.out)
---				check
---					correct_count: test.out.count = a_count
---					test_big_enough: test >= a
---					test_small_enought: test <= b
---				end
---			end
---			io.put_string ("%N")
-----------------
-
-
 				-- Using the two numbers, determine the maximum and minimum
 				-- possiblity for the number of words needed.
 			c_min := a.count
 			c_max := b.count
+--				-- Calculate min and max number of bits required to represent
+--				-- a base-10 number, dividing by `bits_per_word' to get the
+--				-- number of words required.
 --			lg := ((a_count - 1) * lg_10).ceiling
 --			c_min := lg // bits_per_word
 --			if lg \\ bits_per_word > 0 then
@@ -419,6 +399,10 @@ feature -- Initialization
 --			if lg \\ bits_per_word > 0 then
 --				c_max := c_max + 1
 --			end
+--				-- At this point we know the number of words, but we do not
+--				-- know the max  or min values allowed for the high two words.
+--				-- How do we determine the min and max without [inefficiently]
+--				-- creating the base-10 numbers?  I don't know
 			dif := c_max - c_min
 			check
 				dif_one_or_less: dif <= 1
@@ -435,7 +419,7 @@ feature -- Initialization
 				w_first := b.i_th (b.count)
 				w_second := b.i_th (b.count - 1)
 					-- The relationship between words one and two is more
-					-- complicated, so start with a number with the maximum
+					-- complicated, so start with a number containing the maximum
 					-- possible number of words, modifying the two high-order
 					-- words until finding a good value.
 				from
@@ -446,15 +430,16 @@ feature -- Initialization
 						-- Fix me, if faster !
 				until a <= Current and Current <= b
 				loop
---io.put_string ("       changing " + Current.out)
---io.put_string ("<" + b.i_th (count).out + "," + b.i_th (count - 1).out + "> %N")
 					random.set_range (zero_word, w_first)
-io.put_string ("   changing words 1 & 2:  <" + i_th (count).out + "," + i_th (count - 1).out + ">")
-					put_i_th (random.item, count)
+					r1 := random.item
 					random.set_range (zero_word, w_second)
-					put_i_th (random.item, count - 1)
-io.put_string ("  to:  <" + i_th (count).out + "," + i_th (count - 1).out + "> %N")
---io.put_string (" to " + Current.out + "%N")
+					r2 := random.item
+					if r1 = zero_word and r2 = zero_word then
+						random.set_range (one_word, w_first)
+						r1 := random.item
+					end
+					put_i_th (r1, count)
+					put_i_th (r2, count - 1)
 				end
 			end
 			random.set_range (dn, up)
@@ -463,15 +448,14 @@ io.put_string ("  to:  <" + i_th (count).out + "," + i_th (count - 1).out + "> %
 				current_small_enough: Current <= b
 					-- because that is the implied condition of this feature.
 			end
---io.put_string ("  random = " + Current.out + "%N")
 		ensure
 			correct_count: out.count = a_count or out.count = a_count + 1
 		end
 
 feature -- Constants
 
-	lg_10: REAL_32 = 3.3219280949
-			-- Log base 2 of ten.
+--	lg_10: REAL_32 = 3.3219280949
+--			-- Log base 2 of ten.
 
 	bits_per_word: INTEGER
 			-- The number of bits in each word of Current in same type as `word'.
@@ -640,6 +624,8 @@ feature -- Access
 			i: INTEGER
 		do
 			Result := count * bits_per_word
+		ensure
+			definition: Result = count * bits_per_word
 		end
 
 	decimal_count: INTEGER
@@ -778,8 +764,7 @@ feature -- Query
 	is_same_sign (other: like Current): BOOLEAN
 			-- Does Current have the same sign as `other'?
 		do
-			Result := (is_zero or other.is_zero) or
-						(is_negative = other.is_negative)
+			Result := is_negative = other.is_negative
 		end
 
 	is_less alias "<" (other: like Current): BOOLEAN
@@ -2832,6 +2817,8 @@ feature {NONE} -- Implementation
 
 	Default_table_size: INTEGER = 10
 			-- The initial capacity assigned to the `power_of_ten_table'.
+
+feature -- export for testing
 
 	random: JJ_RANDOM [like word]
 			-- Used to generate random numbers for placement into Current.

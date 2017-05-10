@@ -144,38 +144,19 @@ feature -- Basic operations (initialization tests)
 			str := generating_type
 			fn := ".set_random_with_digit_count"
 			from i := 1
-			until i > 1000
+			until i > 10
 			loop
-				if i = 970 then
-					io.put_string ("Press enter to continue:")
-					io.read_line
-				end
 				s := str + fn + " (" + i.out + ")"
 				n.set_random_with_digit_count (i)
---				io.put_string (s + " = " + n.out + "   " + n.out_as_stored + "%N")
-				io.put_string (s + "%N")
+				io.put_string (s + " = " + n.out + "   " + n.out_as_stored + "%N")
 				assert (s, n.out.count = i)
 				i := i + 1
 			end
-
---				-- set_random (1)	
---			i := 1
---			s := str + fn + "(" + i.out + ")"
---			n.set_random_with_digit_count (i)
---			io.put_string (s + " = " + n.out + "%N")
---			assert (s, n.out.count = i)
---				-- set_random (3)	
---			i := 3
---			s := str + fn + "(" + i.out + ")"
---			n.set_random_with_digit_count (i)
---			io.put_string (s + " = " + n.out + "%N")
---			assert (s, n.out.count = i)
---				-- set_random (8)	
---			i := 8
---			s := str + fn + "(" + i.out + ")"
---			n.set_random_with_digit_count (i)
---			io.put_string (s + " = " + n.out + "%N")
---			assert (s, n.out.count = i)
+			i := 100
+			s := str + fn + " (" + i.out + ")"
+			n.set_random_with_digit_count (i)
+			io.put_string (s + " = " + n.out + "   " + n.out_as_stored + "%N")
+			assert (s, n.out.count = i)
 		end
 
 feature -- Basic operations (constants tests)
@@ -882,6 +863,32 @@ feature -- Basic operations (basic operations tests)
 			assert (str, n.out_as_stored ~ "<17>")
 			assert (str + " x unchanged", x.out_as_stored ~ "<8>")
 			assert (str + " y unchanged", y.out_as_stored ~ "<9>")
+				-- n := (0).plus (-100)
+			create n
+			create x
+			create y.from_value (n.ten_word * n.ten_word)
+			y.negate
+			str := x.out_as_stored + fn
+			str := str + "(" + y.out_as_stored + ")"
+			io.put_string (str)
+			n := x.plus (y)
+			io.put_string (" = " + n.out_as_stored + "%N")
+			assert (str, n.out_as_stored ~ "-<100>")
+			assert (str + " x unchanged", x.out_as_stored ~ "<0>")
+			assert (str + " y unchanged", y.out_as_stored ~ "-<100>")
+				-- n := (80).plus (-100)
+			create n
+			create x.from_value (n.eight_word * n.ten_word)
+			create y.from_value (n.ten_word * n.ten_word)
+			y.negate
+			str := x.out_as_stored + fn
+			str := str + "(" + y.out_as_stored + ")"
+			io.put_string (str)
+			n := x.plus (y)
+			io.put_string (" = " + n.out_as_stored + "%N")
+			assert (str, n.out_as_stored ~ "-<20>")
+			assert (str + " x unchanged", x.out_as_stored ~ "<80>")
+			assert (str + " y unchanged", y.out_as_stored ~ "-<100>")
 		end
 
 	subtract
@@ -1214,7 +1221,7 @@ feature -- Basic operations (basic operations tests)
 			io.put_string (n.out_as_stored + "%N")
 			assert (s, n.out_as_stored ~ "<91,249,40,180,32>")
 
---			precursor
+			precursor
 		end
 
 	product

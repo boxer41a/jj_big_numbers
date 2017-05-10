@@ -142,6 +142,8 @@ feature {NONE} -- Implementation
 			-- Largest power-of-ten number representable by the type of `base'.
 			-- Used in the output functions.
 
+feature -- export for testing
+
 	random: JJ_RANDOM_8
 			-- Used to generate random numbers for placement into Current.
 			-- Deferred, because need to produce the correct type.

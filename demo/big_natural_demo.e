@@ -36,7 +36,7 @@ feature {NONE} -- Initialization
 
 --			tester.set_with_array
 --			tester.set_with_string
-			tester.set_random_with_digit_count
+--			tester.set_random_with_digit_count
 
 --			tester.new_sub_number
 --			tester.power_of_ten_table
@@ -54,12 +54,12 @@ feature {NONE} -- Initialization
 --			tester.digits_multiplied
 --			tester.multiply
 
-			tester.quotient
+--			tester.quotient
 
 --			tester.digits_added
 --			tester.base
 --			tester.scalar_add
-			tester.scalar_sum
+--			tester.scalar_sum
 
 --			tester.to_base
 --			tester.scalar_add
@@ -69,7 +69,8 @@ feature {NONE} -- Initialization
 
 --			tester.bit_shift_left
 --			tester.simple_add
-			tester.add
+--			tester.add
+			tester.plus
 
 				-- Test initialization features.
 --			io.put_string ("------------- Initization -------------------- %N")
