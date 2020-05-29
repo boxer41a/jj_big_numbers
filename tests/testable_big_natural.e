@@ -1,6 +1,6 @@
 note
 	description: "[
-		A class for testing each feature of {JJ_BIG_NATURAL_8}.  This class
+		A class for testing each feature of {JJ_BIG_NATURAL}.  This class
 		grants access to *all* features so that even the implementation
 		features, normally exported to {NONE} can be called for testing.
 	]"

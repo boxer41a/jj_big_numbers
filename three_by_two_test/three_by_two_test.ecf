@@ -34,6 +34,6 @@
 				<exclude>/three_by_two_test$</exclude>
 			</file_rule>
 		</cluster>
-		<override name="jj_override" location="$GITHUB\jj_naturals\jj_override\"/>
+		<override name="jj_override" location="$JJ_GITHUB\jj_naturals\jj_override\"/>
 	</target>
 </system>

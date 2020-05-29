@@ -1,25 +1,12 @@
 note
 	description: "[
-		This is the base class for all the {JJ_BIG_NUMBER}_xxx classes, which
-		can represent a numbers that is much larger than what is representable
-		in 32 or 64 bits.
-
-		It depends on an override cluster containing {JJ_NATURAL} and new
-		NATURAL_xx_REF classes found at https://github.com/boxer41a/jj_naturals.
-		{JJ_NATURAL} serves as a common ancestor to the NATUAL_xx_REF classes,
-		setting between the NATURAL_xx_REF classes and class {NUMERIC}.
-
-		This class implements a big number as a list of words, where each `word'
+		This is a 32-bit implementation of big numbers.
+		
+		This class implements a big number as a list words, where each `word'
 		(called a "limb" in some other big-number implementaions) represents one
 		"digit" of the number.  For example, a {JJ_BIG_NUMBER} that uses 8-bit
 		words stores the base-10 number "67,305,985" as a list of words <<4,3,2,1>>
 		equal to 4*256^3 + 3*256^2 + 2*256^1 + 1*256^0.
-
-		The descendant classes, {JJ_NATURAL_8}, {JJ_NATURAL_16}, {JJ_NATURAL_32},
-		and {JJ_NATURAL_64}, set the actual generic parameter to the corresponding
-		{JJ_NATURAL}.  The "base" of the {JJ_BIG_NUMBER} depends on the actual
-		generic parameter:  256 for eight bits, 65,536 for 16 bits, 4,294,967,296
-		for 32 bits, and 18,446,744,073,709,551,616 for 64 bits.
 
 		Create a {JJ_BIG_NUMBER} with `from_string' or one of the creation
 		routines that take a value of the same type as `word'.  Features such
@@ -61,8 +48,8 @@ note
 	]"
 	author: "Jimmy J.Johnson"
 
-deferred class
-	JJ_BIG_NATURAL [G -> JJ_NATURAL]
+class
+	BIG_NUMBER_32
 
 inherit
 
@@ -102,13 +89,13 @@ inherit
 			out
 		end
 
-	ARRAYED_LIST [G]
+	ARRAYED_LIST [NATURAL_32]
 		rename
 			item as word
 		export
 			{NONE}
 				all
-			{JJ_BIG_NATURAL}
+			{BIG_NUMBER_32}
 				prunable,
 				extend,
 -- pick one of the next three feature, no need to export/use all
@@ -135,6 +122,16 @@ inherit
 			new_filled_list
 		end
 
+create
+	default_create,
+	from_integer,
+	from_value,
+	from_string,
+	from_array,
+	make_random,
+	make_random_with_digit_count
+
+
 feature {NONE} -- Initialization
 
 	default_create
@@ -148,7 +145,7 @@ feature {NONE} -- Initialization
 			-- Initialize Current with `a_integer'.
 		do
 			default_create
-			set_with_integer (a_integer)
+--			set_with_integer (a_integer)
 		end
 
 	from_value (a_value: like word)
@@ -157,7 +154,7 @@ feature {NONE} -- Initialization
 			r, c: like word
 		do
 			default_create
-			set_with_value (a_value)
+			set_value (a_value)
 		end
 
 	from_string (a_string: STRING_8)
@@ -206,22 +203,13 @@ feature {NONE} -- Initialization
 
 feature -- Initialization
 
-	set_with_integer (a_integer: INTEGER)
-			-- Make Current equivalent to `a_integer'.
-		deferred
-		ensure
-			correct_initialization: Current.out ~ a_integer.out
-			correct_negative: a_integer < 0 implies Current.is_negative
-		end
-
-	set_with_value (a_value: like word)
+	set_value (a_value: like word)
 			-- Make Current equivalent to `a_value'.
 		local
 			r, c: like word
 			v: like word
 		do
 			wipe_out
-			set_is_negative (false)
 			extend (a_value)
 		ensure
 			has_one_word: count = 1
@@ -313,6 +301,7 @@ feature -- Initialization
 		require
 			array_exists: a_array /= Void
 			array_not_empty: not a_array.is_empty
+			has_valid_words: across a_array as it all it.item <= max_word end
 		local
 			i: INTEGER
 			d: like word
@@ -322,7 +311,6 @@ feature -- Initialization
 			from i := a_array.count
 			until i < 1
 			loop
-				d := a_array [i]
 				extend (a_array [i])
 				i := i - 1
 			end
@@ -374,7 +362,7 @@ feature -- Initialization
 			test: like Current
 		do
 				-- Initialize Current.
-			set_with_value (zero_word)
+			set_value (zero_word)
 				-- Determine the smallest possible number.
 			create s.make_filled ('0', a_count)
 			if a_count > 1 then
@@ -464,90 +452,54 @@ feature -- Constants
 --	lg_10: REAL_32 = 3.3219280949
 --			-- Log base 2 of ten.
 
-	bits_per_word: INTEGER
+	bits_per_word: INTEGER = 32
 			-- The number of bits in each word of Current in same type as `word'.
-		deferred
-		end
 
-	zero_word: like word
+	zero_word: NATURAL_32 = 0
 			-- The number zero in the same type as `base'.
-		deferred
-		end
 
-	one_word: like word
+	one_word: NATURAL_32 = 1
 			-- The number one in the same type as `base'.
-		deferred
-		end
 
-	two_word: like word
+	two_word: NATURAL_32 = 2
 			-- The number two in the same type as `word'.
-		deferred
-		end
 
-	three_word: like word
+	three_word: NATURAL_32 = 3
 			-- The number two in the same type as `word'.
-		deferred
-		end
 
-	four_word: like word
+	four_word: NATURAL_32 = 4
 			-- The number two in the same type as `word'.
-		deferred
-		end
 
-	five_word: like word
+	five_word: NATURAL_32 = 5
 			-- The number two in the same type as `word'.
-		deferred
-		end
 
-	six_word: like word
+	six_word: NATURAL_32 = 6
 			-- The number two in the same type as `word'.
-		deferred
-		end
 
-	seven_word: like word
+	seven_word:NATURAL_32 = 7
 			-- The number two in the same type as `word'.
-		deferred
-		end
 
-	eight_word: like word
+	eight_word: NATURAL_32 = 8
 			-- The number two in the same type as `word'.
-		deferred
-		end
 
-	nine_word: like word
+	nine_word: NATURAL_32 = 9
 			-- The number ten in the same type as `word'.
-		deferred
-		end
 
-	ten_word: like word
+	ten_word: NATURAL_32 = 10
 			-- The number two in the same type as `word'.
-		deferred
-		end
 
-	sixteen_word: like word
+	sixteen_word: NATURAL_32 = 16
 			-- The number 16 in the same type as `word'.
-		deferred
-		end
 
-	max_ten_power: like word
+	max_ten_power: NATURAL_32 = 1_000_000_000
 			-- Largest multiple of 10 representable in a word of Current.
-		deferred
-		ensure
-			power_of_ten: Result \\ ten_word = zero_word
-		end
 
-	max_half_word: like word
+	max_half_word: NATURAL_32 = 0x0000FFFF
 			-- The largest value representable in half the number of
 			-- bits in Current's representation of a `word'.
-		deferred
-		end
 
-	max_word: like word
+	max_word: NATURAL_32 = 0xFFFFFFFF
 			-- The largest value allowed for a `word' of Current (i.e. all ones).
-		deferred
-		ensure
-			definition: Result = zero_word - one_word
-		end
 
 	ones (a_count: INTEGER): like Current
 			-- A big number containing `a_count' words where each word
@@ -579,7 +531,6 @@ feature -- Constants
 			until i > a_count
 			loop
 				Result.extend (zero_word)
-				i := i + 1
 			end
 		end
 
@@ -593,20 +544,16 @@ feature -- Access
 
 	zero: like Current
 			-- Neutral element for "+" and "-".
-		deferred
+		do
+			create Result
 		end
 
 	one: like Current
 			-- Neutral element for "*" and "/".
-		deferred
+		do
+			create Result
+			Result.put_i_th (one_word, 1)
 		end
-
---	base: like Current
---			-- The base for Current
---		do
---			Result := get_number (max_word)
---			Result.add (one)
---		end
 
 	frozen karatsuba_threshold: INTEGER
 			-- The value above which multiplications use `karatsuba_product'.
@@ -669,18 +616,6 @@ feature -- Element change
 			karatsuba_threshold_imp.set_item (a_value)
 		end
 
-	set_div_limit (a_value: INTEGER)
-			-- Change the `div_limit', the number of words in the divisor
-			-- above which the B&Z algorithms recurse; below this number,
-			-- division reverts to `school_division'.
-		require
-			value_big_enough: a_value >= 2
-		do
-			div_limit_imp.set_item (a_value)
-		ensure
-			value_was_set: div_limit = a_value
-		end
-
 feature -- Status setting
 
 	set_is_negative (a_sign: BOOLEAN)
@@ -730,12 +665,6 @@ feature -- Status report
 			Result := i = 1 and then i_th (1) = one_word
 		end
 
-	is_even: BOOLEAN
-			-- Is Current an even number?
-		do
-			Result := i_th (1) \\ two_word = zero_word
-		end
-
 	is_base: BOOLEAN
 			-- Is Current equal to the value of the [implementation]
 			-- of the base?
@@ -753,30 +682,30 @@ feature -- Status report
 			end
 		end
 
---	is_base_multiple: BOOLEAN
---			-- Is Current a power of the [implementation]
---			-- of the base, such as <<1, 0, 0, 0, 0>>?
---		local
---			i: INTEGER
---		do
---			if count >= 2 then
---				Result := true
---					-- Must account for leading zeros
---				from i := count
---				until i = 1 or else i_th (i) /= zero_word
---				loop
---					i := i - 1
---				end
---					-- Is first non-zero word a one?
---				Result := i_th (i) = one_word
---					-- Check the remaining words for all zeros.
---				from i := i - 1
---				until not Result or else i < 1
---				loop
---					Result := i_th (i) = zero_word
---				end
---			end
---		end
+	is_base_multiple: BOOLEAN
+			-- Is Current a power of the [implementation]
+			-- of the base, such as <<1, 0, 0, 0, 0>>?
+		local
+			i: INTEGER
+		do
+			if count >= 2 then
+				Result := true
+					-- Must account for leading zeros
+				from i := count
+				until i = 1 or else i_th (i) /= zero_word
+				loop
+					i := i - 1
+				end
+					-- Is first non-zero word a one?
+				Result := i_th (i) = one_word
+					-- Check the remaining words for all zeros.
+				from i := i - 1
+				until not Result or else i < 1
+				loop
+					Result := i_th (i) = zero_word
+				end
+			end
+		end
 
 	is_negative: BOOLEAN
 			-- Is Current a negative number?
@@ -899,45 +828,6 @@ feature -- Query
 			end
 		end
 
-	magnitude_max (other: like Current): like Current
-			-- The number with the largest absolute value.
-		require
-			other_exists: other /= Void
-		local
-			neg, o_neg: BOOLEAN
-		do
-			neg := is_negative
-			o_neg := other.is_negative
-				-- Set Current and other to positive
-			set_is_negative (false)
-			other.set_is_negative (false)
-			if Current >= other then
-				Result := Current
-			else
-				Result := other
-			end
-				-- Restore the sign of Current and other
-			set_is_negative (neg)
-			other.set_is_negative (o_neg)
-		end
-
-	magnitude_min (other: like Current): like Current
-			-- The number with the smallest absolute value.
-		require
-			other_exists: other /= Void
-		local
-			neg: BOOLEAN
-		do
-			neg := other.is_negative
-			other.set_is_negative (is_negative)
-			if Current <= other then
-				Result := Current
-			else
-				Result := other
-			end
-			other.set_is_negative (neg)
-		end
-
 feature -- Basic operations (simple)
 
 	negate
@@ -977,15 +867,6 @@ feature -- Basic operations (simple)
 		do
 			Result := twin
 			Result.negate
-		end
-
-	magnitude: like Current
-			-- The absolute value of Current.
-		do
-			Result := twin
-			Result.set_is_negative (false)
-		ensure
-			not_negative: not Result.is_negative
 		end
 
 feature -- Basic operations (addition & subtraction)
@@ -1055,7 +936,7 @@ feature -- Basic operations (addition & subtraction)
 			Result.subtract (other)
 		end
 
-feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
+feature {BIG_NUMBER_32} -- Implementation (addition & subtraction)
 
 	subtract_imp (other: like Current)
 			-- Subtract other from Current.
@@ -1400,7 +1281,7 @@ feature -- Basic operations (multiplication)
 			zero_result_implies_count: Result.is_zero implies Result.count = 1
 		end
 
-feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
+feature {BIG_NUMBER_32} -- Implementation (multiplication)
 
 	simple_product (other: like Current): like Current
 			-- The result of multiplying Current and `other'.
@@ -1638,79 +1519,46 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 
 feature -- Basic operations (other)
 
-	raise (a_power: NATURAL_32)
+	raise (a_power: like Current)
 			-- Raise Current by `a_power'.
 			-- This is a slow implementation using a loop.
 		local
-			n: like Current
+			i: like Current
+			orig: like Current
 		do
-			n := power (a_power)
-			deep_copy (n)
-		end
-
-	power alias "^" (a_power: NATURAL_32): like Current
-			-- The result of raising Current to `a_power'.
-		local
-			p: NATURAL_32
-			base: like Current
-		do
-			if a_power = 0 then
-				Result := one
-			elseif a_power = 1 then
-				Result := Current.deep_twin
-			else
-				base := Current.deep_twin
-				p := a_power
-				Result := one
-				from
-				until p <= 0
+			if a_power ~ zero then
+				copy (one)
+			elseif a_power > one then
+				orig := twin
+				from i := one + one
+				until i > a_power
 				loop
-					if p \\ 2 = 0 then
-						p := p // 2
-						base := base * base
-					else
-						p := p - 1
-						Result := Result * base
-					end
+					multiply (orig)
+					i := i + one
 				end
 			end
 		end
 
-	power_modulo (a_power, a_modulus: like Current): like Current
-			-- The result of (Current raised to `a_power' modulo `a_modulus'
-		require
-			not_negative: not is_negative
-			positive_modulus: a_power > zero
-			odd_modulus: not a_modulus.is_even
-		local
-			b, p: like Current
-			two: like Current
+	integer_power alias "|pow" (a_power: like Current): like Current
+			-- Integer power of Current by `a_power'.
+			-- Does not change Current.
+			-- This is a slow implementation using a loop.
 		do
-			if a_modulus ~ one then
-				Result := zero
-			else
-				Result := one
-				two := one + one
-				b := Current \\ a_modulus
-				p := a_power.deep_twin
-				from
-				until p <= zero
-				loop
-					if p \\ two ~ one then
-						Result := (Result * b) \\ a_modulus
-					end
-					p.bit_shift_right (1)
-					b := (b * b) \\ a_modulus
-				end
-			end
-		ensure
-			result_small_enough: Result.magnitude < a_modulus.magnitude
+			Result := twin
+			Result.raise (a_power)
 		end
 
---	power alias "^" (a_power: REAL_64): REAL_64
---			-- FIX ME to return a BIG_REAL
---		do
---		end
+	power alias "^" (a_power: REAL_64): REAL_64
+			-- FIX ME to return a BIG_REAL
+		do
+		end
+
+	magnitude: like Current
+			-- The absolute value of Current.
+		do
+			Result := twin
+			Result.set_is_negative (false)
+		end
 
 feature  -- Division
 
@@ -1726,6 +1574,20 @@ feature  -- Division
 			copy (q.quot)
 		end
 
+	integer_quotient alias "//" (a_other: like Current): like Current
+			-- Integer division by `a_other', discarding any remainder.
+			-- Does not change Current.
+		do
+			Result := quotient (a_other).quot
+		end
+
+	integer_remainder alias "\\" (a_other: like Current): like Current
+			-- Remainder of the integer division of Current by `a_other'.
+			-- Does not change Current.
+		do
+			Result := quotient (a_other).rem
+		end
+
 	quotient alias "/" (a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The quotient and remainder resulting from dividing Current
 			-- by `a_other' without changing Current.
@@ -1739,7 +1601,7 @@ feature  -- Division
 			if Current ~ zero then
 					-- Numerator is zero.
 				Result := [zero, zero]
-			elseif count < a_other.count or else magnitude < a_other then
+			elseif count < a_other.count or else Current < a_other then
 					-- Denominator is bigger than numerator.
 				Result := [zero, Current.twin]
 			elseif a_other.is_one then
@@ -1764,10 +1626,8 @@ feature  -- Division
 				Result := [new_big_number (Current.i_th (1) // a_other.i_th (1)),
 							new_big_number (Current.i_th (1) \\ a_other.i_th (1))]
 			else
-					-- Do calculations with positive numbers...
-					-- to be corrected below
-				x := magnitude
-				y := a_other.magnitude
+				x := twin
+				y := a_other.twin
 				i := y.normalize
 				n := 0
 				x.bit_shift_left (i)
@@ -1789,37 +1649,9 @@ feature  -- Division
 				Result.rem.set_stable
 				Result.quot.set_stable
 			end
-				-- Correct the signs of the answer.
-				-- Remember, calculations are done with magnitude only
-			if not is_same_sign (a_other) then
-				Result.quot.set_is_negative (true)
-			end
-			if is_negative then
-				Result.rem.set_is_negative (true)
-			end
-		ensure
-			valid_result: (Result.quot * a_other + Result.rem) ~ Current
-			remainder_large_enough: Result.rem.magnitude >= zero
-			remainder_small_enough: Result.rem.magnitude < a_other.magnitude
 		end
 
-	integer_quotient alias "//" (a_other: like Current): like Current
-			-- Integer division by `a_other', discarding any remainder.
-			-- Does not change Current.
-		do
-			Result := quotient (a_other).quot
-		end
-
-	integer_remainder alias "\\" (a_other: like Current): like Current
-			-- Remainder of the integer division of Current by `a_other'.
-			-- Does not change Current.
-		do
-			Result := quotient (a_other).rem
-		ensure
-			result_small_enough: Result.magnitude < a_other.magnitude
-		end
-
-	scalar_quotient_with_remainder (a_word: like word): TUPLE [quot, rem: like Current]
+	scalar_quotient (a_word: like word): TUPLE [quot, rem: like Current]
 			-- Divide Current by `a_word' giving a quotient and remainder.
 			-- Basic division of a number by one word.
 			-- Complexity = O(n).
@@ -1841,7 +1673,7 @@ feature  -- Division
 			definition: Result.quot.scalar_product (a_word) + Result.rem ~ Current
 		end
 
-feature {JJ_BIG_NATURAL} -- Implementation (division)
+feature {BIG_NUMBER_32} -- Implementation (division)
 
 	div_limit_imp: INTEGER_32_REF
 			-- Implementation of the `div_limit', the denominator word count
@@ -1869,7 +1701,7 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			u12: like Current
 			r: like Current				-- a remainder
 			q, q_hat, d: like Current
---			tup: like divide_two_words_by_one
+			tup: like divide_two_words_by_one
 		do
 			if a.is_zero then
 				Result := [new_big_number (zero_word), new_big_number (zero_word)]
@@ -1986,7 +1818,6 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 						-- because ?  remove if never reached.
 				end
 				Result := divide_two_words_by_one (a.i_th ((2)), a.i_th (1), a_other.i_th (1))
---				Result := divide_two_words_by_one (a, a_other)
 			else
 				n := a_other.count
 				half_n := n // 2
@@ -2305,8 +2136,8 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			Result := [quot, rem]
 		ensure
 			quotient_short_enough: Result.quot.count <= 2
-			result_checks: Result.quot.scalar_product (a_divisor) + Result.rem ~
-							new_big_number (a_high).shifted_left (1).scalar_sum (a_low)
+--			result_checks: Result.quot.scalar_product (a_divisor) + Result.rem ~
+--							new_big_number (a_high).shifted_left (1).scalar_sum (a_low)
 		end
 
 	div_three_halves_by_two (A, a3, B: like word): TUPLE [quot, rem: like word]
@@ -2396,11 +2227,47 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			d: like word
 			i: INTEGER
 		do
-			Result := bits_per_word - i_th (count).most_significant_bit
+			Result := bits_per_word - most_significant_bit (i_th (count))
 			bit_shift_left (Result)
 		ensure
 			is_normalized: is_normalized
 			unchanged_count: count = old count
+		end
+
+	most_significant_bit (a_value: like word): INTEGER
+			-- The index (starting with one at the least significant bit
+			-- and increasing up to `bit_count' for the most significant
+			-- bit) of the most significant bit that is set.
+		local
+			n: like word
+			b: ARRAY [like word]
+			s: ARRAY [INTEGER]
+			i: INTEGER
+		do
+				-- Naive approach
+			from n := a_value		-- copy semantics for basic types
+			until n <= zero_word
+			loop
+				Result := Result + 1
+				n := n.bit_shift_right (1)
+			end
+				-- There should be a O(lg(n)) approach.  Fix me!
+				-- See https://graphics.stanford.edu/~seander/bithacks.html
+--			n := Current
+--			b := <<0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000>>
+--			s := <<1, 2, 4, 8, 16>>
+--			from i := 4
+--			until i < 0
+--			loop
+--				if n.bit_and (b[i]) > 0 then
+--					n := n.bit_shift_right (s[i])
+--					Result := Result.bit_or (s[i])
+--				end
+--				i := i - 1
+--			end
+		ensure
+			zero_result_definition: Result = zero implies a_value = zero
+			result_small_enough: Result <= 32
 		end
 
 	is_normalized: BOOLEAN
@@ -2430,25 +2297,23 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			d: like word
 			i: INTEGER
 		do
-			if a_shift > 0 then
-				c := zero_word
-				from i := 1
-				until i > count
-				loop
-						-- Determine the carry out
-					c_out := i_th (i).bit_shift_right (bits_per_word - a_shift)
-						-- Shift to far to zero out unutilized bits.
-					d := i_th (i).bit_shift_left (a_shift)
-						-- Shift back to prepare for modulo add
-					d := d.bit_shift_right (bits_per_word - bits_per_word)
-						-- Modulo add the carry
-					put_i_th (d + c, i)
-					c := c_out
-					i := i + 1
-				end
-				if c > zero_word then
-					extend (c)
-				end
+			c := zero_word
+			from i := 1
+			until i > count
+			loop
+					-- Determine the carry out
+				c_out := i_th (i).bit_shift_right (bits_per_word - a_shift)
+					-- Shift to far to zero out unutilized bits.
+				d := i_th (i).bit_shift_left (a_shift)
+					-- Shift back to prepare for modulo add
+				d := d.bit_shift_right (bits_per_word - bits_per_word)
+					-- Modulo add the carry
+				put_i_th (d + c, i)
+				c := c_out
+				i := i + 1
+			end
+			if c > zero_word then
+				extend (c)
 			end
 		ensure
 			count_might_grow: count <= old count + 1
@@ -2457,7 +2322,7 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 	bit_shift_right (a_shift: INTEGER_32)
 			-- Change Current by shifting the bits right by `a_number', carrying
 			-- into the lower-order word if required.
-			-- Bits could be lost as they are shifted off the end.
+			-- Bits could be lost as they are shifted of the end.
 		require
 			shift_big_enough: a_shift >= 0
 		local
@@ -2490,6 +2355,45 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 		end
 
 feature -- Comparison
+
+	magnitude_max (other: like Current): like Current
+			-- The number with the largest absolute value.
+		require
+			other_exists: other /= Void
+		local
+			neg, o_neg: BOOLEAN
+		do
+			neg := is_negative
+			o_neg := other.is_negative
+				-- Set Current and other to positive
+			set_is_negative (false)
+			other.set_is_negative (false)
+			if Current >= other then
+				Result := Current
+			else
+				Result := other
+			end
+				-- Restore the sign of Current and other
+			set_is_negative (neg)
+			other.set_is_negative (o_neg)
+		end
+
+	magnitude_min (other: like Current): like Current
+			-- The number with the smallest absolute value.
+		require
+			other_exists: other /= Void
+		local
+			neg: BOOLEAN
+		do
+			neg := other.is_negative
+			other.set_is_negative (is_negative)
+			if Current <= other then
+				Result := Current
+			else
+				Result := other
+			end
+			other.set_is_negative (neg)
+		end
 
 feature -- Output
 
@@ -2627,7 +2531,7 @@ feature -- Output
 			end
 		end
 
-feature {JJ_BIG_NATURAL} -- Implementation
+feature {BIG_NUMBER_32} -- Implementation
 
 	shift_left (a_shift: INTEGER)
 			-- Shift the words to the left by putting zeros into the
@@ -2777,7 +2681,7 @@ feature {NONE} -- Implementation
 				Result := new_big_number (a_value)
 			else
 				Result := number_cache.item
-				Result.set_with_value (a_value)
+				Result.set_value (a_value)
 				number_cache.remove
 			end
 		end
@@ -2791,18 +2695,27 @@ feature {NONE} -- Implementation
 			number_cache.extend (a_number)
 		end
 
-	number_cache: LINKED_STACK [like Current]
+	number_cache: LINKED_STACK [BIG_NUMBER_32]
 			-- A collection of previously created numbers from which to
 			-- select to reduce the number of creations.
 			-- I would like this to be a once feature, but a once feature
 			-- can not have an anchored result.
-		deferred
+		once
+			create Result.make
 		end
 
 	new_big_number (a_value: like word): like Current
 			-- Create an instance equivalent to `a_value'.
 			-- Used throughout to obtain a {JJ_BIG_NUMBER} of the correct type.
-		deferred
+		do
+			if number_cache.is_empty then
+				create Result.from_value (a_value)
+			else
+				Result := number_cache.item
+				Result.set_value (a_value)
+				Result.set_is_negative (false)
+				number_cache.remove
+			end
 		end
 
 	new_combined_number (a_high, a_low: like Current): like Current
@@ -2898,14 +2811,15 @@ feature {NONE} -- Implementation
 			end
 		end
 
-	power_of_ten_table: HASH_TABLE [like Current, like Current]
+	power_of_ten_table: HASH_TABLE [BIG_NUMBER_32, BIG_NUMBER_32]
 			-- Table used by `from_string' to memoize the powers of ten in the
 			-- same representation as Current.  It contains a value indexed by
 			-- a power.
 			--     [ the value,  a power]
 			-- It is deferred, because Eiffel does not allow a once function
 			-- to have a generic or anchored result.
-		deferred
+		once
+			create Result.make (Default_table_size)
 		end
 
 	limbs_needed_for_x_digits (a_count: INTEGER): INTEGER
@@ -2950,24 +2864,16 @@ feature {NONE} -- Implementation
 			Result := acc + a_number.count * bits_per_word - (bits_per_word + 1)
 		end
 
-	integer_as_word (a_integer: INTEGER_32): like word
-			-- The equivalent value of `a_integer' in same type as `word'
-		require
-			not_too_big: a_integer.abs <= max_word.as_integer_32
-		deferred
-		ensure
-			same_values: Result.as_integer_32 ~ a_integer.abs
-		end
-
 	Default_table_size: INTEGER = 10
 			-- The initial capacity assigned to the `power_of_ten_table'.
 
 feature -- export for testing
 
-	random: JJ_NATURAL_RNG [like word]
+	random: JJ_RANDOM_32
 			-- Used to generate random numbers for placement into Current.
 			-- Deferred, because need to produce the correct type.
-		deferred
+		once
+			create Result
 		end
 
 invariant
@@ -2978,3 +2884,4 @@ invariant
 	is_negative_implies_non_zero: is_negative implies not is_zero
 
 end
+

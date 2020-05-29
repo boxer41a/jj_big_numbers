@@ -130,7 +130,7 @@ feature -- Basic operations
 			q := a // tup.b1	-- Line 6
 			c := a \\ tup.b1	-- Same as "c := A - q * b1" (i.e. remainder).
 --			d := q * tup.b2		-- Error:  this line can cause overflow !!!
-			create D.make_with_value (q)
+			create D.from_value (q)
 			D.scalar_multiply (tup.b2)
 				-- Add half-word of numerator to remainder.
 			ca := as_full_digit (c, a3)

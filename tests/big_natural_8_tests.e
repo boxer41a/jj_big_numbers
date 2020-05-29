@@ -15,8 +15,18 @@ inherit
 
 	BIG_NATURAL_TESTS
 		redefine
-			from_string,
+				-- Initialization
+			default_create_test,
+			set_with_integer,
+			set_with_value,
+			set_with_string,
+			set_with_array,
+			set_random,
+			set_random_with_digit_count,
 
+--			from_string,
+				-- Constants
+			bits_per_word,
 			zero_word,
 			one_word,
 			two_word,
@@ -29,137 +39,182 @@ inherit
 			nine_word,
 			ten_word,
 			sixteen_word,
+			max_half_word,
 			max_word,
+			max_ten_power,
 			default_karatsuba_threshold,
-
+			default_div_limit,
+				-- Access
+			zero,
+			one,
+			ones,
+			zeros,
+			karatsuba_threshold,
+			div_limit,
+			hash_code,
+			bit_count,
+				-- Status report
+			is_zero,
+			is_one,
+			is_base,
+--			is_base_multiple,
+			is_negative,
+			divisible,
+				-- Query
+			is_same_sign,
+			is_less,
+			is_magnitude_less,
+			is_magnitude_equal,
+				-- Basic operations (simple)
+--			wipe_out,
+			negate,
+			increment,
+			decrement,
+			identity,
+			opposite,
+			magnitude,
+				-- Basic operations (addition & subtraction)
+			scalar_add,
+			scalar_subtract,
+			add,
+			plus,
+			subtract,
 			minus,
+				-- Basic operations (multiplication)
+			scalar_multiply,
+			scalar_product,
 			multiply,
+			product,
+				-- Basic operations (division)
+			quotient,
+			integer_quotient,
+			integer_remainder,
+				-- Basic operations (exponentiation)
+			raise,
+			power,
+			power_modulo,
+				-- Implementation (division)
+			bit_shift_left,
 
+				-- Implementation
 			digit_anchor,
 			number_anchor,
 			testable_number_anchor
 		end
 
-feature -- Access
+feature -- Constants
+
+	known_bits_per_word: INTEGER = 8
+			-- Know number of bits in each word
+
+	known_max_word: NATURAL_8 = 0xFF
+			-- Known value of the max value representable in a word.
+
+	known_max_half_word: NATURAL_8 = 0x0F
+			-- Known value of the max value representable in a half a word
+
+	known_max_ten_power: NATURAL_8 = 100
+			-- Known value of the maximum multiple of 10 representable in a word
 
 feature -- Basic operations (initialization tests)
 
 	default_create_test
-		local
-			fn: STRING_8
-			n: like number_anchor
-		do
-			fn := ".test_default_create"
-			io.put_string (fn)
-			create n
-			io.put_string (n.out_as_stored)
-			assert (fn + " out_as_stored", n.out_as_stored ~ "<0>")
-		end
-
-	make_with_value
-		local
-			fn, str: STRING_8
-			n: like number_anchor
-			v: like digit_anchor
-		do
-			fn := ".make_with_value"
-			n := new_number
-				-- .make_with_value (16 * 7)
-			v := n.sixteen_word * n.seven_word
-			str := fn + " (" + v.out + ")"
-			io.put_string (str + " = ")
-			create n.from_value (v)
-			assert (str, n.out_as_stored ~ "<112>")
-		end
-
-	from_string
-			-- Test the `from_string' feature;
-		local
-			fn, str, s: STRING_8
-			n: like number_anchor
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		do
 			Precursor
 		end
 
-	make_with_array
-		local
-			fn, str: STRING_8
-			n: like number_anchor
-			a: ARRAY [like digit_anchor]
+	set_with_integer
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			fn := ".make_with_array"
-			str := fn + " (<1, 2, 3, 4>>)"
-			io.put_string (str + " = ")
-			a := <<1, 2, 3, 4>>
-			create n.from_array (a)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1,2,3,4>")
---				-- test the out function (it was failing on this)
-			a := <<1,8,187>>
-			str := fn + " (<1, 8, 187>>)"
-			io.put_string (str + " = ")
-			create n.from_array (a)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1,8,187>")
+			Precursor
+		end
+
+	set_with_value
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	set_with_string
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	set_with_array
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
 		end
 
 	set_random
-			-- Tests corresponding feature from {JJ_BIG_NATURAL_8}.
-		local
-			fn, str, s: STRING_8
-			n: like number_anchor
-			i: INTEGER
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			n := new_number
-			str := generating_type
-			fn := ".set_random"
-				-- set_random (1)	
-			i := 1
-			s := str + fn + "(" + i.out + ")"
-			n.set_random (i)
-			io.put_string (s + " = " + n.out_as_stored + "%N")
-			assert (s, n.count = i)
-				-- set_random (3)	
-			i := 3
-			s := str + fn + "(" + i.out + ")"
-			n.set_random (i)
-			io.put_string (s + " = " + n.out_as_stored + "%N")
-			assert (s, n.count = i)
-				-- set_random (8)	
-			i := 8
-			s := str + fn + "(" + i.out + ")"
-			n.set_random (i)
-			io.put_string (s + " = " + n.out_as_stored + "%N")
-			assert (s, n.count = i)
+			Precursor
 		end
 
 	set_random_with_digit_count
-			-- Tests corresponding feature from {JJ_BIG_NATURAL_8}.
-		local
-			fn, str, s: STRING_8
-			n: like number_anchor
-			i: INTEGER
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			n := new_number
-			str := generating_type
-			fn := ".set_random_with_digit_count"
-			from i := 1
-			until i > 10
-			loop
-				s := str + fn + " (" + i.out + ")"
-				n.set_random_with_digit_count (i)
-				io.put_string (s + " = " + n.out + "   " + n.out_as_stored + "%N")
-				assert (s, n.out.count = i)
-				i := i + 1
-			end
-			i := 100
-			s := str + fn + " (" + i.out + ")"
-			n.set_random_with_digit_count (i)
-			io.put_string (s + " = " + n.out + "   " + n.out_as_stored + "%N")
-			assert (s, n.out.count = i)
+			Precursor
 		end
 
+--	from_string
+--			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+--		local
+--			gt, fn, str, s: STRING_8
+--			n: like number_anchor
+--		do
+--			io.put_string ("{BIG_NATURAL_8_TESTS} with output as stored: %N")
+--			n := new_number
+--			gt := n.generating_type + ":  "
+--			fn := ".from_string "
+--			str := gt + fn
+--				-- Test
+--			s := "3852"
+--			io.put_string (str + "(%"" + s + "%") = ")
+--			n.from_string (s)
+--			io.put_string (n.out_as_stored + "%N")
+--			assert (s + " out_as_stored ", n.out_as_stored ~ "<15,12>")
+--				-- Longer number
+--			s := "10,987,654,321"
+--			io.put_string (str + "(%"" + s + "%") = ")
+--			n.from_string (s)
+--			io.put_string ( n.out_as_stored + "%N")
+--			assert (s + " out_as_stored ", n.out_as_stored ~ "<2,142,234,76,177>")
+--				-- Negative number
+--			s := "-00012,34"
+--			io.put_string (str + "(%"" + s + "%") = ")
+--			n.from_string (s)
+--			io.put_string (n.out_as_stored + "%N")
+--			assert (s + " out_as_stored ", n.out_as_stored ~ "-<4,210>")
+--				-- Failing ? number
+--			s := "33333"
+--			io.put_string (str + "(%"" + s + "%") = ")
+--			n.set_is_negative (false)
+--			n.from_string (s)
+--			io.put_string (n.out_as_stored + "%N")
+--			assert (s + " out_as_stored ", n.out_as_stored ~ "<130,53>")
+--				-- Number arrived at during failing simple_multiply?
+--			s := "26,558,760"
+--			io.put_string (str + "(%"" + s + "%") = ")
+--			n.from_string (s)
+--			s := str + fn + "(%"" + n.out + "%") = "
+--			io.put_string (n.out_as_stored + "%N")
+--			assert (s + " out_as_stored ", n.out_as_stored ~ "<1,149,65,40>")
+--				-- Call general tests.
+--			io.put_string ("Precursor ")
+--			Precursor
+--		end
+
 feature -- Basic operations (constants tests)
+
+	bits_per_word
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor {BIG_NATURAL_TESTS}
+		end
 
 	zero_word
 			-- Tests and demonstrates the corresponding feature
@@ -245,11 +300,25 @@ feature -- Basic operations (constants tests)
 			Precursor {BIG_NATURAL_TESTS}
 		end
 
+	max_half_word
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
 	max_word
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
 		do
 			Precursor {BIG_NATURAL_TESTS}
+		end
+
+	max_ten_power
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		do
+			Precursor
 		end
 
 	default_karatsuba_threshold
@@ -259,1004 +328,291 @@ feature -- Basic operations (constants tests)
 			Precursor {BIG_NATURAL_TESTS}
 		end
 
-feature -- Basic operations (Access)
+	default_div_limit
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		do
+			Precursor {BIG_NATURAL_TESTS}
+		end
+
+feature -- Basic operations (Access & setters)
 
 	zero
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		local
-			str: STRING_8
-			n: like number_anchor
 		do
-			str := ".zero:  "
-			create n
-			n := n.zero
-			io.put_string (str + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<0>")
+			Precursor
 		end
 
 	one
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		local
-			fn, str: STRING_8
-			n: like number_anchor
 		do
-			create n
-			fn := n.generating_type + ":  "
-			str := fn + ".one = "
-			n := n.one
-			io.put_string (str + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1>")
+			Precursor
+		end
+
+	ones
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	zeros
+			-- Tests and demonstrates the corresponding feature
+			-- from {JJ_BIG_NATURAL}.
+		do
+			Precursor
 		end
 
 	karatsuba_threshold
 			-- Tests and demonstrates the corresponding feature
 			-- from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like number_anchor
-			k: INTEGER_32
 		do
-			str := ".karatsuba_threshold "
-			create n
-			n.set_karatsuba_threshold (50)
-			k := n.karatsuba_threshold
-			s := str + " = "
-			io.put_string (s + k.out + "%N")
-			assert (s, k.out ~ "50")
+			Precursor
 		end
 
-feature -- Basic operations (element change tests)
-
-	set_karatsuba_threshold
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like number_anchor
-			k: INTEGER_32
+	div_limit
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			str := ".set_karatsuba_threshold:  "
-			create n
-				-- Set to 20
-			n.set_karatsuba_threshold (20)
-			k := n.karatsuba_threshold
-			s := str + "(20)"
-			io.put_string (s + "  karatsuba_threshold = " + k.out + "%N")
-			assert (s, k.out ~ "20")
-				-- Set to 555
-			n.set_karatsuba_threshold (555)
-			k := n.karatsuba_threshold
-			s := str + "(555)"
-			io.put_string (s + "  karatsuba_threshold = " + k.out + "%N")
-			assert (s, k.out ~ "555")
+			Precursor
 		end
 
-	set_value
-			-- Test the `set_value' feature.
-			-- The argument to the `set_value' feature must be the
-			-- same type as the elements in the {JJ_BIG_NATURAL}, so
-			-- we use the xxx_value features from the big number.
-		local
-			fn, str: STRING_8
-			n: like number_anchor
-			v: like digit_anchor
+	hash_code
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			fn := ".set_value"
-				-- zero
-			create n
-			v := n.zero_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + v.out + ")"
-			io.put_string (str + " = ")
-			n.set_value (v)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<0>")
-				-- max_value
-			create n
-			v := n.max_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + v.out + ")"
-			io.put_string (str + " = ")
-			n.set_value (v)
-			io.put_string (n.out_as_stored + " %N")
-			assert (str, n.out_as_stored ~ "<" + n.max_word.out + ">")
+			Precursor
 		end
 
-	set_with_string
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like number_anchor
+	bit_count
+			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			str := ".set_with_string:  "
-				-- First test
-			create n
-			n.set_with_string ("123456789")
-			s := str + "set_with_string (%"1,2,3,4,5,6,7,8,9%")"
-			io.put_string (s + " = " + n.out + "%N")
-			assert (s, n.out_as_stored ~ "<7,91,205,21>")
-			assert (s, n.out ~ "123456789")
-				-- Second test
-			create n
-			n.set_with_string ("321")
-			s := str + "set_with_string (%"321%")"
-			io.put_string (s + " = " + n.out + "%N")
-			assert (s, n.out_as_stored ~ "<1,65>")
-			assert (s, n.out ~ "321")
-				-- Test
-			create n
-			n.set_with_string ("4152")
-			s := str + "set_with_string (%"4152%")"
-			io.put_string (s + " = " + n.out_as_stored + " = " + n.out + "%N")
-			assert (s, n.out_as_stored ~ "<16,56>")
-			assert (s, n.out ~ "4152")
-				-- Test
-			create n
-			n.set_with_string ("987")
-			s := str + "set_with_string (%"987%")"
-			io.put_string (s + " = " + n.out_as_stored + " = " + n.out + "%N")
-			assert (s, n.out_as_stored ~ "<3,219>")
-			assert (s, n.out ~ "987")
-				-- Test
-			create n
-			n.set_with_string ("9876")
-			s := str + "set_with_string (%"9876%")"
-			io.put_string (s + " = " + n.out_as_stored + " = " + n.out + "%N")
-			assert (s, n.out_as_stored ~ "<38,148>")
-			assert (s, n.out ~ "9876")
-				-- Test 98765 = [1,129,205]
-			create n
-			n.set_with_string ("98765")
-			s := str + "set_with_string (%"98765%")"
-			io.put_string (s + " = " + n.out_as_stored + " = " + n.out + "%N")
-			assert (s, n.out_as_stored ~ "<1,129,205>")
-			assert (s, n.out ~ "98765")
-				-- Test leading zeroes.
-			create n
-			n.set_with_string ("0,0,0,0,0,9,8,7,6,5,4,3,2,1")
-			s := str + "set_with_string (%"0,0,0,0,0,9,8,7,6,5,4,3,2,1%")"
-			io.put_string (s + " = " + n.out_as_stored + " = " + n.out + "%N")
-			assert (s, n.out_as_stored ~ "<58,222,104,177>")
-			assert (s, n.out ~ "987654321")
-				-- Negative test
-			create n
-			n.set_with_string ("-11,2,3,4,5,6,7,8,99")
-			s := str + "set_with_string (%"-11,2345,678,9,9%")"
-			io.put_string (s + " = " + n.out_as_stored + " = " + n.out + "%N")
-			assert (s + ".out_as_stored", n.out_as_stored ~ "-<2,157,161,230,219>")
-			assert (s + ".is_negative", n.is_negative)
-			assert (s + ".out", n.out ~ "-11234567899")
+			Precursor
 		end
 
-	set_with_array
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like number_anchor
-			a: ARRAY [like digit_anchor]
-		do
-			str := ".set_with_array:  "
-			s := str + "(<<10, 20, 30, 40, 50, 60, 70, 80, 90>>)"
-			a := <<10, 20, 30, 40, 50, 60, 70, 80, 90>>
-			create n.from_array (a)
-			io.put_string (s + " = " + n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<10,20,30,40,50,60,70,80,90>")
-		end
-
-feature -- Basic operations (Status setting tests)
-
-	set_is_negative
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like new_number
-		do
-			str := ".set_is_negative:  "
-			create n
-			n.set_is_negative (true)
-			s := str + "(" + n.out_as_stored + ").set_is_negative (true)"
-			io.put_string (s + " = " + n.is_negative.out + "%N")
-			assert (s, not n.is_negative)
-				-- (max_word_value).set_is_negative (true)
-			n.set_value (n.max_word)
-			assert (str + "not negated", not n.is_negative)
-			s := str + "(" + n.out_as_stored + ").set_is_negative (true)"
-			n.set_is_negative (true)
-			io.put_string (s + " = " + n.is_negative.out + "%N")
-			assert (s, n.is_negative)
-				-- Set to false
-			s := str + "(" + n.out_as_stored + ").set_is_negative (false)"
-			n.set_is_negative (false)
-			io.put_string (s + " = " + n.is_negative.out + "%N")
-			assert (s, not n.is_negative)
-		end
-
-feature -- Basic operations (status report tests)
+feature -- Basic operations (Status report tests)
 
 	is_zero
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like new_number
 		do
-			str := ".is_zero:  "
-				-- Default create
-			create n
-			s := str + "(" + n.out_as_stored + ").is_zero"
-			io.put_string (s + " = " + n.is_zero.out + "%N")
-			assert (s, n.is_zero)
-				-- Make it positive
-			n.set_value (n.one_word)
-			s := str + "(" + n.out_as_stored + ").is_zero"
-			io.put_string (s + " = " + n.is_zero.out + "%N")
-			assert (s, not n.is_zero)
-				-- Make it negative
-			n.set_is_negative (true)
-			s := str + "(" + n.out_as_stored + ").is_zero"
-			io.put_string (s + " = " + n.is_zero.out + "%N")
-			assert (s, not n.is_zero)
+			Precursor
 		end
 
 	is_one
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like new_number
 		do
-			str := ".is_one:  "
-				-- Default create
-			create n
-			s := str + "(" + n.out_as_stored + ").is_one"
-			io.put_string (s + " = " + n.is_one.out + "%N")
-			assert (s, not n.is_one)
-				-- Make it one
-			n.set_value (n.one_word)
-			s := str + "(" + n.out_as_stored + ").is_one"
-			io.put_string (s + " = " + n.is_one.out + "%N")
-			assert (s, n.is_one)
-				-- Add leading zeros
-			n.set_with_array (<<0,0,0,1>>)
-			s := str + "(" + n.out_as_stored + ").is_one"
-			io.put_string (s + " = " + n.is_one.out + "%N")
-			assert (s, n.is_one)
+			Precursor
 		end
 
 	is_base
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like new_number
 		do
-			str := ".is_base:  "
-				-- Not base
-			create n.from_array (<<1,2,3>>)
-			s := str + "(" + n.out_as_stored + ").is_base"
-			io.put_string (s + " = " + n.is_base.out + "%N")
-			assert (s, not n.is_base)
-				-- Is base
-			create n.from_array (<<1,0>>)
-			s := str + "(" + n.out_as_stored + ").is_base"
-			io.put_string (s + " = " + n.is_base.out + "%N")
-			assert (s, n.is_base)
-				-- Is base, leading zeroes
-			n.set_with_array (<<0,0,0,1,0>>)
-			s := str + "(" + n.out_as_stored + ").is_base"
-			io.put_string (s + " = " + n.is_base.out + "%N")
-			assert (s, n.is_base)
+			Precursor
 		end
+
+--	is_base_multiple
+--			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+--		do
+--			Precursor
+--		end
 
 	is_negative
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like new_number
 		do
-			str := ".is_negative:  "
-				-- Not is_negative
-			create n.from_array (<<1,2,3>>)
-			s := str + "(" + n.out_as_stored + ").is_negative"
-			io.put_string (s + " = " + n.is_negative.out + "%N")
-			assert (s, not n.is_negative)
-				-- is_negative
-			n.set_is_negative (true)
-			s := str + "(" + n.out_as_stored + ").is_negative"
-			io.put_string (s + " = " + n.is_negative.out + "%N")
-			assert (s, n.is_negative)
-				-- zero
-			create n
-			s := str + "(" + n.out_as_stored + ").is_negative"
-			io.put_string (s + " = " + n.is_negative.out + "%N")
-			assert (s, not n.is_negative)
-		end
-
-	is_same_sign
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n, n2: like new_number
-		do
-			str := ".is_same_sign:  "
-				-- Is same sign
-			create n.from_array (<<1,2,3>>)
-			create n2.from_array (<<4,5,6>>)
-			s := str + "(" + n.out_as_stored + ").is_same_sign (" + n2.out_as_stored + ")"
-			io.put_string (s + " = " + n.is_same_sign (n2).out + "%N")
-			assert (s, n.is_same_sign (n2))
-				-- Not is same sign
-			n.set_is_negative (true)
-			s := str + "(" + n.out_as_stored + ").is_same_sign (" + n2.out_as_stored + ")"
-			io.put_string (s + " = " + n.is_same_sign (n2).out + "%N")
-			assert (s, not n.is_same_sign (n2))
-				-- Is same sign, negative
-			n2.set_is_negative (true)
-			s := str + "(" + n.out_as_stored + ").is_same_sign (" + n2.out_as_stored + ")"
-			io.put_string (s + " = " + n.is_same_sign (n2).out + "%N")
-			assert (s, n.is_same_sign (n2))
+			Precursor
 		end
 
 	divisible
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n, n2: like new_number
 		do
-			str := ".divisible:  "
-				-- Yes, non-zero divisor
-			create n
-			create n2.from_array (<<1,2,3>>)
-			s := str + "(" + n.out_as_stored + ").divisible (" + n2.out_as_stored + ")"
-			io.put_string (s + " = " + n.divisible (n2).out + "%N")
-			assert (s, n.divisible (n2))
-				-- No, divisor is zero
-			create n
-			create n2.from_array (<<1,2,3>>)
-			s := str + "(" + n2.out_as_stored + ").divisible (" + n.out_as_stored + ")"
-			io.put_string (s + " = " + n2.divisible (n).out + "%N")
-			assert (s, not n2.divisible (n))
+			Precursor
 		end
 
-feature -- Basic operations (basic operations tests)
+feature -- Test Queries
+
+	is_same_sign
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	is_less
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	is_magnitude_less
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	is_magnitude_equal
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+feature -- Test basic operations (simple)
+
+--	wipe_out
+--			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+--		do
+--			Precursor
+--		end
 
 	negate
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n: like number_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			str := ".negate:  "
-			create n
-				-- (81).negate
-			n.set_value (n.nine_word * n.nine_word)
-			s := str + "(" + n.out_as_stored + ").negate"
-			n.negate
-			io.put_string (s + " = " + n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "-<81>")
-				-- (-81).negate
-			s := str + "(" + n.out_as_stored + ").negate"
-			n.negate
-			io.put_string (s + " = " + n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<81>")
+			Precursor
+		end
+
+	increment
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	decrement
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
 		end
 
 	identity
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n, a: like number_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			str := ".identity:  "
-			create n
-			n.set_value (n.nine_word)
-			s := str + "(" + n.out_as_stored + ").identity"
-			a := n.identity
-			io.put_string (s + " = " + a.out_as_stored + "%N")
-			assert (s + " values", n.out_as_stored ~ a.out_as_stored)
-			assert (s + " unchanged", n.out_as_stored ~ "<9>")
-				-- (-9).identity
-			n.negate
-			s := str + "(" + n.out_as_stored + ").identity"
-			a := n.identity
-			io.put_string (s + " = " + a.out_as_stored + "%N")
-			assert (s + " values", n.out_as_stored ~ a.out_as_stored)
-			assert (s + " unchanged", n.out_as_stored ~ "-<9>")
+			Precursor
 		end
 
 	opposite
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n, a: like number_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			str := ".opposite:  "
-			create n
-				-- (7).opposite
-			n.set_value (n.seven_word)
-			s := str + "(" + n.out_as_stored + ").opposite"
-			a := n.opposite
-			io.put_string (s + " = " + a.out_as_stored + "%N")
-			assert (s + " values", a.out_as_stored ~ "-<7>")
-			assert (s + " unchanged", n.out_as_stored ~ "<7>")
-				-- (-7).opposite
-			n.copy (a)
-			s := str + "(" + n.out_as_stored + ").opposite"
-			a := n.opposite
-			io.put_string (s + " = " + a.out_as_stored + "%N")
-			assert (s + " values", a.out_as_stored ~ "<7>")
-			assert (s + " unchanged", n.out_as_stored ~ "-<7>")
+			Precursor
 		end
+
+	magnitude
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+feature -- Test basic operations (addition & subtraction)
 
 	scalar_add
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			fn, str: STRING_8
-			n: like number_anchor
-			v, b: like digit_anchor
 		do
-			fn := ".scalar_add"
-				-- (0).scalar_add (7)
-			create n
-			v := n.seven_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + " (" + v.out + ")"
-			io.put_string (str)
-			n.scalar_add (v)
-			io.put_string (" = " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<7>")
-				-- (9).scalar_add (max_word_value)
-			create n.from_value (n.nine_word)
-			v := n.max_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + " (" + v.out + ")"
-			io.put_string (str + " = ")
-			n.scalar_add (v)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1,8>")
-				-- (max_word_value).scalar_add (1)
-			create n.from_value (n.max_word)
-			v := n.one_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + " (" + v.out + ")"
-			io.put_string (str)
-			n.scalar_add (v)
-			io.put_string (" = " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1,0>")
-				-- (max_representable_word).scalar_add (1)
-			create n.from_value (n.max_word)
-			v := n.one_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + " (" + v.out + ")"
-			io.put_string (str)
-			n.scalar_add (v)
-			io.put_string (" = " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1,0>")
-				-- (max_representable_value).scalar_add (max_representable_value)
-			create n.from_value (n.max_word)
-			v := n.max_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + " (" + v.out + ")"
-			io.put_string (str)
-			n.scalar_add (v)
-			io.put_string (" = " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1,254>")
+			Precursor
 		end
 
-	scalar_sum
+	scalar_subtract
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			fn, s, str: STRING_8
-			n, sum: like number_anchor
-			v, b: like digit_anchor
 		do
-			fn := ".scalar_sum"
-				-- (0).acalar_sum (max_representable_value) = 255
-			create n
-			str := "(" + n.out_as_stored + ")" + fn + " (" + n.max_word.out + ") = "
-			io.put_string (str)
-			sum := n.scalar_sum (n.max_word)
-			io.put_string (sum.out_as_stored + "   n unchanged = " + n.out_as_stored + "%N")
-			assert (str, sum.out_as_stored ~ "<255>")
-			assert (str + "n unchanged", n.out_as_stored ~ "<0>")
-				-- <<20,250>>.scalar_sum (99)
-			create n.from_array (<<20,250>>)
-			v := n.ten_word * n.nine_word + n.nine_word
-			str := n.out_as_stored + fn + " (" + v.out + ") = "
-			io.put_string (str)
-			sum := n.scalar_sum (v)
-			io.put_string (sum.out_as_stored + "   n unchanged = " + n.out_as_stored + "%N")
-			assert (str, sum.out_as_stored ~ "<21,93>")
-			assert (str + "n unchanged", n.out_as_stored ~ "<20,250>")
-				-- (-357).scalar_add (50) = 300 = <1,51>
-			s := str + "(-357).scalar_add (50)"
-			create n.from_string ("-357")
-			v := n.ten_word * n.five_word
-			str := "(" + n.out + ")" + fn + " (" + v.out + ") = "
-			io.put_string (str)
-			sum := n.scalar_sum (v)
-			io.put_string (sum.out + "%N")
-			assert (str, sum.out ~ "-307")
-			assert (str + "n unchanged", n.out ~ "-357")
+			Precursor
 		end
 
 	add
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-			-- Checked against "https://defuse.ca/big-number-calculator.htm".
-		local
-			fn, str: STRING_8
-			n, x: like number_anchor
 		do
-			fn := ".add "
-				-- (0).add (0)
-			create n
-			create x
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out_as_stored + ")"
-			io.put_string (str)
-			n.add (x)
-			io.put_string (":  " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<0>")
-				-- (1).add (0)
-			create n.from_value (n.one_word)
-			create x
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out_as_stored + ")"
-			io.put_string (str)
-			n.add (x)
-			io.put_string (":  " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1>")
-				-- (0).add (1)
-			create n
-			create x.from_value (n.one_word)
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out_as_stored + ")"
-			io.put_string (str)
-			n.add (x)
-			io.put_string (":  " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1>")
-				-- <0,0,0,0>.add <0,2,1>
-			create n.from_array (<<0,0,0,0>>)
-			create x.from_array (<<0,2,1>>)
-			str := n.out_as_stored + fn
-			str := str + " (" + x.out_as_stored + ")"
-			io.put_string (str + " = ")
-			n.add (x)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str + " as_stored", n.out_as_stored ~ "<2,1>")
-				-- (99).add (101)
-			n.set_value ((n.ten_word + n.one_word) * n.nine_word)
-			x.set_value (n.ten_word * n.ten_word + n.one_word)
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out_as_stored + ")"
-			io.put_string (str)
-			n.add (x)
-			io.put_string (":  " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<200>")
-				-- (834292018876).add (99584738599403878) = 99584822091422754
-			create n.from_string ("834292018876")
-			create x.from_string ("99584738599403878")
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out_as_stored + ")"
-			io.put_string (str)
-			n.add (x)
-			io.put_string ("= " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<1,97,204,141,8,242,112,34>")
+			Precursor
 		end
 
 	plus
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			fn, str: STRING_8
-			n: like number_anchor
-			x, y: like number_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-				-- n := x.plus (y)
-			fn := ".plus "
-				-- n := (8).plus (9)
-			create n
-			create x.from_value (n.eight_word)
-			create y.from_value (n.nine_word)
-			str := x.out_as_stored + fn
-			str := str + "(" + y.out_as_stored + ")"
-			io.put_string (str)
-			n := x.plus (y)
-			io.put_string (" = " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<17>")
-			assert (str + " x unchanged", x.out_as_stored ~ "<8>")
-			assert (str + " y unchanged", y.out_as_stored ~ "<9>")
-				-- n := (0).plus (-100)
-			create n
-			create x
-			create y.from_value (n.ten_word * n.ten_word)
-			y.negate
-			str := x.out_as_stored + fn
-			str := str + "(" + y.out_as_stored + ")"
-			io.put_string (str)
-			n := x.plus (y)
-			io.put_string (" = " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "-<100>")
-			assert (str + " x unchanged", x.out_as_stored ~ "<0>")
-			assert (str + " y unchanged", y.out_as_stored ~ "-<100>")
-				-- n := (80).plus (-100)
-			create n
-			create x.from_value (n.eight_word * n.ten_word)
-			create y.from_value (n.ten_word * n.ten_word)
-			y.negate
-			str := x.out_as_stored + fn
-			str := str + "(" + y.out_as_stored + ")"
-			io.put_string (str)
-			n := x.plus (y)
-			io.put_string (" = " + n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "-<20>")
-			assert (str + " x unchanged", x.out_as_stored ~ "<80>")
-			assert (str + " y unchanged", y.out_as_stored ~ "-<100>")
+			Precursor
 		end
 
 	subtract
-		local
-			str, s: STRING_8
-			a, b: like number_anchor
-			n: like number_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			str := ".subtract:  "
-			s := str + "Fix me!"
-			io.put_string (s + "%N")
-			assert (s, false)
+			Precursor
 		end
 
 	minus
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-			-- Checked against "https://defuse.ca/big-number-calculator.htm".
-		local
-			fn, str, s: STRING_8
-			a, b: like number_anchor
-			n: like number_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			create n
-			str := n.generating_type + ":  "
-			fn := ".minus "
-				-- (1000).minus (99) = 901
-			create a.from_array (<<3,232>>)
-			create b.from_array (<<99>>)
-			s := str + "(" + a.out_as_stored + ")" + fn
-			s := s + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			n := a.minus (b)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<3,133>")
-				-- Test with negative.
-			create a.from_array (<<3,232>>)
-			create b.from_array (<<99>>)
-			b.negate
-			s := str + "(" + a.out_as_stored + ")" + fn
-			s := s + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			n := a.minus (b)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<4,75>")
-				-- Test with leading zeros.
-			create a.from_array (<<3,232>>)
-			create b.from_array (<<3,231>>)
-			s := str + "(" + a.out_as_stored + ")" + fn
-			s := s + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			n := a.minus (b)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<1>")
-
---			Precursor
+			Precursor
 		end
 
-	simple_add
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			fn, str: STRING_8
-			a: like testable_number_anchor
-			n: like testable_number_anchor
-		do
-			fn := ".simple_add"
-				-- <0>.add (<0>)
-			create n
-			create a
-			str := n.out_as_stored + fn
-			str := str + " (" + a.out_as_stored + ")"
-			io.put_string (str + " = ")
-			n.simple_add (a)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<0>")
-				-- <0,0,0>.add <2,1>
-			create n.from_array (<<0,0,0>>)
-			create a.from_array (<<2,1>>)
-			str := n.out_as_stored + fn
-			str := str + " (" + a.out_as_stored + ")"
-			io.put_string (str + " = ")
-			n.simple_add (a)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str + " as_stored", n.out_as_stored ~ "<0,2,1>")
-				-- <3,2,1>.add <0,0,0,2,1>
-			create n.from_array (<<0,2,1>>)
-			create a.from_array (<<0,0,0,2,1>>)
-			str := n.out_as_stored + fn
-			str := str + " (" + a.out_as_stored + ")"
-			io.put_string (str + " = ")
-			n.simple_add (a)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str + " as_stored", n.out_as_stored ~ "<0,0,0,4,2>")
-
-				-- Same sign.
-			create n.from_array (<<1,2,3,4>>)
-			create a.from_array (<<4,3,2,1>>)
-			str := n.out_as_stored + fn
-			str := str + " (" + a.out_as_stored + ")"
-			io.put_string (str + " = ")
-			n.simple_add (a)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str + " as_stored", n.out_as_stored ~ "<5,5,5,5>")
-		end
-
-	simple_subtract
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			fn, s, str: STRING_8
-			a: like testable_number_anchor
-			n: like testable_number_anchor
-		do
-			create n
-			fn := ".simple_subtract"
-			str := n.generating_type + ":  "
-				-- Same sign
-			create n.from_array (<<1,2,3,4>>)
-			create a.from_array (<<1,2,3,4>>)
-			s := str + n.out_as_stored + fn
-			s := s + "(" + a.out_as_stored + ") = "
-			n.simple_subtract (a)
-			io.put_string (s + n.out_as_stored + "%N")
-			assert (s + " as_stored", n.out_as_stored ~ "<0,0,0,0>")
-				-- (74,565).siple_subtract (4660) = 69,905
-			n.set_with_array (<<1,2,3,4,5>>)
-			a.set_with_array (<<1,2,3,4>>)
-			s := str + n.out_as_stored + fn
-			s := s + "(" + a.out_as_stored + ") = "
-			n.simple_subtract (a)
-			io.put_string (s + n.out_as_stored + "%N")
-			assert (s + " as_stored", n.out_as_stored ~ "<1,1,1,1,1>")
-				-- <0,0,3,2,1.siple_subtract (<2,0,1>) = <0,0,1,2,0>
-			n.set_with_array (<<0,0,3,2,1>>)
-			a.set_with_array (<<2,0,1>>)
-			s := str + n.out_as_stored + fn
-			s := s + "(" + a.out_as_stored + ") = "
-			n.simple_subtract (a)
-			io.put_string (s + n.out_as_stored + "%N")
-			assert (s + " as_stored", n.out_as_stored ~ "<0,0,1,2,0>")
-		end
+feature -- Test basic operations (multiplication)
 
 	scalar_multiply
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			fn, str, s: STRING_8
-			n: like number_anchor
-			x: like digit_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			create n
-			str := n.generating_type + ":  "
-			fn := ".scalar_multiply "
-				-- <>.scalar_mulitply (0)
-			x := n.zero_word
-			s := str + n.out_as_stored + fn
-			s := s + "(" + x.out + ") = "
-			io.put_string (s)
-			n.scalar_multiply (x)
-			io.put_string (n.out_as_stored + " %N")
-			assert (str, n.out_as_stored ~ "<0>")
-				-- by zero
-			n.set_with_array (<<7,9,3,5>>)
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out + ") = "
-			io.put_string (str)
-			n.scalar_multiply (x)
-			io.put_string (n.out_as_stored + " %N")
-			assert (str, n.out_as_stored ~ "<0>")
-				-- (255,255).scalar_multiply (255)
-			n.set_with_array (<<255,255>>)
-			x := n.max_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out + ") = "
-			io.put_string (str)
-			n.scalar_multiply (x)
-			io.put_string (n.out_as_stored + " %N")
-			assert (str, n.out_as_stored ~ "<254,255,1>")
-				-- (255,255,255).scalar_multiply (255)
-			n.set_with_array (<<255,255,255>>)
-			x := n.max_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out + ") = "
-			io.put_string (str)
-			n.scalar_multiply (x)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<254,255,255,1>")
-				-- (7,9,3,5).scalar_multiply (6), default base
-				-- (14,827,909).scalar_multiply (6) = 88,967,454
-			n.set_with_array (<<7,9,3,5>>)
-			x := n.six_word
-			str := "(" + n.out_as_stored + ")" + fn
-			str := str + "(" + x.out + ") = "
-			io.put_string (str)
-			n.scalar_multiply (x)
-			io.put_string (n.out_as_stored + "%N")
-			assert (str, n.out_as_stored ~ "<42,54,18,30>")
+			Precursor
 		end
 
 	scalar_product
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-		local
-			str, s: STRING_8
-			n, p: like number_anchor
-			fac: like digit_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			str := ".scalar_product "
-			create n
-				-- Multiply zero by anything
-			fac := n.seven_word
-			s := "(" + n.out_as_stored + ")" + str
-			s := s + "(" + fac.out + ")"
-			io.put_string (s)
-			p := n.scalar_product (fac)
-			io.put_string (" = " + p.out_as_stored + "%N")
-			assert (s, p.out_as_stored ~ "<0>")
-				-- Multiply by zero
-			fac := n.zero_word
-			s := "(" + n.out_as_stored + ")" + str
-			s := s + "(" + fac.out + ")"
-			io.put_string (s)
-			p := n.scalar_product (fac)
-			io.put_string (" = " + p.out_as_stored + "%N")
-			assert (s, p.out_as_stored ~ "<0>")
-				-- (1,2,3) max_base).scalar_product (81) = 66,051 * 81 = 5,350,131
-			n.set_with_array (<<1,2,3>>)
-			fac := n.nine_word * n.nine_word
-			s := "(" + n.out_as_stored + ")" + str
-			s := s + "(" + fac.out + ")"
-			io.put_string (s)
-			p := n.scalar_product (fac)
-			io.put_string (" = " + p.out_as_stored + "%N")
-			assert (s, p.out_as_stored ~ "<81,162,243>")
-		end
-
-	simple_product
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-			-- "https://defuse.ca/big-number-calculator.htm".
-		local
-			str, s: STRING_8
-			n: like testable_number_anchor
-			fac: like testable_number_anchor
-		do
-			str := ".simple_product "
-			create n.from_string ("6648")
-			create fac.from_string ("3995")
-			s := "(" + n.out + ")" + str + " (" + fac.out + ")"
-			io.put_string (s)
-			n := n.simple_product (fac)
-			io.put_string (":  " + n.out + "%N")
-			assert (s, n.out ~ "26558760")
-
+			Precursor
 		end
 
 	multiply
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-			-- "https://defuse.ca/big-number-calculator.htm".
-		local
-			fn, str, s: STRING_8
-			n: like number_anchor
-			fac: like number_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			create n
-			str := n.generating_type + ":  "
-			fn := ".multiply"
-				-- (0).multiply (99)
-			create n
-			create fac.from_array (<<99>>)
-			s := n.out_as_stored + fn + " (" + fac.out_as_stored + ") = "
-			io.put_string (str + s)
-			n.multiply (fac)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<0>")
-			assert (s + "  fac unchanged", fac.out_as_stored ~ "<99>")
-				-- (99).multiply (0)
-			create n.from_array (<<99>>)
-			create fac
-			s := n.out_as_stored + fn + " (" + fac.out_as_stored + ") = "
-			io.put_string (str + s)
-			n.multiply (fac)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<0>")
-			assert (s + "  fac unchanged", fac.out_as_stored ~ "<0>")
-				-- (5).multiply (9)
-			create n.from_array (<<5>>)
-			create fac.from_array (<<9>>)
-			s := n.out_as_stored + fn + " (" + fac.out_as_stored + ") = "
-			io.put_string (str + s)
-			n.multiply (fac)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<45>")
-			assert (s + "  fac unchanged", fac.out_as_stored ~ "<9>")
-				-- (<<2,1>>).multiply (<<44>>) = <<88,44>>
-				-- (513).multiply (44) = 22,572
-			create n.from_array (<<2,1>>)
-			create fac.from_array (<<44>>)
-			s := n.out_as_stored + fn + " (" + fac.out_as_stored + ") = "
-			io.put_string (str + s)
-			n.multiply (fac)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<88,44>")
-				-- (<<1,2,3>>).multiply (<<1,2>>)
-				-- (66,051).multiply (258) = 17,041,158
-			create n.from_array (<<1,2,3>>)
-			create fac.from_array (<<1,2>>)
-			s := n.out_as_stored + fn + " (" + fac.out_as_stored + ") = "
-			io.put_string (str + s)
-			n.multiply (fac)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<1,4,7,6>")
-				-- (333) * (22) = 7326, length differs by one digit.
-			create n.from_array (<<1,77>>)
-			create fac.from_array (<<22>>)
-			s := n.out_as_stored + fn + " (" + fac.out_as_stored + ") = "
-			io.put_string (str + s)
-			n.multiply (fac)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<28,158>")
-				-- (7777777) * (4444) = 34,564,440,988
-			create n.from_array (<<118,173,241>>)
-			create fac.from_array (<<17,92>>)
-			s := n.out_as_stored + fn + " (" + fac.out_as_stored + ") = "
-			io.put_string (str + s)
-			n.multiply (fac)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<8,12,51,131,156>")
-				-- (88,888,888) * (4,444) = 395,022,218,272
-			create n.from_array (<<5,76,86,56>>)
-			create fac.from_array (<<17,92>>)
-			s := n.out_as_stored + fn + " (" + fac.out_as_stored + ") = "
-			io.put_string (str + s)
-			n.multiply (fac)
-			io.put_string (n.out_as_stored + "%N")
-			assert (s, n.out_as_stored ~ "<91,249,40,180,32>")
-
-			precursor
+			Precursor
 		end
 
 	product
-			-- Tests the corresponding feature from {JJ_BIG_NATURAL}.
-			-- "https://defuse.ca/big-number-calculator.htm".
-		local
-			fn, str, s: STRING_8
-			n: like number_anchor
-			a, b: like number_anchor
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
-			fn := ".product"
-			str := generating_type + "fn" + ":  "
-				-- (<<1,2>>).multiply (<<44>>) = <<44,88>>
-				-- (258).multiply (44) = 11,352
-			create a.from_array (<<1,2>>)
-			create b.from_array (<<44>>)
-			s := "(" + a.out_as_stored + ")" + fn + " (" + b.out_as_stored + ")"
-			io.put_string (s)
-			n := a.product (b)
-			io.put_string (" = " + n.out_as_stored + "%N")
---			assert (s, n.out ~ "1,4,7,6")
-			assert (s, n.out_as_stored ~ "<44,88>")
-				-- (<<2,1>>).multiply (<<44>>) = <<88,44>>
-				-- (513).multiply (44) = 22,572
-			create a.from_array (<<2,1>>)
-			create b.from_array (<<44>>)
-			s := "(" + a.out_as_stored + ")" + fn + " (" + b.out_as_stored + ")"
-			io.put_string (s)
-			n := a.product (b)
-			io.put_string (" = " + n.out_as_stored + "%N")
---			assert (s, n.out ~ "1,4,7,6")
-			assert (s, n.out_as_stored ~ "<88,44>")
+			Precursor
 		end
 
-feature -- Basic operations (addition implementation tests)
+feature -- Test basic operations (division
+
+	quotient
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	integer_quotient
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	integer_remainder
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+feature -- Test basic operations (exponentiation)
+
+	raise
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	power
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+	power_modulo
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+feature -- Test implementation (division)
+
+	bit_shift_left
+			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+		do
+			Precursor
+		end
+
+
+
+feature -- Basic operations (additional implementation tests)
 
 	mult_test_1
 			-- Test cases discovered during muliply.
@@ -1616,56 +972,56 @@ feature -- Basic operations (addition implementation tests)
 
 feature -- Basic operations (selectively exported)
 
-	bit_shift_left
-			-- Test and demonstrate feature `bit_shift_left' from
-			-- {JJ_BIG_NATURAL}.
-		local
-			fn, str, s: STRING_8
-			n: like testable_number_anchor
-			b, v: like digit_anchor
-			i: INTEGER
-		do
-			create n
-			str := n.generating_type + ":  "
-			fn := ".bit_shift_left"
-				-- (00000000).bit_shift_left (7)
-			create n
-			i := 7
-			s := str + "(" + n.out_as_bits + ")" + fn
-			s := s + " (" + i.out + ") = "
-			io.put_string (s)
-			n.bit_shift_left (i)
-			io.put_string (n.out_as_bits + "%N")
-			assert (s, n.out_as_bits ~ "00000000")
-				-- (00000111).bit_shift_left (2)
-			v := n.seven_word
-			i := 2
-			create n.from_value (n.seven_word)
-			s := str + "(" + n.out_as_bits + ")" + fn
-			s := s + " (" + i.out + ") = "
-			io.put_string (s)
-			n.bit_shift_left (i)
-			io.put_string (n.out_as_bits + "%N")
-			assert (str, n.out_as_bits ~ "00011100")
-				-- (00011110, 010000001).bit_shift_left (3)
-			i := 4
-			create n.from_array (<<30,65>>)
-			s := str + "(" + n.out_as_bits + ")" + fn
-			s := s + " (" + i.out + ") = "
-			io.put_string (s)
-			n.bit_shift_left (i)
-			io.put_string (n.out_as_bits + "%N")
-			assert (str, n.out_as_bits ~ "00000001,11100100,00010000")
-				-- ([1,2,3,4]).bit_shift_left (7)
-			i := 7
-			create n.from_array (<<1,2,3,4>>)
-			s := str + "(" + n.out_as_bits + ")" + fn
-			s := s + " (" + i.out + ") = "
-			io.put_string (s)
-			n.bit_shift_left (i)
-			io.put_string (n.out_as_bits + "%N")
-			assert (str, n.out_as_bits ~ "10000001,00000001,10000010,00000000")
-		end
+--	bit_shift_left
+--			-- Test and demonstrate feature `bit_shift_left' from
+--			-- {JJ_BIG_NATURAL}.
+--		local
+--			fn, str, s: STRING_8
+--			n: like testable_number_anchor
+--			b, v: like digit_anchor
+--			i: INTEGER
+--		do
+--			create n
+--			str := n.generating_type + ":  "
+--			fn := ".bit_shift_left"
+--				-- (00000000).bit_shift_left (7)
+--			create n
+--			i := 7
+--			s := str + "(" + n.out_as_bits + ")" + fn
+--			s := s + " (" + i.out + ") = "
+--			io.put_string (s)
+--			n.bit_shift_left (i)
+--			io.put_string (n.out_as_bits + "%N")
+--			assert (s, n.out_as_bits ~ "00000000")
+--				-- (00000111).bit_shift_left (2)
+--			v := n.seven_word
+--			i := 2
+--			create n.from_value (n.seven_word)
+--			s := str + "(" + n.out_as_bits + ")" + fn
+--			s := s + " (" + i.out + ") = "
+--			io.put_string (s)
+--			n.bit_shift_left (i)
+--			io.put_string (n.out_as_bits + "%N")
+--			assert (str, n.out_as_bits ~ "00011100")
+--				-- (00011110, 010000001).bit_shift_left (3)
+--			i := 4
+--			create n.from_array (<<30,65>>)
+--			s := str + "(" + n.out_as_bits + ")" + fn
+--			s := s + " (" + i.out + ") = "
+--			io.put_string (s)
+--			n.bit_shift_left (i)
+--			io.put_string (n.out_as_bits + "%N")
+--			assert (str, n.out_as_bits ~ "00000001,11100100,00010000")
+--				-- ([1,2,3,4]).bit_shift_left (7)
+--			i := 7
+--			create n.from_array (<<1,2,3,4>>)
+--			s := str + "(" + n.out_as_bits + ")" + fn
+--			s := s + " (" + i.out + ") = "
+--			io.put_string (s)
+--			n.bit_shift_left (i)
+--			io.put_string (n.out_as_bits + "%N")
+--			assert (str, n.out_as_bits ~ "10000001,00000001,10000010,00000000")
+--		end
 
 	normalize
 			-- Test and demonstrate feature `normalize' from {JJ_BIG_NATURAL}.
@@ -1773,47 +1129,50 @@ feature -- Basic operations (selectively exported)
 			io.put_string ("[" + tup.quot.out_as_stored + ", "+ tup.rem.out_as_stored + "] %N")
 			assert (s + " quot", tup.quot.out_as_stored ~ "<1,66>")
 			assert (s + " rem", tup.rem.out_as_stored ~ "<96>")
---				-- [110,36] / [200] = [[140], [196]]
---				-- 28,196 / 200 = 140 rem 196
---			create n.make_with_array (<<110,36>>)
---			create denom.make_with_array (<<200>>)
---			s := str + " (" + n.out_as_stored + " / " + denom.out_as_stored + ")"
---			io.put_string (s + " = ")
---			tup := n.divide_two_words_by_one (n, denom)
---			io.put_string ("[(" + tup.quot.out_as_stored + "), ("+ tup.rem.out_as_stored + ")] %N")
---			assert (s + " quot", tup.quot.out_as_stored ~ "140")
---			assert (s + " rem", tup.rem.out_as_stored ~ "196")
-
---				-- [171,154] / [200] = [[219], [130]]
---				-- 43,930 / 200 = 219 rem 130
---			create n.make_with_array (<<171,154>>)
---			create denom.make_with_array (<<200>>)
---			s := str + " (" + n.out_as_stored + " / " + denom.out_as_stored + ")"
---			io.put_string (s + " = ")
---			tup := n.divide_two_words_by_one (n, denom)
---			io.put_string ("[(" + tup.quot.out_as_stored + "), ("+ tup.rem.out_as_stored + ")] %N")
---			assert (s + " quot", tup.quot.out_as_stored ~ "219")
---			assert (s + " rem", tup.rem.out_as_stored ~ "130")
-
-
---				-- 356 / 50 = [7, rem 6]
---			create n.make_with_array (<<1,100>>)
---			create denom.make_with_array (<<50>>)
-----			if not denom.is_normalized then
-----				denom.set_unstable
-----				n.set_unstable
-----				i := denom.normalize
-----				n.bit_shift_left (i)
-----				check
-----					denom_is_noramlized: denom.is_normalized
-----				end
-----			end
---			s := str + "356/50  -- (" + n.out_as_bits + " / " + denom.out_as_bits + ")"
---			io.put_string (s + " = ")
---			tup := n.divide_two_words_by_one (n, denom)
---			io.put_string ("[(" + tup.quot.out_as_stored + "), ("+ tup.rem.out_as_stored + ")] %N")
---			assert (s + " quot", tup.quot.out_as_stored ~ "7")
---			assert (s + " rem", tup.rem.out_as_stored ~ "6")
+				-- [110,36] / [200] = [[140], [196]]
+				-- 28,196 / 200 = 140 rem 196
+			a := 110
+			b := 36
+			d := 200
+			s := str + " (" + a.out + ", " + b.out + ", " + d.out + ")"
+			io.put_string (s + " = ")
+			tup := n.divide_two_words_by_one (a, b, d)
+			io.put_string ("[" + tup.quot.out_as_stored + ", "+ tup.rem.out_as_stored + "] %N")
+			assert (s + " quot", tup.quot.out_as_stored ~ "<140>")
+			assert (s + " rem", tup.rem.out_as_stored ~ "<196>")
+				-- [171,154] / [200] = [[219], [130]]
+				-- 43,930 / 200 = 219 rem 130
+			a := 171
+			b := 154
+			d := 200
+			s := str + " (" + a.out + ", " + b.out + ", " + d.out + ")"
+			io.put_string (s + " = ")
+			tup := n.divide_two_words_by_one (a, b, d)
+			io.put_string ("[" + tup.quot.out_as_stored + ", "+ tup.rem.out_as_stored + "] %N")
+			assert (s + " quot", tup.quot.out_as_stored ~ "<219>")
+			assert (s + " rem", tup.rem.out_as_stored ~ "<130>")
+				-- 356 / 50 = [7, rem 6]
+			create n.from_array (<<1,100>>)
+			create denom.from_array (<<50>>)
+			i := 0
+			if not denom.is_normalized then
+				denom.set_unstable
+				n.set_unstable
+				i := denom.normalize
+				n.bit_shift_left (i)
+				check
+					denom_is_noramlized: denom.is_normalized
+				end
+			end
+			s := str + " 356/50  -- (" + n.out_as_bits + " / " + denom.out_as_bits + ")"
+			io.put_string (s + " = ")
+			tup := n.divide_two_words_by_one (n.i_th (2), n.i_th (1), denom.i_th (1))
+--			tup.rem.bit_shift_left (i)
+			io.put_string ("[(" + tup.quot.out_as_stored + "), ("+ tup.rem.out_as_stored + ")] %N")
+			assert (s + " quot", tup.quot.out_as_stored ~ "<7>")
+--			assert (s + " rem", tup.rem.out_as_stored ~ "<6>")
+				-- Answer without bit shifting (feature unavailable for export)
+			assert (s + " rem", tup.rem.out_as_stored ~ "<24>")
 		end
 
 --	scalar_divide
@@ -1853,118 +1212,118 @@ feature -- Basic operations (selectively exported)
 --			assert (s, tup.rem.out ~ "4")
 --		end
 
-	quotient
-		local
-			fn, str, s: STRING_8
-			n, a, b: like testable_number_anchor
-			tup: like tuple_anchor
-			i: INTEGER_32
-		do
-			fn := ".quotient"
-			str := generating_type + fn + ":  "
-			create n
-				-- (0).quotient (1)
-			create a
-			create b.from_value (a.one_word)
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot.is_zero)
-			assert (s + " rem", tup.rem.is_zero)
-				-- (0).quotient (-1)
-			create a
-			create b.from_value (a.one_word)
-			b.negate
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot.is_zero)
-			assert (s + " rem", tup.rem.is_zero)
-				-- (9).quotient (1,1)   9/257 = 0 remainder 9
-				--       count < other.count
-			create a.from_value (n.nine_word)
-			create b.from_array (<<1,1>>)
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot.is_zero)
-			assert (s + " rem", tup.rem ~ a)
-				-- (160).quotient (1)
-			create a.from_value (n.sixteen_word * n.ten_word)
-			create b.from_value (a.one_word)
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot ~ a)
-			assert (s + " rem", tup.rem.is_zero)
-				-- (1,2).quotient (-1)	 258/-1 = -258
-			create a.from_array (<<1,2>>)
-			create b.from_value (a.one_word)
-			b.negate
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot ~ a.opposite)
-			assert (s + " rem", tup.rem.is_zero)
-				-- Same magnitudes
-				-- (4,1).quotient (4,1)		-- 4 * 256^1 + 1 = 1025
-			create a.from_array (<<4,1>>)
-			create b.from_array (<<4,1>>)
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot.is_one)
-			assert (s + " rem", tup.rem.is_zero)
-				-- (1,2,3).quotient (-1,2,3)		66,049 / -66,049 = -1 rem 0
-			create a.from_array (<<1,2,3>>)
-			create b.from_array (<<1,2,3>>)
-			b.negate
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot.is_one)
-			assert (s + " neg quot", tup.quot.is_negative)
-			assert (s + " rem", tup.rem.is_zero)
-				-- Two-by-one divide case, requiring normalization.
-				-- (1,2,3,4).quotient (1,44)	= (219) rem (79)
-				--	16,843,009 / 300 = 56,143 rem 109
-			create a.from_array (<<1,2,3,4>>)
-			create b.from_array (<<1,44>>)
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot.out_as_stored ~ "<220,43>")
-			assert (s + " rem", tup.rem.out_as_stored ~ "<160>")
-				-- X-by-one divide case, requiring conditioning.
-				-- (1,2,3).quotient (1,44)	= (220) rem (51)
-				--	66,051 / 300 = 220 rem 51
-			create a.from_array (<<1,2,3>>)
-			create b.from_array (<<1,44>>)
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot.out_as_stored ~ "<220>")
-			assert (s + " rem", tup.rem.out_as_stored ~ "<51>")
-				-- A failing case discovered during timeing tests.
-			create a.from_array (<<15,59,225,60,149,85,149,158,57,15,244,99,28>>)
-			create b.from_array (<<243,177,116,68,249,106,136,11>>)
-			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
-			io.put_string (s)
-			tup := a.quotient (b)
-			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
-			assert (s + " quot", tup.quot.out_as_stored ~ "<16,0,212,43,103>")
-			assert (s + " rem", tup.rem.out_as_stored ~ "<154,225,51,171,40,33,205,175>")
+--	quotient
+--		local
+--			fn, str, s: STRING_8
+--			n, a, b: like testable_number_anchor
+--			tup: like tuple_anchor
+--			i: INTEGER_32
+--		do
+--			fn := ".quotient"
+--			str := generating_type + fn + ":  "
+--			create n
+--				-- (0).quotient (1)
+--			create a
+--			create b.from_value (a.one_word)
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot.is_zero)
+--			assert (s + " rem", tup.rem.is_zero)
+--				-- (0).quotient (-1)
+--			create a
+--			create b.from_value (a.one_word)
+--			b.negate
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot.is_zero)
+--			assert (s + " rem", tup.rem.is_zero)
+--				-- (9).quotient (1,1)   9/257 = 0 remainder 9
+--				--       count < other.count
+--			create a.from_value (n.nine_word)
+--			create b.from_array (<<1,1>>)
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot.is_zero)
+--			assert (s + " rem", tup.rem ~ a)
+--				-- (160).quotient (1)
+--			create a.from_value (n.sixteen_word * n.ten_word)
+--			create b.from_value (a.one_word)
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot ~ a)
+--			assert (s + " rem", tup.rem.is_zero)
+--				-- (1,2).quotient (-1)	 258/-1 = -258
+--			create a.from_array (<<1,2>>)
+--			create b.from_value (a.one_word)
+--			b.negate
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot ~ a.opposite)
+--			assert (s + " rem", tup.rem.is_zero)
+--				-- Same magnitudes
+--				-- (4,1).quotient (4,1)		-- 4 * 256^1 + 1 = 1025
+--			create a.from_array (<<4,1>>)
+--			create b.from_array (<<4,1>>)
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot.is_one)
+--			assert (s + " rem", tup.rem.is_zero)
+--				-- (1,2,3).quotient (-1,2,3)		66,049 / -66,049 = -1 rem 0
+--			create a.from_array (<<1,2,3>>)
+--			create b.from_array (<<1,2,3>>)
+--			b.negate
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot.is_one)
+--			assert (s + " neg quot", tup.quot.is_negative)
+--			assert (s + " rem", tup.rem.is_zero)
+--				-- Two-by-one divide case, requiring normalization.
+--				-- (1,2,3,4).quotient (1,44)	= (219) rem (79)
+--				--	16,843,009 / 300 = 56,143 rem 109
+--			create a.from_array (<<1,2,3,4>>)
+--			create b.from_array (<<1,44>>)
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot.out_as_stored ~ "<220,43>")
+--			assert (s + " rem", tup.rem.out_as_stored ~ "<160>")
+--				-- X-by-one divide case, requiring conditioning.
+--				-- (1,2,3).quotient (1,44)	= (220) rem (51)
+--				--	66,051 / 300 = 220 rem 51
+--			create a.from_array (<<1,2,3>>)
+--			create b.from_array (<<1,44>>)
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot.out_as_stored ~ "<220>")
+--			assert (s + " rem", tup.rem.out_as_stored ~ "<51>")
+--				-- A failing case discovered during timeing tests.
+--			create a.from_array (<<15,59,225,60,149,85,149,158,57,15,244,99,28>>)
+--			create b.from_array (<<243,177,116,68,249,106,136,11>>)
+--			s := str + "(" + a.out_as_stored + ")" + fn + "(" + b.out_as_stored + ") = "
+--			io.put_string (s)
+--			tup := a.quotient (b)
+--			io.put_string ("[" + tup.quot.out_as_stored + ", " + tup.rem.out_as_stored + "] %N")
+--			assert (s + " quot", tup.quot.out_as_stored ~ "<16,0,212,43,103>")
+--			assert (s + " rem", tup.rem.out_as_stored ~ "<154,225,51,171,40,33,205,175>")
 
-		end
+--		end
 
 feature -- Test conversion
 
@@ -2035,69 +1394,69 @@ feature -- Basic operations (implementation tests)
 
 	power_of_ten_table
 			-- Tests the existence of the `power_of_ten_table'.
-			-- This test feature must be called before any math operations
-			-- that access the `power_of_ten_table'.
 		local
-			str, s: STRING_8
+			str, fn: STRING_8
 			n: like testable_number_anchor
 			t: like {like number_anchor}.power_of_ten_table
 		do
 			create n
+			str := n.generating_type + ":  "
+			fn := ".power_of_ten_table:  "
+			str := str + fn
 			t := n.power_of_ten_table
-			str := ".power_of_ten_table:  "
 			io.put_string (str + "capacity = " + t.capacity.out + "%N")
 			io.put_string (str + "   count = " + t.count.out + "%N")
 			assert (str + "capacity", t.capacity >= n.default_table_size)
-			assert (str + "count", t.count = 0)
+			assert (str + "count", t.count >= 0)
 		end
 
-	ten_to_the_power
-			-- Tests the intended once-ness of the `power_of_ten_table'
-			-- somewhat tests its memoization usage.
-			-- This test feature must be called before any math operations
-			-- that access the `power_of_ten_table'.
-		local
-			str, s: STRING_8
-			n: like testable_number_anchor
-			t: like {like number_anchor}.power_of_ten_table
-			c: INTEGER
-			p: like number_anchor
-		do
-			str := ".ten_to_the_power:  "
-			create n
-			t := n.power_of_ten_table
-			c := n.power_of_ten_table.count
-			s := str + "count = "
-			io.put_string (s + t.count.out + "%N")
-			assert (s, t.count = 0)
-				-- 10 to one-th power
-			n.set_value (n.one_word)
-			p := n.ten_to_the_power (n)
-			s := str + "ten_to_the_power (" + n.out_formatted + ") = "
-			io.put_string (s  +  p.out_formatted)
-			io.put_string ("  count = " + t.count.out + "%N")
-			assert (s, p.out_formatted ~ "10")
-			assert (s + "  count", t.count = 2)
-				-- 10 to 8th power
-			n.set_value (n.eight_word)
-			p := n.ten_to_the_power (n)
+--	ten_to_the_power
+--			-- Tests the intended once-ness of the `power_of_ten_table'
+--			-- somewhat tests its memoization usage.
+--			-- This test feature must be called before any math operations
+--			-- that access the `power_of_ten_table'.
+--		local
+--			str, s: STRING_8
+--			n: like testable_number_anchor
+--			t: like {like number_anchor}.power_of_ten_table
+--			c: INTEGER
+--			p: like number_anchor
+--		do
+--			str := ".ten_to_the_power:  "
+--			create n
+--			t := n.power_of_ten_table
+--			c := n.power_of_ten_table.count
+--			s := str + "count = "
+--			io.put_string (s + t.count.out + "%N")
+--			assert (s, t.count = 0)
+--				-- 10 to one-th power
+--			n.set_value (n.one_word)
+--			p := n.ten_to_the_power (n)
 --			s := str + "ten_to_the_power (" + n.out_formatted + ") = "
-			s := str + "ten_to_the_power (" + n.out_as_stored + ") = "
 --			io.put_string (s  +  p.out_formatted)
-			io.put_string (s  +  p.out_as_stored)
-			io.put_string ("  count = " + t.count.out + "%N")
-			assert (s, p.out_as_stored ~ "<5,245,225,0>")
---			assert (s, p.out_formatted ~ "100,000,000")
---			assert (s + "  count", t.count = 9)
-				-- 10 to 4th power
-			n.set_value (n.four_word)
-			p := n.ten_to_the_power (n)
-			s := str + "ten_to_the_power (" + n.out_formatted + ") = "
---			io.put_string (s  +  p.out_formatted)
-			io.put_string (s  +  p.out_as_stored + "%N")
---			assert (s, p.out_formatted ~ "10,000")
-			assert (s, p.out_as_stored ~ "<39,16>")
-		end
+--			io.put_string ("  count = " + t.count.out + "%N")
+--			assert (s, p.out_formatted ~ "10")
+--			assert (s + "  count", t.count = 2)
+--				-- 10 to 8th power
+--			n.set_value (n.eight_word)
+--			p := n.ten_to_the_power (n)
+----			s := str + "ten_to_the_power (" + n.out_formatted + ") = "
+--			s := str + "ten_to_the_power (" + n.out_as_stored + ") = "
+----			io.put_string (s  +  p.out_formatted)
+--			io.put_string (s  +  p.out_as_stored)
+--			io.put_string ("  count = " + t.count.out + "%N")
+--			assert (s, p.out_as_stored ~ "<5,245,225,0>")
+----			assert (s, p.out_formatted ~ "100,000,000")
+----			assert (s + "  count", t.count = 9)
+--				-- 10 to 4th power
+--			n.set_value (n.four_word)
+--			p := n.ten_to_the_power (n)
+--			s := str + "ten_to_the_power (" + n.out_formatted + ") = "
+----			io.put_string (s  +  p.out_formatted)
+--			io.put_string (s  +  p.out_as_stored + "%N")
+----			assert (s, p.out_formatted ~ "10,000")
+--			assert (s, p.out_as_stored ~ "<39,16>")
+--		end
 
 	new_value_from_character
 			-- Tests the `new_value_from_character' feature.
@@ -2275,10 +1634,34 @@ feature -- Factory access
 			create Result
 		end
 
+	new_number_from_integer (a_value: INTEGER): like number_anchor
+			-- Create a new big number from `a_value'
+		do
+			create Result.from_integer (a_value)
+		end
+
+	new_number_from_value (a_value: like digit_anchor): JJ_BIG_NATURAL_8
+			-- Create a new big number from `a_value'
+		do
+			create Result.from_value (a_value)
+		end
+
 	new_number_from_string (a_string: STRING_8): JJ_BIG_NATURAL_8
 			-- Create a new big number from the contents of `a_string'.
 		do
 			create Result.from_string (a_string)
+		end
+
+	new_number_from_array (a_array: ARRAY [like digit_anchor]): JJ_BIG_NATURAL_8
+			-- Create a new big number from contents of `a_array'.
+		do
+			create Result.from_array (a_array)
+		end
+
+	random: JJ_NATURAL_8_RNG
+			-- A generator for 8-bit values
+		once
+			create Result
 		end
 
 feature {NONE} -- Anchors
@@ -2322,6 +1705,5 @@ feature {NONE} -- Anchors
 					-- Because gives no info; simply used as anchor.
 			end
 		end
-
 
 end

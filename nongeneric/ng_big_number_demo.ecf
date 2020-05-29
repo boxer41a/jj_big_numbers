@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-16-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-16-0 http://www.eiffel.com/developers/xml/configuration-1-16-0.xsd" name="ng_big_number_demo" uuid="AEFA3995-080D-422D-A563-2BDE7BDA1B10">
+	<target name="ng_big_number_demo">
+		<root class="NG_BIG_NUMBER_DEMO" feature="make"/>
+		<option full_class_checking="true" is_attached_by_default="true" is_obsolete_routine_type="true" syntax="standard">
+			<assertions precondition="true" postcondition="true" check="true" invariant="true" loop="true" supplier_precondition="true"/>
+		</option>
+		<capability>
+			<catcall_detection support="none" use="none"/>
+			<concurrency support="none"/>
+			<void_safety support="all" use="all"/>
+		</capability>
+		<library name="base-safe" location="$ISE_LIBRARY\library\base\base-safe.ecf" readonly="false">
+			<option is_obsolete_routine_type="true">
+				<assertions precondition="true"/>
+			</option>
+		</library>
+		<library name="testing" location="$ISE_LIBRARY\library\testing\testing-safe.ecf"/>
+		<cluster name="demo" location=".\" recursive="true">
+			<file_rule>
+				<exclude>/.svn$</exclude>
+				<exclude>/CVS$</exclude>
+				<exclude>/EIFGENs$</exclude>
+				<exclude>/demo$</exclude>
+				<exclude>/docs$</exclude>
+			</file_rule>
+		</cluster>
+	</target>
+</system>

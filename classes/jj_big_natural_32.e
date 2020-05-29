@@ -1,15 +1,15 @@
 note
 	description: "[
-		Big numbers implemented on eight bits.
+		Big numbers implemented on 32 bits.
 		]"
 	author: "Jimmy J. Johnson"
 
 class
-	JJ_BIG_NATURAL_8
+	JJ_BIG_NATURAL_32
 
 inherit
 
-	JJ_BIG_NATURAL [NATURAL_8]
+	JJ_BIG_NATURAL [NATURAL_32]
 
 create
 	default_create,
@@ -29,109 +29,82 @@ convert
 feature -- Initialization
 
 	set_with_integer (a_integer: INTEGER)
-			-- Initialize Current with `a_integer'.
+			-- Make Current equivalent to `a_integer'.
 		local
-			b: INTEGER_32	-- base
-			w: INTEGER_32	-- max_word
-			x: INTEGER_32
-			r: INTEGER_32	-- remainder
+			b, x, r: like word
 		do
+			check
+				not_to_big: a_integer.abs.to_natural_32 <= max_word
+					-- Because that is biggest integer magnitude possible
+			end
 			wipe_out
---			default_create
-				-- Will not work for {JJ_BIG_NATURAL_32} because
-				-- `max_word' is twice as big as largest {INTEGER}.
-				-- `b' will go to zero in that case
-			w := max_word.as_integer_32
-			x := a_integer.abs
-			if x > w then
-				b := w + 1
-				check
-					b_not_zero: b >= 1
-				end
-				from
-				until x = 0
-				loop
-					r := x \\ b
-					check
-						remainder_small_enough: r <= w
-							-- because ...?
-					end
-					extend (integer_as_word (r))
-					x := x // b
-				end
-			else
-				from_value (integer_as_word (a_integer))
-			end
+			set_with_value (a_integer.abs.as_natural_32)
 			if a_integer < 0 then
-				set_is_negative (True)
+				set_is_negative (true)
 			end
-		ensure then
---			correct_initialization: Current.jj_out ~ a_integer.out
-			correct_negative: a_integer < 0 implies Current.is_negative
 		end
-
 
 feature -- Constants
 
-	bits_per_word: INTEGER_32 = 8
+	bits_per_word: INTEGER_32 = 32
 			-- The number of bits in each word of Current in same type as `word'.
 
-	zero_word: NATURAL_8 = 0
+	zero_word: NATURAL_32 = 0
 			-- The number zero in the same type as `word'
 
-	one_word: NATURAL_8 = 1
+	one_word: NATURAL_32 = 1
 			-- The number one in the same type as `word'
 
-	two_word: NATURAL_8 = 2
+	two_word: NATURAL_32 = 2
 			-- The number two in the same type as `word'
 
-	three_word: NATURAL_8 = 3
+	three_word: NATURAL_32 = 3
 			-- The number two in the same type as `word'
 
-	four_word: NATURAL_8 = 4
+	four_word: NATURAL_32 = 4
 			-- The number two in the same type as `word'
 
-	five_word: NATURAL_8 = 5
+	five_word: NATURAL_32 = 5
 			-- The number two in the same type as `word'
 
-	six_word: NATURAL_8 = 6
+	six_word: NATURAL_32 = 6
 			-- The number two in the same type as `word'
 
-	seven_word: NATURAL_8 = 7
+	seven_word: NATURAL_32 = 7
 			-- The number two in the same type as `word'
 
-	eight_word: NATURAL_8 = 8
+	eight_word: NATURAL_32 = 8
 			-- The number two in the same type as `word'
 
-	nine_word: NATURAL_8 = 9
+	nine_word: NATURAL_32 = 9
 			-- The number ten in the same type as `word'
 
-	ten_word: NATURAL_8 = 10
+	ten_word: NATURAL_32 = 10
 			-- The number two in the same type as `word'
 
-	sixteen_word: NATURAL_8 = 16
+	sixteen_word: NATURAL_32 = 16
 			-- The number 16 in the same type as `word'.
 
-	max_ten_power: NATURAL_8 = 100
+	max_ten_power: NATURAL_32 = 1_000_000_000
 			-- Largest multiple of 10 representable in a word of Current.
 
-	max_half_word: NATURAL_8 = 0x0F
+	max_half_word: NATURAL_32 = 0x0000FFFF
 			-- The largest value representable in half the number of
 			-- bits in Current's representation of a `word'.
 
-	max_word: NATURAL_8 = 0xFF
+	max_word: NATURAL_32 = 0xFFFFFFFF
 			-- The largest value allowed for a `word' of Current (i.e. all ones).
 
 feature -- Access
 
-	zero: like Current --JJ_BIG_NATURAL_8
+	zero: like Current
 			-- Neutral element for "+" and "-"
 			-- Use caution as this object can be modified.
 		do
 			create Result
 		end
 
-	one: like Current -- JJ_BIG_NATURAL_8
+	one: like Current
 			-- Neutral element for "*" and "/"
 			-- Use caution as this object can be modified.
 		do
@@ -141,7 +114,7 @@ feature -- Access
 
 feature {NONE} -- Implementation
 
-	number_cache: LINKED_STACK [JJ_BIG_NATURAL_8]
+	number_cache: LINKED_STACK [JJ_BIG_NATURAL_32]
 			-- A collection of previously created numbers from which to
 			-- select to reduce the number of creations.
 			-- I would like this to be defined in {JJ_BIG_NATURAL} as a
@@ -155,10 +128,16 @@ feature {NONE} -- Implementation
 			-- Factory method to create an instance equivalent to `a_value'.
 			-- Wraps the creation feature `from_value'.
 		do
-			create Result.from_value (a_value)
+			if number_cache.is_empty then
+				create Result.from_value (a_value)
+			else
+				Result := number_cache.item
+				Result.set_with_value (a_value)
+				number_cache.remove
+			end
 		end
 
-	power_of_ten_table: HASH_TABLE [JJ_BIG_NATURAL_8, JJ_BIG_NATURAL_8]
+	power_of_ten_table: HASH_TABLE [JJ_BIG_NATURAL_32, JJ_BIG_NATURAL_32]
 			-- Table used by `from_string' to memoize the powers of ten in the
 			-- same representation as Current.  It contains a value indexed by
 			-- a power.
@@ -173,7 +152,7 @@ feature {NONE} -- Implementation
 
 feature -- export for testing
 
-	random: JJ_NATURAL_8_RNG
+	random: JJ_NATURAL_32_RNG
 			-- Used to generate random numbers for placement into Current.
 			-- Deferred, because need to produce the correct type.
 		once
@@ -185,7 +164,7 @@ feature {NONE} -- Implementtion
 	integer_as_word (a_integer: INTEGER_32): like word
 			-- The equivalent value of `a_integer' in same type as `word'
 		do
-			Result := a_integer.abs.as_natural_8
+			Result := a_integer.as_natural_32
 		end
 
 end
