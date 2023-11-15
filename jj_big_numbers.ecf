@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-13-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-13-0 http://www.eiffel.com/developers/xml/configuration-1-13-0.xsd" name="jj_big_numbers" uuid="2C7FE603-CF08-444C-8401-B23E340E62BD" library_target="jj_big_numbers">
+<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-21-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-21-0 http://www.eiffel.com/developers/xml/configuration-1-21-0.xsd" name="jj_big_numbers" uuid="2C7FE603-CF08-444C-8401-B23E340E62BD" library_target="jj_big_numbers">
 	<target name="jj_big_numbers">
 		<root all_classes="true"/>
-		<option void_safety="all">
-		</option>
-		<library name="base-safe" location="$ISE_LIBRARY\library\base\base-safe.ecf"/>
+		<capability>
+			<void_safety support="all" use="all"/>
+		</capability>
+		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
 		<cluster name="jj_big_numbers" location=".\" recursive="true">
 			<file_rule>
-				<exclude>/EIFGENs$</exclude>
-				<exclude>/CVS$</exclude>
-				<exclude>/demo$</exclude>
-				<exclude>/.svn$</exclude>
 				<exclude>/.git$</exclude>
+				<exclude>/.svn$</exclude>
+				<exclude>/CVS$</exclude>
+				<exclude>/EIFGENs$</exclude>
+				<exclude>/demo$</exclude>
 				<exclude>/docs$</exclude>
 				<exclude>/tests$</exclude>
 			</file_rule>

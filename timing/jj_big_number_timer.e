@@ -1,8 +1,9 @@
 note
 	description: "[
-		Class to demonstrate the {JJ_BIG_NATURAL} class.  It creates and uses
-		a {JJ_BIG_NATURAL_TEST} object and lets that object print the
-		demo values as it runs assert statements.
+		Class to demonstrate the {JJ_BIG_NATURAL} class.  
+		Times the product function of against GMP_INTEGER.
+		The results are placed in files which can be plotted
+		using GNUPlot.
 	]"
 	author: "Jimmy J.Johnson"
 	date: "$Date$"
@@ -112,27 +113,8 @@ feature {NONE} -- Basic operations
 
 feature {NONE} -- Implementation
 
-	make_one_number (a_count: INTEGER): TUPLE [jj_n: like anchor; gmp_n: like gmp_anchor]
-			-- Create a tuple containing a random number in the two representations
-			-- where each number contains `a_count' number of decimal digits.
-		require
-			count_big_enough: a_count >= 1
-		local
-			s: STRING_8
-			i: INTEGER
-			jj_n: like anchor
-			gmp_n: like gmp_anchor
-		do
-			create jj_n.make_random_with_digit_count (a_count)
-			s := jj_n.out
-			create gmp_n.make_string (s)
-			io.put_string ("make_one_number:  digit_count = " + a_count.out +
-							"  count = " + jj_n.count.out + "  bit_count = " + jj_n.bit_count.out + "%N")
-			Result := [jj_n, gmp_n]
-		end
-
-	time_it (jj_function: FUNCTION [like anchor, like anchor, like anchor];
-				gmp_function: FUNCTION [like gmp_anchor, like gmp_anchor, like gmp_anchor];
+	time_it (jj_function: FUNCTION [like anchor, like anchor];
+				gmp_function: FUNCTION [like gmp_anchor, like gmp_anchor];
 				a_max: INTEGER): ARRAY2 [TUPLE [jjj, gmp: REAL_64]]
 			-- Run `a_function' `batch_size' times on numbers that grow
 			-- `a_step' amount on each loop.  Place results of each call
@@ -143,6 +125,9 @@ feature {NONE} -- Implementation
 			i, j: INTEGER
 			jj_avg, gmp_avg: REAL_64
 			tup_1, tup_2: like make_one_number
+			v: like anchor
+			gmp_v: like gmp_anchor
+			v_out, gmp_out: STRING
 		do
 			inc := a_max // steps
 			n := a_max // inc
@@ -151,19 +136,18 @@ feature {NONE} -- Implementation
 			from i := n
 			until i <= 0
 			loop
-				io.put_string ("i = " + i.out + ": %N")
 				from j := n
 				until j <= 0
 				loop
-					io.put_string ("     j = " + j.out + ": ")
+					io.put_string ("i = " + i.out + "     j = " + j.out + ": %N")
 					jj_timer.reset
 					gmp_timer.reset
 					from b := 1
 					until b > batch_size
 					loop
-						io.put_string (".")
 						tup_1 := make_one_number (i * inc)
 						tup_2 := make_one_number (j * inc)
+						io.put_string ("%N")
 						{MEMORY}.collection_on
 						{MEMORY}.full_coalesce
 						{MEMORY}.full_collect
@@ -184,18 +168,46 @@ feature {NONE} -- Implementation
 						{MEMORY}.full_coalesce
 						{MEMORY}.full_collect
 --						{MEMORY}.collection_off
+							-- Now check the results
+--						v := jj_function.item ([tup_1.jj_n, tup_2.jj_n])
+--						gmp_v := gmp_function.item ([tup_1.gmp_n, tup_2.gmp_n])
+--						v_out := v.out
+--						gmp_out := gmp_v.out
+--						if v_out /~ gmp_out then
+--							io.put_string ("   ERROR:  result:  " + v_out + "     expected " + gmp_out + "%N")
+--						end
 						b := b + 1
 					end
 					jj_avg := jj_timer.cumulative.as_milliseconds / batch_size
 					gmp_avg := gmp_timer.cumulative.as_milliseconds / batch_size
 					Result.put ([jj_avg, gmp_avg], i, j)
-					io.put_string ("%N")
+--					io.put_string ("%N")
 					j := j - 1
 				end
-				io.put_string ("%N")
+--				io.put_string ("%N")
 				i := i - 1
 			end
 			io.new_line
+		end
+
+	make_one_number (a_count: INTEGER): TUPLE [jj_n: like anchor; gmp_n: like gmp_anchor]
+			-- Create a tuple containing a random number in the two representations
+			-- where each number contains `a_count' number of decimal digits.
+		require
+			count_big_enough: a_count >= 1
+		local
+			s: STRING_8
+			i: INTEGER
+			jj_n: like anchor
+			gmp_n: like gmp_anchor
+		do
+			create jj_n.make_random_with_digit_count (a_count)
+			s := jj_n.out
+			create gmp_n.make_string (s)
+--			io.put_string (s + "%N")
+			io.put_string ("     make_one_number:  digit_count = " + a_count.out +
+							"  count = " + jj_n.count.out + "  bit_count = " + jj_n.bit_count.out)
+			Result := [jj_n, gmp_n]
 		end
 
 	results: ARRAYED_LIST [TUPLE [jj_time, gmp_time: REAL_64]]
@@ -211,7 +223,7 @@ feature {NONE} -- Implementation
 	max_values: ARRAY [INTEGER]
 			-- The maximum number of words/digits during a test.
 		once
-			Result := <<1000>>
+			Result := <<1000, 2000>>
 		end
 
 	steps: INTEGER = 10

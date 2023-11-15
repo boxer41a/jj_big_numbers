@@ -25,6 +25,7 @@ inherit
 create
 	default_create,
 	from_value,
+	from_integer,
 	from_array,
 	from_string
 

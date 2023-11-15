@@ -11,6 +11,7 @@ inherit
 
 	BIG_NATURAL_TESTS
 		redefine
+			run_known_fails,
 				-- Initialization
 			default_create_test,
 			set_with_integer,
@@ -68,11 +69,9 @@ inherit
 			opposite,
 			magnitude,
 				-- Basic operations (addition & subtraction)
-			scalar_add,
-			scalar_subtract,
-			add,
+			scalar_sum,
+			scalar_difference,
 			plus,
-			subtract,
 			minus,
 				-- Basic operations (multiplication)
 			scalar_multiply,
@@ -88,14 +87,13 @@ inherit
 			power,
 			power_modulo,
 				-- Basic operations (implementation--division)
-			bit_shift_left,
+--			bit_shift_left,
 
 
 
 				-- Implementation
 			digit_anchor,
-			number_anchor,
-			testable_number_anchor
+			number_anchor
 		end
 
 feature -- Constants
@@ -111,6 +109,37 @@ feature -- Constants
 
 	known_max_ten_power: NATURAL_32 = 1_000_000_000
 			-- Known value of the maximum multiple of 10 representable in a word
+
+feature -- Failed tests
+
+	run_known_fails
+			-- Run tests that were previously discovered to fail
+		local
+			s: STRING
+			pow: NATURAL_32
+			n, n2: like number_anchor
+			mp_n: JJ_GMP_INTEGER
+			i: INTEGER_32
+		do
+			io.put_string ("{BIG_NATURAL_32_TESTS}.run_known_fails: %N")
+				-- fails with integer_remainder
+			s := "67481806940030140066982757483494117521"
+			n := new_number
+			n.set_with_string (s)
+			n2 := new_number
+			s := "16580898624578913509"
+			n2.set_with_string (s)
+			function (agent n.integer_quotient (n2), "integer_quotient", "4069852211749102341")
+			function (agent n.integer_remainder (n2), "integer_remainder", "2845594835665692952")
+				-- fails in quotient
+			divider ("raise")
+			s := "157682840352094851032842628677015822187"
+			n := new_number
+			n.set_with_string (s)
+			create mp_n.make_string (s)
+			procedure (agent n.raise (9), "raise")
+			function (agent n.out, "out", mp_n.power (9).out)
+		end
 
 feature -- Initialization tests
 
@@ -449,31 +478,19 @@ feature -- Test basic operations (simple)
 
 feature -- Test basic operations (addition & subtraction)
 
-	scalar_add
+	scalar_sum
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
 			Precursor
 		end
 
-	scalar_subtract
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		do
-			Precursor
-		end
-
-	add
+	scalar_difference
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
 			Precursor
 		end
 
 	plus
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		do
-			Precursor
-		end
-
-	subtract
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
 			Precursor
@@ -553,15 +570,15 @@ feature -- Test basic operations (exponentiation)
 
 feature -- Test implementation (division)
 
-	bit_shift_left
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		do
-			Precursor
-		end
+--	bit_shift_left
+--			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
+--		do
+--			Precursor
+--		end
 
 feature {NONE} -- Factory access
 
-	new_number: JJ_BIG_NATURAL_32
+	new_number: like number_anchor
 			-- Factory and anchor for new big numbers.
 		do
 			create Result
@@ -614,20 +631,6 @@ feature {NONE} -- Anchors
 
 	number_anchor: JJ_BIG_NATURAL_32
 			-- Anchor when declaring numbers in descendants.
-			-- Not to be called; just used to anchor types.
-			-- Declared as a feature to avoid adding an attribute.
-		require else
-			never_called: false
-		do
-			check
-				do_not_call: false then
-					-- Because gives no info; simply used as anchor.
-			end
-		end
-
-	testable_number_anchor: TESTABLE_BIG_NATURAL_32
-			-- Anchor when declaring numbers for which access to
-			-- all features is needed.
 			-- Not to be called; just used to anchor types.
 			-- Declared as a feature to avoid adding an attribute.
 		require else

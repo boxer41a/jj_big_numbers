@@ -74,11 +74,9 @@ inherit
 			opposite,
 			magnitude,
 				-- Basic operations (addition & subtraction)
-			scalar_add,
-			scalar_subtract,
-			add,
+			scalar_sum,
+			scalar_difference,
 			plus,
-			subtract,
 			minus,
 				-- Basic operations (multiplication)
 			scalar_multiply,
@@ -93,13 +91,11 @@ inherit
 			raise,
 			power,
 			power_modulo,
-				-- Implementation (division)
-			bit_shift_left,
 
 				-- Implementation
 			digit_anchor,
-			number_anchor,
-			testable_number_anchor
+			number_anchor
+--			testable_number_anchor
 		end
 
 feature -- Constants
@@ -500,31 +496,19 @@ feature -- Test basic operations (simple)
 
 feature -- Test basic operations (addition & subtraction)
 
-	scalar_add
+	scalar_sum
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
 			Precursor
 		end
 
-	scalar_subtract
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		do
-			Precursor
-		end
-
-	add
+	scalar_difference
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
 			Precursor
 		end
 
 	plus
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		do
-			Precursor
-		end
-
-	subtract
 			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
 		do
 			Precursor
@@ -601,15 +585,6 @@ feature -- Test basic operations (exponentiation)
 		do
 			Precursor
 		end
-
-feature -- Test implementation (division)
-
-	bit_shift_left
-			-- Test the corresponding feature from {JJ_BIG_NATURAL}.
-		do
-			Precursor
-		end
-
 
 
 feature -- Basic operations (additional implementation tests)

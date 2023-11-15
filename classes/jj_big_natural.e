@@ -1,6 +1,6 @@
-note
+﻿note
 	description: "[
-		This is the base class for all the {JJ_BIG_NUMBER}_xxx classes, which
+		This is the base class for all the {JJ_BIG_NATURAL}_xxx classes, which
 		can represent a numbers that is much larger than what is representable
 		in 32 or 64 bits.
 
@@ -10,18 +10,18 @@ note
 		setting between the NATURAL_xx_REF classes and class {NUMERIC}.
 
 		This class implements a big number as a list of words, where each `word'
-		(called a "limb" in some other big-number implementaions) represents one
-		"digit" of the number.  For example, a {JJ_BIG_NUMBER} that uses 8-bit
+		(called a "limb" in some a_other big-number implementaions) represents one
+		"digit" of the number.  For example, a {JJ_BIG_NATURAL} that uses 8-bit
 		words stores the base-10 number "67,305,985" as a list of words <<4,3,2,1>>
 		equal to 4*256^3 + 3*256^2 + 2*256^1 + 1*256^0.
 
 		The descendant classes, {JJ_NATURAL_8}, {JJ_NATURAL_16}, {JJ_NATURAL_32},
 		and {JJ_NATURAL_64}, set the actual generic parameter to the corresponding
-		{JJ_NATURAL}.  The "base" of the {JJ_BIG_NUMBER} depends on the actual
+		{JJ_NATURAL}.  The "base" of the {JJ_BIG_NATURAL} depends on the actual
 		generic parameter:  256 for eight bits, 65,536 for 16 bits, 4,294,967,296
 		for 32 bits, and 18,446,744,073,709,551,616 for 64 bits.
 
-		Create a {JJ_BIG_NUMBER} with `from_string' or one of the creation
+		Create a {JJ_BIG_NATURAL} with `from_string' or one of the creation
 		routines that take a value of the same type as `word'.  Features such
 		as `zero_word', `one_word', ... `sixteen_word', and `max_word' provide
 		convinent ways to get values of the correct type.
@@ -38,7 +38,7 @@ note
 		{INTEGER_32}.max_value which is 2^(32-1) or 2,147,483,647.  The practicle
 		maximum, though is limited by a maximum object size, which is about 2^27 - 1
 		or 134,217,727 bytes.  Dividing this limitting number by, 8 bytes (for a
-		64-bit representation) implies that a {JJ_BIG_NUMBER} can contain over
+		64-bit representation) implies that a {JJ_BIG_NATURAL} can contain over
 		16.5 million words, which could represent a number over:
 		     (18.4*10^12)^(16.5*10^6) > 10^(10^38).
 
@@ -335,8 +335,8 @@ feature -- Initialization
 			count_big_enough: a_count >= 1
 		local
 			i: INTEGER
-			d: like word
-			dn, up: like word
+			r: like word
+			dn, up: NATURAL_64	--like word
 		do
 			dn := random.lower
 			up := random.upper
@@ -345,12 +345,12 @@ feature -- Initialization
 			until i > a_count - 1
 			loop
 				random.forth
-				d := random.item
-				extend (d)
+				r := random.item
+				extend (r)
 				i := i + 1
 			end
 				-- High order word must be greater than one
-			random.set_range (one_word, max_word)
+			random.set_range (one_word.as_natural_64, max_word.as_natural_64)
 			extend (random.item)
 			random.set_range (dn, up)
 		ensure
@@ -369,7 +369,7 @@ feature -- Initialization
 			lg: INTEGER
 			c_min, c_max, dif: INTEGER
 			w_first, w_second: like word
-			dn, up: like word
+			dn, up: NATURAL_64			--like word
 			r1, r2: like word
 			test: like Current
 		do
@@ -416,7 +416,7 @@ feature -- Initialization
 			dn := random.lower
 			up := random.upper
 			if b.count = 1 then
-				random.set_range (a.i_th (1), b.i_th (1))
+				random.set_range (a.i_th (1).as_natural_64, b.i_th (1).as_natural_64)
 				put_i_th (random.item, 1)
 			else
 					-- Need two or more words to represent the number.
@@ -427,19 +427,19 @@ feature -- Initialization
 					-- possible number of words, modifying the two high-order
 					-- words until finding a good value.
 				from
-					random.set_range (zero_word, max_word)
+					random.set_range (zero_word.as_natural_64, max_word.as_natural_64)
 					set_random (c_max)
 						-- Can the conditional check only the first two words of
 						-- Current against the first two words of each number?
 						-- Fix me, if faster !
 				until a <= Current and Current <= b
 				loop
-					random.set_range (zero_word, w_first)
+					random.set_range (zero_word.as_natural_64, w_first.as_natural_64)
 					r1 := random.item
-					random.set_range (zero_word, w_second)
+					random.forth
 					r2 := random.item
 					if r1 = zero_word and r2 = zero_word then
-						random.set_range (one_word, w_first)
+						random.set_range (one_word.as_natural_64, w_first.as_natural_64)
 						r1 := random.item
 					end
 					put_i_th (r1, count)
@@ -781,14 +781,14 @@ feature -- Status report
 	is_negative: BOOLEAN
 			-- Is Current a negative number?
 
-	divisible (other: like Current): BOOLEAN
-			-- May current object be divided by `other'?
+	divisible (a_other: like Current): BOOLEAN
+			-- May current object be divided by `a_other'?
 		do
-			Result := other /~ zero
+			Result := a_other /~ zero
 		end
 
-	exponentiable (other: NUMERIC): BOOLEAN
-			-- May current object be elevated to the power `other'?
+	exponentiable (a_other: NUMERIC): BOOLEAN
+			-- May current object be elevated to the power `a_other'?
 			-- Must be defined, because it comes deferred from {NUMERIC}.
 		obsolete
 			"[2008_04_01] Will be removed since not used."
@@ -797,38 +797,38 @@ feature -- Status report
 
 feature -- Query
 
-	is_same_sign (other: like Current): BOOLEAN
-			-- Does Current have the same sign as `other'?
+	is_same_sign (a_other: like Current): BOOLEAN
+			-- Does Current have the same sign as `a_other'?
 		do
-			Result := is_negative = other.is_negative
+			Result := is_negative = a_other.is_negative
 		end
 
-	is_less alias "<" (other: like Current): BOOLEAN
-			-- Is Current less than `other'?
+	is_less alias "<" (a_other: like Current): BOOLEAN
+			-- Is Current less than `a_other'?
 		do
-			if other /= Current then
-				if is_negative and not other.is_negative then
+			if a_other /= Current then
+				if is_negative and not a_other.is_negative then
 					Result := true
-				elseif not is_negative and other.is_negative then
+				elseif not is_negative and a_other.is_negative then
 					Result := false
-				elseif not is_negative and not other.is_negative then
-					Result := is_magnitude_less (other)
+				elseif not is_negative and not a_other.is_negative then
+					Result := is_magnitude_less (a_other)
 				else
-					Result := other.is_magnitude_less (Current)
+					Result := a_other.is_magnitude_less (Current)
 				end
 			end
 		end
 
-	is_magnitude_less (other: like Current): BOOLEAN
-			-- Is Current's absolute value < `other's absolute value?
+	is_magnitude_less (a_other: like Current): BOOLEAN
+			-- Is Current's absolute value < `a_other's absolute value?
 		require
-			other_exists: other /= Void
+			other_exists: a_other /= Void
 		local
 			c, oc: INTEGER
 			i: INTEGER
 			temp: like Current
 		do
-			if other /= Current then
+			if a_other /= Current then
 					-- Find the index of the first non-zero word of Current.
 				from i := count
 				until i < 1 or else i_th (i) > zero_word
@@ -836,9 +836,9 @@ feature -- Query
 					i := i - 1
 				end
 				c := i
-					-- Find the index of the first non-zero word of `other.
-				from i := other.count
-				until i < 1 or else other.i_th (i) > zero_word
+					-- Find the index of the first non-zero word of `a_other.
+				from i := a_other.count
+				until i < 1 or else a_other.i_th (i) > zero_word
 				loop
 					i := i - 1
 				end
@@ -853,9 +853,9 @@ feature -- Query
 						Result := false
 					else
 						from i := c
-						until i < 1 or i_th (i) > other.i_th (i) or Result
+						until i < 1 or i_th (i) > a_other.i_th (i) or Result
 						loop
-							Result := i_th (i) < other.i_th (i)
+							Result := i_th (i) < a_other.i_th (i)
 							i := i - 1
 						end
 					end
@@ -863,14 +863,14 @@ feature -- Query
 			end
 		end
 
-	is_magnitude_equal (other: like Current): BOOLEAN
-			-- Is the magnitude of Current the same as `other'?
+	is_magnitude_equal (a_other: like Current): BOOLEAN
+			-- Is the magnitude of Current the same as `a_other'?
 			-- The signs may be different.
 		local
 			c, oc: INTEGER
 			i: INTEGER
 		do
-			if Current = other then
+			if Current = a_other then
 				Result := true
 			else
 					-- Find the index of the first non-zero word of Current.
@@ -880,9 +880,9 @@ feature -- Query
 					i := i - 1
 				end
 				c := i
-					-- Find the index of the first non-zero word of `other.
-				from i := other.count
-				until i < 1 or else other.i_th (i) > zero_word
+					-- Find the index of the first non-zero word of `a_other.
+				from i := a_other.count
+				until i < 1 or else a_other.i_th (i) > zero_word
 				loop
 					i := i - 1
 				end
@@ -892,50 +892,50 @@ feature -- Query
 					from i := c
 					until not Result or i < 1
 					loop
-						Result := i_th (i) = other.i_th (i)
+						Result := i_th (i) = a_other.i_th (i)
 						i := i - 1
 					end
 				end
 			end
 		end
 
-	magnitude_max (other: like Current): like Current
+	magnitude_max (a_other: like Current): like Current
 			-- The number with the largest absolute value.
 		require
-			other_exists: other /= Void
+			other_exists: a_other /= Void
 		local
 			neg, o_neg: BOOLEAN
 		do
 			neg := is_negative
-			o_neg := other.is_negative
-				-- Set Current and other to positive
+			o_neg := a_other.is_negative
+				-- Set Current and a_other to positive
 			set_is_negative (false)
-			other.set_is_negative (false)
-			if Current >= other then
+			a_other.set_is_negative (false)
+			if Current >= a_other then
 				Result := Current
 			else
-				Result := other
+				Result := a_other
 			end
-				-- Restore the sign of Current and other
+				-- Restore the sign of Current and a_other
 			set_is_negative (neg)
-			other.set_is_negative (o_neg)
+			a_other.set_is_negative (o_neg)
 		end
 
-	magnitude_min (other: like Current): like Current
+	magnitude_min (a_other: like Current): like Current
 			-- The number with the smallest absolute value.
 		require
-			other_exists: other /= Void
+			other_exists: a_other /= Void
 		local
 			neg: BOOLEAN
 		do
-			neg := other.is_negative
-			other.set_is_negative (is_negative)
-			if Current <= other then
+			neg := a_other.is_negative
+			a_other.set_is_negative (is_negative)
+			if Current <= a_other then
 				Result := Current
 			else
-				Result := other
+				Result := a_other
 			end
-			other.set_is_negative (neg)
+			a_other.set_is_negative (neg)
 		end
 
 feature -- Basic operations (simple)
@@ -972,7 +972,8 @@ feature -- Basic operations (simple)
 			Result := twin
 		end
 
-	opposite alias "-": like Current
+	opposite alias "-" alias "−": like Current
+--	opposite alias "-": like Current
 			-- Unary minus.
 		do
 			Result := twin
@@ -1022,77 +1023,86 @@ feature -- Basic operations (addition & subtraction)
 			Result.scalar_add (a_value)
 		end
 
-	add (other: like Current)
-			-- Change Current by adding other to Current.
-		require
-			other_exists: other /= Void
+	scalar_difference (a_value: like word): like Current
+			-- The result of subtracting `a_word' from Current.
+			-- Do not change Current.
 		do
-			add_imp (other)
+			Result := deep_twin
+			Result.scalar_subtract (a_value)
+		end
+
+	add (a_other: like Current)
+			-- Change Current by adding a_other to Current.
+		require
+			other_exists: a_other /= Void
+		do
+			add_imp (a_other)
 			remove_leading_zeros
 		end
 
-	plus alias "+" (other: like Current): like Current
-			-- New object containing the sum of Current and `other'.
+	plus alias "+" (a_other: like Current): like Current
+			-- New object containing the sum of Current and `a_other'.
 		do
 			Result := twin
-			Result.add (other)
+			Result.add (a_other)
 		end
 
-	subtract (other: like Current)
-			-- Subtract other from Current.
+	subtract (a_other: like Current)
+			-- Subtract a_other from Current.
 		require
-			other_exists: other /= Void
+			other_exists: a_other /= Void
 		do
-			subtract_imp (other)
+			subtract_imp (a_other)
 			remove_leading_zeros
 		end
 
-	minus alias "-" (other: like Current): like Current
-			-- Result of subtracting `other' from Current.
+	minus alias "-" alias "−" (a_other: like Current): like Current
+--	minus alias "-" (a_other: like Current): like Current
+			-- Result of subtracting `a_other' from Current.
 			-- Does not change Current.
 		do
 			Result := twin
-			Result.subtract (other)
+			Result.subtract (a_other)
 		end
 
 feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
 
-	subtract_imp (other: like Current)
-			-- Subtract other from Current.
+	subtract_imp (a_other: like Current)
+			-- Subtract a_other from Current.
 			-- Implementation for `subtract' which keeps leading zeros.
 		require
-			other_exists: other /= Void
+			other_exists: a_other /= Void
 		do
-			other.negate
-			add_imp (other)
-			other.negate
+			a_other.negate
+			add_imp (a_other)
+			a_other.negate
 		end
 
-	add_imp (other: like Current)
-			-- Change Current by adding other to Current.
+	add_imp (a_other: like Current)
+			-- Change Current by adding a_other to Current.
 			-- Implementation for `add' which keeps leading zeros.
 		require
-			other_exists: other /= Void
+			other_exists: a_other /= Void
 		local
 			subtrahend, minuend: detachable like Current
 			is_neg_o, sign_max: BOOLEAN
 		do
 				-- Save the sign a for later restoration.
-			is_neg_o := other.is_negative
+			is_neg_o := a_other.is_negative
 				-- Do the addition
-			if is_same_sign (other) then
-				simple_add (other)
+			if is_same_sign (a_other) then
+				simple_add (a_other)
 			else
 					-- minuend - subtrahend = difference
 					-- Find the larger.
-				minuend := magnitude_max (other)
+				minuend := magnitude_max (a_other)
 				sign_max := minuend.is_negative
 					-- Set both to positive.
 				set_is_negative (false)
-				other.set_is_negative (false)
+				a_other.set_is_negative (false)
 					-- Find the subtrahend.
 				if minuend = Current then
-					subtrahend := other
+					subtrahend := a_other
 				else
 					subtrahend := Current
 					minuend := minuend.twin
@@ -1114,53 +1124,53 @@ feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
 					set_is_negative (sign_max)
 				end
 					-- Restore sign of `a_other' in case it had changed.
-				other.set_is_negative (is_neg_o)
+				a_other.set_is_negative (is_neg_o)
 			end
 			if is_zero then
 				is_negative := false
 			end
 		end
 
-	simple_add (other: like Current)
-			-- Change Current by adding `other' to it.
+	simple_add (a_other: like Current)
+			-- Change Current by adding `a_other' to it.
 			-- Used internally for `add' and `subtract'.
 		require
-			other_exists: other /= Void
-			same_sign: is_same_sign (other)
+			other_exists: a_other /= Void
+			same_sign: is_same_sign (a_other)
 		local
 			i: like count
 			tup: TUPLE [sum, carry: like word]
 		do
 --			if is_zero then
 --					-- This drops zeroes when Current starts with more than one.
---				copy (other)
---			elseif not other.is_zero then
+--				copy (a_other)
+--			elseif not a_other.is_zero then
 					-- Add each paired `word'.
 				tup := [zero_word, zero_word]
 				from i := 1
-				until i > count or i > other.count
+				until i > count or i > a_other.count
 				loop
-					words_added (i_th (i), other.i_th (i), tup.carry, tup)
+					words_added (i_th (i), a_other.i_th (i), tup.carry, tup)
 					put_i_th (tup.sum, i)
 					i := i + 1
 				end
 					-- Include the unpaired words.
 				if i > count then
-						-- Bring the rest of the words of other into Current.
+						-- Bring the rest of the words of a_other into Current.
 					check
 						finished_with_currents_words: i = count + 1
 					end
 					from
-					until i > other.count
+					until i > a_other.count
 					loop
-						words_added (zero_word, other.i_th (i), tup.carry, tup)
+						words_added (zero_word, a_other.i_th (i), tup.carry, tup)
 						extend (tup.sum)
 						i := i + 1
 					end
-				elseif i > other.count then
+				elseif i > a_other.count then
 						-- Add carry into Current's words.
 					check
-						finished_with_others_words: i = other.count + 1
+						finished_with_others_words: i = a_other.count + 1
 					end
 					from
 					until i > count
@@ -1177,25 +1187,25 @@ feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
 --			end
 		end
 
-	simple_subtract (other: like Current)
-			-- Change Current by subtracting `other' from Current.
+	simple_subtract (a_other: like Current)
+			-- Change Current by subtracting `a_other' from Current.
 		require
-			other_exists: other /= Void
-			same_sign: is_same_sign (other)
-			other_is_less: other.magnitude <= magnitude
+			other_exists: a_other /= Void
+			same_sign: is_same_sign (a_other)
+			other_is_less: a_other.magnitude <= magnitude
 		local
 			i: INTEGER
 		do
 				-- Step through values changing Current (i.e. the minuend).
 			from i := 1
-			until i > count or i > other.count
+			until i > count or i > a_other.count
 			loop
-				subtract_i_th (other.i_th (i), i)
+				subtract_i_th (a_other.i_th (i), i)
 				i := i + 1
 			end
 			check
-				i >= other.count
-					-- because the preconditions guarantee the subtrahend (other)
+				i >= a_other.count
+					-- because the preconditions guarantee the subtrahend (a_other)
 					-- to be less than the minuend (Current).
 			end
 			if is_zero then
@@ -1231,7 +1241,7 @@ feature {JJ_BIG_NATURAL} -- Implementation (addition & subtraction)
 
 	can_borrow (a_index: INTEGER): BOOLEAN
 			-- Is it possible to borrow from `a_index'th word?
-			-- In other words, can we subtract one place-value amount from
+			-- In a_other words, can we subtract one place-value amount from
 			-- Current at `a_index' and add that amount to the lower-order
 			-- word without overflowing the representation of a word?
 		do
@@ -1352,80 +1362,81 @@ feature -- Basic operations (multiplication)
 			Result.scalar_multiply (a_value)
 		end
 
-	multiply (other: like Current)
-			-- Change Current by multiplying it by `other'.
+	multiply (a_other: like Current)
+			-- Change Current by multiplying it by `a_other'.
 		do
-			copy (Current * other)
+			copy (Current * a_other)
 		end
 
-	product alias "*" (other: like Current): like Current
-			-- Product by `other'.
+	product alias "*" alias "×" (a_other: like Current): like Current
+--	product alias "*" (a_other: like Current): like Current
+			-- Product by `a_other'.
 		do
 				-- Unlike the relationship between `add' and `+', where the
 				-- work is done in `add' and `+' is a copy; the work for
 				-- multiplication is done in `*' and `multiply' performs the
 				-- copy.  This results in fewer copy or twin operations.
-			if is_zero or other.is_zero then
+			if is_zero or a_other.is_zero then
 				Result := new_big_number (zero_word)
 			elseif is_one then
-				Result := other.deep_twin
-			elseif other.is_one then
+				Result := a_other.deep_twin
+			elseif a_other.is_one then
 				Result := deep_twin
 			elseif is_base then
-				Result := other.deep_twin
+				Result := a_other.deep_twin
 				Result.shift_left (1)
-			elseif other.is_base then
+			elseif a_other.is_base then
 				Result := deep_twin
 				Result.shift_left (1)
 			else
-				if count < karatsuba_threshold and other.count < karatsuba_threshold then
-					Result := simple_product (other)
-				elseif count >= karatsuba_threshold and other.count >= karatsuba_threshold then
-					if (count - other.count).abs <= 1 then
-						Result := karatsuba_product (other)
+				if count < karatsuba_threshold and a_other.count < karatsuba_threshold then
+					Result := simple_product (a_other)
+				elseif count >= karatsuba_threshold and a_other.count >= karatsuba_threshold then
+					if (count - a_other.count).abs <= 1 then
+						Result := karatsuba_product (a_other)
 					else
-						Result := recursive_product (other)
+						Result := recursive_product (a_other)
 					end
 				else
-					Result := recursive_product (other)
+					Result := recursive_product (a_other)
 				end
 			end
-			if is_same_sign (other) then
+			if is_same_sign (a_other) then
 				Result.set_is_negative (false)
 			else
 				Result.set_is_negative (true)
 			end
 		ensure then
-			zero_factor_implies_is_zero: (is_zero or other.is_zero) implies Result.is_zero
+			zero_factor_implies_is_zero: (is_zero or a_other.is_zero) implies Result.is_zero
 			zero_result_implies_count: Result.is_zero implies Result.count = 1
 		end
 
-feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
+feature {JJ_BIG_NATURAL} -- Implementation (multiplication)
 
-	simple_product (other: like Current): like Current
-			-- The result of multiplying Current and `other'.
+	simple_product (a_other: like Current): like Current
+			-- The result of multiplying Current and `a_other'.
 			-- Grade-school style algorithim with complexity ~ O(n^2).
 		require
-			other_exists: other /= Void
+			other_exists: a_other /= Void
 			not_zero: not is_zero
-			other_not_zero: not other.is_zero
+			other_not_zero: not a_other.is_zero
 			not_one: not is_one
-			other_not_one: not other.is_one
+			other_not_one: not a_other.is_one
 			not_base: not is_base
-			other_not_base: not other.is_base
-			karatsuba_inapplicable: count < karatsuba_threshold and other.count < karatsuba_threshold
+			other_not_base: not a_other.is_base
+			karatsuba_inapplicable: count < karatsuba_threshold and a_other.count < karatsuba_threshold
 		local
 			fac_1, fac_2: like Current
 			s: like Current
 			i: INTEGER
 			d: like word
 		do
-			if count < other.count then
-				fac_1 := other
+			if count < a_other.count then
+				fac_1 := a_other
 				fac_2 := Current
 			else
 				fac_1 := Current
-				fac_2 := other
+				fac_2 := a_other
 			end
 			Result := new_big_number (zero_word)
 			from i := 1
@@ -1440,21 +1451,21 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 				Result := Result + s
 				i := i + 1
 			end
-			if is_same_sign (other) then
+			if is_same_sign (a_other) then
 				Result.set_is_negative (false)
 			else
 				Result.set_is_negative (true)
 			end
 		end
 
-	recursive_product (other: like Current): like Current
+	recursive_product (a_other: like Current): like Current
 			-- Divide-and-conquer multiplication used when there is a disparity
-			-- between the number of words in Current and other.
+			-- between the number of words in Current and a_other.
 		require
-			other_exists: other /= Void
-			simple_inapplicable: count >= karatsuba_threshold or other.count >= karatsuba_threshold
-			big_size_difference: (count >= karatsuba_threshold and other.count >= karatsuba_threshold) implies
-									(count - other.count).abs > 1
+			other_exists: a_other /= Void
+			simple_inapplicable: count >= karatsuba_threshold or a_other.count >= karatsuba_threshold
+			big_size_difference: (count >= karatsuba_threshold and a_other.count >= karatsuba_threshold) implies
+									(count - a_other.count).abs > 1
 		local
 			big, lit, p: like Current
 			i: INTEGER
@@ -1467,11 +1478,11 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			Result := new_big_number (zero_word)
 				-- Find which factor has the most words, in order to
 				-- multiply the longer number by the shorter number.
-			if count < other.count then
+			if count < a_other.count then
 				lit := Current
-				big := other
+				big := a_other
 			else
-				lit := other
+				lit := a_other
 				big := Current
 			end
 				-- Get the length of the shorter number, so that we can
@@ -1506,21 +1517,21 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 				p.shift_left (t * (i - 1))
 				Result := Result + p
 			end
-			if is_same_sign (other) then
+			if is_same_sign (a_other) then
 				Result.set_is_negative (false)
 			else
 				Result.set_is_negative (true)
 			end
 		end
 
-	karatsuba_product (other: like Current): like Current
+	karatsuba_product (a_other: like Current): like Current
 			-- Divide and conquer multiplication using Karatsub's algorithm
 			-- where the middle term, z1, is calculated as:
 			--    (x1 + x0)(y1 + y0) - x1y1 - x0y0
 		require
-			other_exists: other /= Void
-			almost_same_size: (count - other.count).abs <= 1
-			karatsuba_applies: count >= karatsuba_threshold and other.count >= karatsuba_threshold
+			other_exists: a_other /= Void
+			almost_same_size: (count - a_other.count).abs <= 1
+			karatsuba_applies: count >= karatsuba_threshold and a_other.count >= karatsuba_threshold
 		local
 			n: INTEGER
 			a, b: like Current
@@ -1528,14 +1539,14 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			z2, z1, z0: like Current
 		do
 				-- Split both numbers into two smaller ones
-			n := count.min (other.count)
+			n := count.min (a_other.count)
 			n := (n // 2) + (n \\ 2)
 				-- High & low order words of Current
 			a := partition (count, n + 1)
 			b := partition (n, 1)
-				-- High and low order words of other
-			c := other.partition (other.count, n + 1)
-			d := other.partition (n, 1)
+				-- High and low order words of a_other
+			c := a_other.partition (a_other.count, n + 1)
+			d := a_other.partition (n, 1)
 				-- Create the terms for the multiplication
 				--		z2*Base^2 + z1*Base^1 + z0*Base^0
 			z2 := a * c
@@ -1548,7 +1559,7 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 				z1.shift_left (n)
 			end
 			Result := z2 + z1 + z0
-			if is_same_sign (other) then
+			if is_same_sign (a_other) then
 				Result.set_is_negative (false)
 			else
 				Result.set_is_negative (true)
@@ -1636,7 +1647,7 @@ feature {JJ_BIG_NUMBER} -- Implementation (multiplication)
 			Result.set_item (Default_karatsuba_threshold)
 		end
 
-feature -- Basic operations (other)
+feature -- Basic operations (a_other)
 
 	raise (a_power: NATURAL_32)
 			-- Raise Current by `a_power'.
@@ -1726,7 +1737,8 @@ feature  -- Division
 			copy (q.quot)
 		end
 
-	quotient alias "/" (a_other: like Current): TUPLE [quot, rem: like Current]
+	quotient alias "/" alias "÷" (a_other: like Current): TUPLE [quot, rem: like Current]
+--	quotient alias "/" (a_other: like Current): TUPLE [quot, rem: like Current]
 			-- The quotient and remainder resulting from dividing Current
 			-- by `a_other' without changing Current.
 		require
@@ -1773,7 +1785,7 @@ feature  -- Division
 				x.bit_shift_left (i)
 				if x.count = 2 and y.count = 1 then
 					Result := divide_two_words_by_one (x.i_th (2), x.i_th (1), y.i_th (1))
-					-- Count is even and twice the count of other.
+					-- Count is even and twice the count of a_other.
 				elseif y.count <= div_limit then
 					Result := school_divide (x, y)
 				else
@@ -2341,7 +2353,7 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 				-- time, only one or no corrections are made.  Tests on possible
 				-- values in 8-bit representation shows this distribution:
 				--   num corrections     percentage
-				--          0              52.32% 
+				--          0              52.32%
 				--          1              40.77%
 				--          2               6.15%
 				--          3               0.75%
@@ -2466,24 +2478,26 @@ feature {JJ_BIG_NATURAL} -- Implementation (division)
 			i: INTEGER
 			n: INTEGER
 		do
-			c := zero_word
-			n := bits_per_word - a_shift
-			from i := count
-			until i < 1
-			loop
-					-- Determine the carry down.
-				c_down := i_th (i).bit_shift_left (n).bit_shift_right (n)
-				c_down := c_down.bit_shift_left (n)
-					-- Shift the i-th word.
-				d := i_th (i).bit_shift_right (a_shift)
-					-- Add any carry down bits.
-				put_i_th (d + c, i)
-				c := c_down
-				i := i - 1
-			end
-			if count > 1 and then i_th (count) ~ zero_word then
-				go_i_th (count)
-				remove
+			if a_shift > 0 then
+				c := zero_word
+				n := bits_per_word - a_shift
+				from i := count
+				until i < 1
+				loop
+						-- Determine the carry down.
+					c_down := i_th (i).bit_shift_left (n).bit_shift_right (n)
+					c_down := c_down.bit_shift_left (n)
+						-- Shift the i-th word.
+					d := i_th (i).bit_shift_right (a_shift)
+						-- Add any carry down bits.
+					put_i_th (d + c, i)
+					c := c_down
+					i := i - 1
+				end
+				if count > 1 and then i_th (count) ~ zero_word then
+					go_i_th (count)
+					remove
+				end
 			end
 		ensure
 			count_might_shrink: count >= old count - 1
@@ -2801,7 +2815,7 @@ feature {NONE} -- Implementation
 
 	new_big_number (a_value: like word): like Current
 			-- Create an instance equivalent to `a_value'.
-			-- Used throughout to obtain a {JJ_BIG_NUMBER} of the correct type.
+			-- Used throughout to obtain a {JJ_BIG_NATURAL} of the correct type.
 		deferred
 		end
 

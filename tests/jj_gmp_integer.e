@@ -29,7 +29,7 @@ create
 
 feature -- Status report
 
-	is_negative (a_other: like Current): BOOLEAN
+	is_negative: BOOLEAN
 			-- Is Current less than zero?
 		do
 			Result := {MPZ_FUNCTIONS}.mpz_sgn (Current.item) < 0
@@ -93,7 +93,7 @@ feature -- Basic operations
 	quotient (a_divisor: like Current): TUPLE [quot, rem: like Current]
 			-- The result as quotient and remainder of dividing
 			-- Currentby `a_divisor'.
-			-- This uses the "truncate" division style which "rounds 
+			-- This uses the "truncate" division style which "rounds
 			-- the [`quot'] towards zero, and [`rem'] will have the
 			-- same sign as [Current]."
 		local

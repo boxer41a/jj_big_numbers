@@ -28,13 +28,13 @@ feature {NONE} -- Initialization
 				i := i + 1
 			end
 				-- Create the `tester' object
-			create tester_8
+--			create tester_8
 			create tester_32
-			tester := tester_8
+--			tester := tester_8
 			io.put_string ("  Begin Demo/Tester for JJ_BIG_NATURAL numbers: %N")
 
 			tester_32.run_all
-			tester.run_all
+--			tester.run_all
 			io.put_string ("end test %N")
 		end
 
@@ -45,10 +45,10 @@ feature -- Constants
 
 feature -- Access
 
-	tester: BIG_NATURAL_TESTS
+--	tester: BIG_NATURAL_TESTS
 			-- The set of tests currently being executed
 
-	tester_8: BIG_NATURAL_8_TESTS
+--	tester_8: BIG_NATURAL_8_TESTS
 			-- To test big numbers.
 
 	tester_32: BIG_NATURAL_32_TESTS

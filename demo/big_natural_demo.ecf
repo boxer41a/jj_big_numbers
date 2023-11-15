@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-18-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-18-0 http://www.eiffel.com/developers/xml/configuration-1-18-0.xsd" name="jj_big_natural_demo" uuid="AEFA3995-080D-422D-A563-2BDE7BDA1B10">
+<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-21-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-21-0 http://www.eiffel.com/developers/xml/configuration-1-21-0.xsd" name="jj_big_natural_demo" uuid="AEFA3995-070D-432D-A563-2BDE7CDA1B10">
 	<target name="jj_big_natural_demo">
 		<root class="BIG_NATURAL_DEMO" feature="make"/>
 		<option full_class_checking="true" is_attached_by_default="true" is_obsolete_routine_type="true" syntax="standard" manifest_array_type="mismatch_warning">
 			<assertions precondition="true" check="true" invariant="true" loop="true" supplier_precondition="true"/>
 		</option>
+		<setting name="total_order_on_reals" value="true"/>
+		<setting name="dead_code_removal" value="feature"/>
 		<capability>
 			<catcall_detection support="none" use="none"/>
 			<concurrency support="none"/>
 			<void_safety support="all" use="all"/>
 		</capability>
-		<library name="base-safe" location="$ISE_LIBRARY\library\base\base-safe.ecf" readonly="false">
+		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf" readonly="false">
 			<option is_obsolete_routine_type="true">
 				<assertions precondition="true"/>
 			</option>
 		</library>
 		<library name="eiffel_gmp" location="$JJ_OTHER\eiffel_gmp-master\library\src\library.ecf" readonly="false"/>
-		<library name="jj_temporal" location="$JJ_GITHUB\jj_temporal\jj_temporal.ecf" readonly="false"/>
-		<library name="testing" location="$ISE_LIBRARY\library\testing\testing-safe.ecf"/>
+		<library name="jj_randoms" location="\Users\jjj\jj_github\jj_randoms\classes\jj_randoms.ecf"/>
+		<library name="testing" location="$ISE_LIBRARY\library\testing\testing.ecf"/>
 		<cluster name="demo" location=".\" recursive="true">
 			<file_rule>
 				<exclude>/.svn$</exclude>

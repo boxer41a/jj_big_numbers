@@ -171,14 +171,14 @@ feature {NONE} -- Implementation
 --			Result.compare_objects
 		end
 
-feature -- export for testing
+--feature -- export for testing
 
-	random: JJ_NATURAL_8_RNG
-			-- Used to generate random numbers for placement into Current.
-			-- Deferred, because need to produce the correct type.
-		once
-			create Result
-		end
+--	random: JJ_NATURAL_8_RNG
+--			-- Used to generate random numbers for placement into Current.
+--			-- Deferred, because need to produce the correct type.
+--		once
+--			create Result
+--		end
 
 feature {NONE} -- Implementtion
 
